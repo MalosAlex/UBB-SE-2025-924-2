@@ -1,8 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Data;
 using BusinessLayer.Data;
 using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Repositories.Interfaces;
+using BusinessLayer.Exceptions;
 
 namespace BusinessLayer.Repositories
 {
@@ -17,142 +20,246 @@ namespace BusinessLayer.Repositories
 
         public SessionDetails CreateSession(int userId)
         {
-            // Create parameters for the stored procedure
-            string userIdParamName = "@user_id";
-            var parameters = new SqlParameter[]
+            try
             {
-                new SqlParameter(userIdParamName, userId)
-            };
+                const string sqlCommand = @"
+                    -- Delete any existing sessions for this user
+                    DELETE FROM UserSessions WHERE user_id = @user_id;
 
-            // Execute the stored procedure
-            DataTable result = dataLink.ExecuteReader("CreateSession", parameters);
+                    -- Create new session with 2-hour expiration
+                    INSERT INTO UserSessions (user_id, session_id, created_at, expires_at)
+                    VALUES (
+                        @user_id,
+                        NEWID(),
+                        GETDATE(),
+                        DATEADD(HOUR, 2, GETDATE())
+                    );
 
-            // Process the result
-            if (result.Rows.Count > 0)
-            {
-                DataRow row = result.Rows[0];
-                Guid sessionId = (Guid)row["session_id"];
-                int userIdFromRow = (int)row["user_id"];
-                DateTime createdAt = (DateTime)row["created_at"];
-                DateTime expiresAt = (DateTime)row["expires_at"];
+                    -- Return the session details
+                    SELECT
+                        us.session_id,
+                        us.user_id,
+                        us.created_at,
+                        us.expires_at
+                    FROM UserSessions us
+                    WHERE us.user_id = @user_id;";
 
-                return new SessionDetails
+                var parameters = new SqlParameter[]
                 {
-                    SessionId = sessionId,
-                    UserId = userIdFromRow,
-                    CreatedAt = createdAt,
-                    ExpiresAt = expiresAt
+                    new SqlParameter("@user_id", userId)
                 };
-            }
 
-            throw new InvalidOperationException("Failed to create session");
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+
+                if (result.Rows.Count > 0)
+                {
+                    DataRow row = result.Rows[0];
+                    return new SessionDetails
+                    {
+                        SessionId = (Guid)row["session_id"],
+                        UserId = (int)row["user_id"],
+                        CreatedAt = (DateTime)row["created_at"],
+                        ExpiresAt = (DateTime)row["expires_at"]
+                    };
+                }
+
+                throw new RepositoryException("Failed to create session");
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException($"Failed to create session for user ID {userId}.", exception);
+            }
         }
 
         public void DeleteUserSessions(int userId)
         {
-            string userIdParamName = "@user_id";
-            var parameters = new SqlParameter[]
+            try
             {
-                new SqlParameter(userIdParamName, userId)
-            };
+                const string sqlCommand = @"
+                    DELETE FROM UserSessions 
+                    WHERE user_id = @user_id;";
 
-            dataLink.ExecuteNonQuery("DeleteUserSessions", parameters);
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@user_id", userId)
+                };
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException($"Failed to delete sessions for user ID {userId}.", exception);
+            }
         }
 
         public void DeleteSession(Guid sessionId)
         {
-            string sessionIdParamName = "@session_id";
-            var parameters = new SqlParameter[]
+            try
             {
-                new SqlParameter(sessionIdParamName, sessionId)
-            };
+                const string sqlCommand = @"
+                    DELETE FROM UserSessions 
+                    WHERE session_id = @session_id;";
 
-            dataLink.ExecuteNonQuery("DeleteSession", parameters);
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@session_id", sessionId)
+                };
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException($"Failed to delete session with ID {sessionId}.", exception);
+            }
         }
 
         public SessionDetails GetSessionById(Guid sessionId)
         {
-            string sessionIdParamName = "@session_id";
-            var parameters = new SqlParameter[]
+            try
             {
-                new SqlParameter(sessionIdParamName, sessionId)
-            };
+                const string sqlCommand = @"
+                    SELECT 
+                        session_id, 
+                        user_id, 
+                        created_at, 
+                        expires_at
+                    FROM UserSessions
+                    WHERE session_id = @session_id;";
 
-            DataTable result = dataLink.ExecuteReader("GetSessionById", parameters);
-
-            if (result.Rows.Count > 0)
-            {
-                DataRow row = result.Rows[0];
-                Guid sessionIdFromRow = (Guid)row["session_id"];
-                int userId = (int)row["user_id"];
-                DateTime createdAt = (DateTime)row["created_at"];
-                DateTime expiresAt = (DateTime)row["expires_at"];
-
-                return new SessionDetails
+                var parameters = new SqlParameter[]
                 {
-                    SessionId = sessionIdFromRow,
-                    UserId = userId,
-                    CreatedAt = createdAt,
-                    ExpiresAt = expiresAt
+                    new SqlParameter("@session_id", sessionId)
                 };
-            }
 
-            return null;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+
+                if (result.Rows.Count > 0)
+                {
+                    DataRow row = result.Rows[0];
+                    return new SessionDetails
+                    {
+                        SessionId = (Guid)row["session_id"],
+                        UserId = (int)row["user_id"],
+                        CreatedAt = (DateTime)row["created_at"],
+                        ExpiresAt = (DateTime)row["expires_at"]
+                    };
+                }
+
+                return null;
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException($"Failed to get session with ID {sessionId}.", exception);
+            }
         }
 
         public UserWithSessionDetails GetUserFromSession(Guid sessionId)
         {
-            string sessionIdParamName = "@session_id";
-            var parameters = new SqlParameter[]
+            try
             {
-                new SqlParameter(sessionIdParamName, sessionId)
-            };
+                const string sqlCommand = @"
+                    -- Check if session exists and is not expired
+                    IF EXISTS (
+                        SELECT 1 
+                        FROM UserSessions 
+                        WHERE session_id = @session_id 
+                        AND expires_at > GETDATE()
+                    )
+                    BEGIN
+                        -- Return user details
+                        SELECT
+                            us.session_id,
+                            us.created_at,
+                            us.expires_at,
+                            u.user_id,
+                            u.username,
+                            u.email,
+                            u.developer,
+                            u.created_at,
+                            u.last_login
+                        FROM UserSessions us
+                        JOIN Users u ON us.user_id = u.user_id
+                        WHERE us.session_id = @session_id;
+                    END
+                    ELSE
+                    BEGIN
+                        -- If session is expired or doesn't exist, delete it
+                        DELETE FROM UserSessions WHERE session_id = @session_id;
+                        SELECT TOP 0 * FROM Users; -- Return empty result set
+                    END";
 
-            DataTable result = dataLink.ExecuteReader("GetUserFromSession", parameters);
-
-            if (result.Rows.Count > 0)
-            {
-                DataRow row = result.Rows[0];
-                Guid sessionIdFromRow = sessionId;
-                DateTime createdAt = (DateTime)row["created_at"];
-                DateTime expiresAt = (DateTime)row["expires_at"];
-                int userId = (int)row["user_id"];
-                string username = (string)row["username"];
-                string email = (string)row["email"];
-                bool developer = (bool)row["developer"];
-                DateTime userCreatedAt = (DateTime)row["created_at"];
-                DateTime? lastLogin = row["last_login"] == DBNull.Value ? null : (DateTime?)row["last_login"];
-
-                return new UserWithSessionDetails
+                var parameters = new SqlParameter[]
                 {
-                    SessionId = sessionIdFromRow,
-                    CreatedAt = createdAt,
-                    ExpiresAt = expiresAt,
-                    UserId = userId,
-                    Username = username,
-                    Email = email,
-                    Developer = developer,
-                    UserCreatedAt = userCreatedAt,
-                    LastLogin = lastLogin
+                    new SqlParameter("@session_id", sessionId)
                 };
-            }
 
-            return null;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+
+                if (result.Rows.Count > 0)
+                {
+                    DataRow row = result.Rows[0];
+                    return new UserWithSessionDetails
+                    {
+                        SessionId = sessionId,
+                        CreatedAt = (DateTime)row["created_at"],
+                        ExpiresAt = (DateTime)row["expires_at"],
+                        UserId = (int)row["user_id"],
+                        Username = (string)row["username"],
+                        Email = (string)row["email"],
+                        Developer = (bool)row["developer"],
+                        UserCreatedAt = (DateTime)row["created_at"],
+                        LastLogin = row["last_login"] == DBNull.Value ? null : (DateTime?)row["last_login"]
+                    };
+                }
+
+                return null;
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException($"Failed to get user from session with ID {sessionId}.", exception);
+            }
         }
 
         public List<Guid> GetExpiredSessions()
         {
-            var expiredSessions = new List<Guid>();
-
-            DataTable result = dataLink.ExecuteReader("GetExpiredSessions", null);
-
-            foreach (DataRow row in result.Rows)
+            try
             {
-                Guid sessionId = (Guid)row["session_id"];
-                expiredSessions.Add(sessionId);
-            }
+                const string sqlCommand = @"
+                    SELECT session_id
+                    FROM UserSessions
+                    WHERE expires_at < GETDATE();";
 
-            return expiredSessions;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand);
+                var expiredSessions = new List<Guid>();
+
+                foreach (DataRow row in result.Rows)
+                {
+                    Guid sessionId = (Guid)row["session_id"];
+                    expiredSessions.Add(sessionId);
+                }
+
+                return expiredSessions;
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException("Failed to get expired sessions.", exception);
+            }
+        }
+
+        public void CleanupExpiredSessions()
+        {
+            try
+            {
+                const string sqlCommand = @"
+                    DELETE FROM UserSessions 
+                    WHERE expires_at < GETDATE();";
+
+                dataLink.ExecuteNonQuerySql(sqlCommand);
+            }
+            catch (DatabaseOperationException exception)
+            {
+                throw new RepositoryException("Failed to clean up expired sessions.", exception);
+            }
         }
     }
 }
