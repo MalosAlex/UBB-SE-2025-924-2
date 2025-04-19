@@ -1,0 +1,15 @@
+﻿/.vs/
+/.idea/
+SteamProfile/.vs/
+SteamProfile/.idea/
+BusinessLayer/bin/
+Tests/bin/
+SteamProfile/bin/
+
+BusinessLayer/obj/
+Tests/obj/
+SteamProfile/obj/
+*.user
+*.suo
+*.cache
+*.bin
