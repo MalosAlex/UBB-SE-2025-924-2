@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Data;
+using System.Threading.Tasks;
 using BusinessLayer.Exceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,23 @@ namespace BusinessLayer.Data
 
         private const string ExecuteNonQueryAsyncErrorMessage = "Database error during ExecuteNonQueryAsync operation: ";
         private const string ExecuteNonQueryAsyncUnexpectedErrorMessage = "Error during ExecuteNonQueryAsync operation: ";
+
+        // New constants for SQL direct execution error messages
+        private const string ExecuteScalarSqlErrorMessage = "Database error during ExecuteScalarSql operation: ";
+        private const string ExecuteScalarSqlCastErrorMessage = "Error during ExecuteScalarSql operation: ";
+        private const string ExecuteScalarSqlUnexpectedErrorMessage = "Unexpected error during ExecuteScalarSql operation: ";
+
+        private const string ExecuteReaderSqlErrorMessage = "Database error during ExecuteReaderSql operation: ";
+        private const string ExecuteReaderSqlUnexpectedErrorMessage = "Error during ExecuteReaderSql operation: ";
+
+        private const string ExecuteNonQuerySqlErrorMessage = "Database error during ExecuteNonQuerySql operation: ";
+        private const string ExecuteNonQuerySqlUnexpectedErrorMessage = "Error during ExecuteNonQuerySql operation: ";
+
+        private const string ExecuteReaderSqlAsyncErrorMessage = "Database error during ExecuteReaderSqlAsync operation: ";
+        private const string ExecuteReaderSqlAsyncUnexpectedErrorMessage = "Error during ExecuteReaderSqlAsync operation: ";
+
+        private const string ExecuteNonQuerySqlAsyncErrorMessage = "Database error during ExecuteNonQuerySqlAsync operation: ";
+        private const string ExecuteNonQuerySqlAsyncUnexpectedErrorMessage = "Error during ExecuteNonQuerySqlAsync operation: ";
 
         private const bool UseIntegratedSecurity = true;
         private const bool TrustServerCertificate = true;
@@ -95,6 +113,7 @@ namespace BusinessLayer.Data
             return new SqlConnection(connectionString);
         }
 
+        #region Stored Procedure Methods
         public T? ExecuteScalar<T>(string storedProcedure, SqlParameter[]? sqlParameters = null)
         {
             try
@@ -258,6 +277,173 @@ namespace BusinessLayer.Data
                 throw new DatabaseOperationException(ExecuteNonQueryAsyncUnexpectedErrorMessage + exception.Message, exception);
             }
         }
+        #endregion
+
+        #region Direct SQL Methods
+        public T? ExecuteScalarSql<T>(string sqlCommand, SqlParameter[]? sqlParameters = null)
+        {
+            try
+            {
+                using var connection = CreateConnection();
+                using var command = new SqlCommand(sqlCommand, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                if (sqlParameters != null)
+                {
+                    command.Parameters.AddRange(sqlParameters);
+                }
+
+                connection.Open();
+                var result = command.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                {
+                    return default;
+                }
+
+                if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    return (T)Convert.ChangeType(result, Nullable.GetUnderlyingType(typeof(T))!);
+                }
+
+                return (T)Convert.ChangeType(result, typeof(T));
+            }
+            catch (SqlException exception)
+            {
+                throw new DatabaseOperationException(ExecuteScalarSqlErrorMessage + exception.Message, exception);
+            }
+            catch (InvalidCastException exception)
+            {
+                throw new DatabaseOperationException(ExecuteScalarSqlCastErrorMessage + exception.Message, exception);
+            }
+            catch (Exception exception)
+            {
+                throw new DatabaseOperationException(ExecuteScalarSqlUnexpectedErrorMessage + exception.Message, exception);
+            }
+        }
+
+        public DataTable ExecuteReaderSql(string sqlCommand, SqlParameter[]? sqlParameters = null)
+        {
+            try
+            {
+                using var connection = CreateConnection();
+                connection.Open();
+
+                using var command = new SqlCommand(sqlCommand, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                if (sqlParameters != null)
+                {
+                    command.Parameters.AddRange(sqlParameters);
+                }
+
+                using var reader = command.ExecuteReader();
+                var dataTable = new DataTable();
+                dataTable.Load(reader);
+                return dataTable;
+            }
+            catch (SqlException exception)
+            {
+                throw new DatabaseOperationException(ExecuteReaderSqlErrorMessage + exception.Message, exception);
+            }
+            catch (Exception exception)
+            {
+                throw new DatabaseOperationException(ExecuteReaderSqlUnexpectedErrorMessage + exception.Message, exception);
+            }
+        }
+
+        public int ExecuteNonQuerySql(string sqlCommand, SqlParameter[]? sqlParameters = null)
+        {
+            try
+            {
+                using var connection = CreateConnection();
+                connection.Open();
+
+                using var command = new SqlCommand(sqlCommand, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                if (sqlParameters != null)
+                {
+                    command.Parameters.AddRange(sqlParameters);
+                }
+
+                return command.ExecuteNonQuery();
+            }
+            catch (SqlException exception)
+            {
+                throw new DatabaseOperationException(ExecuteNonQuerySqlErrorMessage + exception.Message, exception);
+            }
+            catch (Exception exception)
+            {
+                throw new DatabaseOperationException(ExecuteNonQuerySqlUnexpectedErrorMessage + exception.Message, exception);
+            }
+        }
+
+        public async Task<DataTable> ExecuteReaderSqlAsync(string sqlCommand, SqlParameter[]? sqlParameters = null)
+        {
+            try
+            {
+                using var connection = new SqlConnection(connectionString);
+                using var command = new SqlCommand(sqlCommand, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                if (sqlParameters != null)
+                {
+                    command.Parameters.AddRange(sqlParameters);
+                }
+
+                await connection.OpenAsync();
+                using var reader = await command.ExecuteReaderAsync();
+                var dataTable = new DataTable();
+                dataTable.Load(reader);
+                return dataTable;
+            }
+            catch (SqlException exception)
+            {
+                throw new DatabaseOperationException(ExecuteReaderSqlAsyncErrorMessage + exception.Message, exception);
+            }
+            catch (Exception exception)
+            {
+                throw new DatabaseOperationException(ExecuteReaderSqlAsyncUnexpectedErrorMessage + exception.Message, exception);
+            }
+        }
+
+        public async Task ExecuteNonQuerySqlAsync(string sqlCommand, SqlParameter[]? sqlParameters = null)
+        {
+            try
+            {
+                using var connection = new SqlConnection(connectionString);
+                using var command = new SqlCommand(sqlCommand, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                if (sqlParameters != null)
+                {
+                    command.Parameters.AddRange(sqlParameters);
+                }
+
+                await connection.OpenAsync();
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (SqlException exception)
+            {
+                throw new DatabaseOperationException(ExecuteNonQuerySqlAsyncErrorMessage + exception.Message, exception);
+            }
+            catch (Exception exception)
+            {
+                throw new DatabaseOperationException(ExecuteNonQuerySqlAsyncUnexpectedErrorMessage + exception.Message, exception);
+            }
+        }
+        #endregion
 
         public void Dispose()
         {

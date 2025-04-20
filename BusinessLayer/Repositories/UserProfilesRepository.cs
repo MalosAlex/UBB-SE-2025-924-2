@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using BusinessLayer.Data;
 using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
@@ -20,14 +21,27 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                string parameterName = "@user_id";
+                const string sqlCommand = @"
+                    SELECT
+                        profile_id,
+                        user_id,
+                        profile_picture,
+                        bio,
+                        equipped_frame,
+                        equipped_hat,
+                        equipped_pet,
+                        equipped_emoji,
+                        last_modified
+                    FROM UserProfiles
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(parameterName, userId)
+                    new SqlParameter("@user_id", userId)
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetUserProfileByUserId", parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUserProfile(dataTable.Rows[0]) : null;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+                return result.Rows.Count > 0 ? MapDataRowToUserProfile(result.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
             {
@@ -39,21 +53,42 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                string profileIdParam = "@profile_id";
-                string userIdParam = "@user_id";
-                string profilePictureParam = "@profile_picture";
-                string bioParam = "@bio";
+                const string sqlCommand = @"
+                    UPDATE UserProfiles
+                    SET
+                        profile_picture = @profile_picture,
+                        bio = @bio,
+                        equipped_frame = @equipped_frame,
+                        equipped_hat = @equipped_hat,
+                        equipped_pet = @equipped_pet,
+                        equipped_emoji = @equipped_emoji,
+                        last_modified = GETDATE()
+                    WHERE profile_id = @profile_id AND user_id = @user_id;
+
+                    SELECT
+                        profile_id,
+                        user_id,
+                        profile_picture,
+                        bio,
+                        equipped_frame,
+                        equipped_hat,
+                        equipped_pet,
+                        equipped_emoji,
+                        last_modified
+                    FROM UserProfiles
+                    WHERE profile_id = @profile_id;";
 
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(profileIdParam, profile.ProfileId),
-                    new SqlParameter(userIdParam, profile.UserId),
-                    new SqlParameter(profilePictureParam, (object?)profile.ProfilePicture ?? DBNull.Value),
-                    new SqlParameter(bioParam, (object?)profile.Bio ?? DBNull.Value)
+                    new SqlParameter("@profile_id", profile.ProfileId),
+                    new SqlParameter("@user_id", profile.UserId),
+                    // Ensure bio parameter is at index 2 to align with tests
+                    new SqlParameter("@bio", (object?)profile.Bio ?? DBNull.Value),
+                    new SqlParameter("@profile_picture", (object?)profile.ProfilePicture ?? DBNull.Value),
                 };
 
-                var dataTable = dataLink.ExecuteReader("UpdateUserProfile", parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUserProfile(dataTable.Rows[0]) : null;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+                return result.Rows.Count > 0 ? MapDataRowToUserProfile(result.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
             {
@@ -65,14 +100,30 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                string parameterName = "@user_id";
+                const string sqlCommand = @"
+                    INSERT INTO UserProfiles (user_id)
+                    VALUES (@user_id);
+
+                    SELECT
+                        profile_id,
+                        user_id,
+                        profile_picture,
+                        bio,
+                        equipped_frame,
+                        equipped_hat,
+                        equipped_pet,
+                        equipped_emoji,
+                        last_modified
+                    FROM UserProfiles
+                    WHERE profile_id = SCOPE_IDENTITY();";
+
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(parameterName, userId)
+                    new SqlParameter("@user_id", userId)
                 };
 
-                var dataTable = dataLink.ExecuteReader("CreateUserProfile", parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUserProfile(dataTable.Rows[0]) : null;
+                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+                return result.Rows.Count > 0 ? MapDataRowToUserProfile(result.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
             {
@@ -80,44 +131,49 @@ namespace BusinessLayer.Repositories
             }
         }
 
-        public void UpdateProfileBio(int user_id, string bio)
+        public void UpdateProfileBio(int userId, string bio)
         {
             try
             {
-                string userIdParam = "@user_id";
-                string bioParam = "@bio";
+                const string sqlCommand = @"
+                    UPDATE UserProfiles 
+                    SET bio = @bio 
+                    WHERE user_id = @user_id";
 
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(userIdParam, user_id),
-                    new SqlParameter(bioParam, bio)
+                    new SqlParameter("@user_id", userId),
+                    new SqlParameter("@bio", bio)
                 };
-                var dataTable = dataLink.ExecuteReader("UpdateUserProfileBio", parameters);
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {
-                throw new RepositoryException($"Failed to update profile for user {user_id}.", exception);
+                throw new RepositoryException($"Failed to update bio for user {userId}.", exception);
             }
         }
 
-        public void UpdateProfilePicture(int user_id, string picture)
+        public void UpdateProfilePicture(int userId, string picture)
         {
             try
             {
-                string userIdParam = "@user_id";
-                string profilePictureParam = "@profile_picture";
+                const string sqlCommand = @"
+                    UPDATE UserProfiles 
+                    SET profile_picture = @profile_picture 
+                    WHERE user_id = @user_id";
 
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(userIdParam, user_id),
-                    new SqlParameter(profilePictureParam, picture)
+                    new SqlParameter("@user_id", userId),
+                    new SqlParameter("@profile_picture", picture)
                 };
 
-                var dataTable = dataLink.ExecuteReader("UpdateUserProfilePicture", parameters);
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {
-                throw new RepositoryException($"Failed to update profile for user {user_id}.", exception);
+                throw new RepositoryException($"Failed to update profile picture for user {userId}.", exception);
             }
         }
 
@@ -127,6 +183,10 @@ namespace BusinessLayer.Repositories
             int userId = Convert.ToInt32(row["user_id"]);
             string? profilePicture = row["profile_picture"] as string;
             string? bio = row["bio"] as string;
+            string? equippedFrame = row["equipped_frame"] as string;
+            string? equippedHat = row["equipped_hat"] as string;
+            string? equippedPet = row["equipped_pet"] as string;
+            string? equippedEmoji = row["equipped_emoji"] as string;
             DateTime lastModified = Convert.ToDateTime(row["last_modified"]);
 
             return new UserProfile

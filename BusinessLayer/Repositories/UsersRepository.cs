@@ -21,7 +21,18 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var dataTable = dataLink.ExecuteReader("GetAllUsers");
+                const string sqlCommand = @"
+                    SELECT
+                        user_id,
+                        username,
+                        email,
+                        developer,
+                        created_at,
+                        last_login
+                    FROM Users
+                    ORDER BY username;";
+
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand);
                 return MapDataTableToUsers(dataTable);
             }
             catch (DatabaseOperationException exception)
@@ -34,12 +45,23 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    SELECT
+                        user_id,
+                        username,
+                        email,
+                        developer,
+                        created_at,
+                        last_login
+                    FROM Users
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId)
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetUserById", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
@@ -52,6 +74,24 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    UPDATE Users
+                    SET
+                        email = @email,
+                        username = @username,
+                        developer = @developer
+                    WHERE user_id = @user_id;
+                    
+                    SELECT
+                        user_id,
+                        username,
+                        email,
+                        developer,
+                        created_at,
+                        last_login
+                    FROM Users
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", user.UserId),
@@ -60,7 +100,7 @@ namespace BusinessLayer.Repositories
                     new SqlParameter("@developer", user.IsDeveloper)
                 };
 
-                var dataTable = dataLink.ExecuteReader("UpdateUser", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 if (dataTable.Rows.Count == 0)
                 {
                     throw new RepositoryException($"User with ID {user.UserId} not found.");
@@ -78,6 +118,21 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    INSERT INTO Users (username, email, hashed_password, developer)
+                    VALUES (@username, @email, @hashed_password, @developer);
+                    
+                    SELECT
+                        user_id,
+                        username,
+                        email,
+                        hashed_password,
+                        developer,
+                        created_at,
+                        last_login
+                    FROM Users
+                    WHERE user_id = SCOPE_IDENTITY();";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@email", user.Email),
@@ -86,7 +141,7 @@ namespace BusinessLayer.Repositories
                     new SqlParameter("@developer", user.IsDeveloper)
                 };
 
-                var dataTable = dataLink.ExecuteReader("CreateUser", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 if (dataTable.Rows.Count == 0)
                 {
                     throw new RepositoryException("Failed to create user.");
@@ -104,12 +159,20 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                // First delete friendships for the user, then delete the user
+                const string sqlCommand = @"
+                    -- First delete friendships
+                    DELETE FROM Friendships WHERE user_id1 = @user_id OR user_id2 = @user_id;
+                    
+                    -- Then delete the user
+                    DELETE FROM Users WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId)
                 };
 
-                dataLink.ExecuteNonQuery("DeleteUser", parameters);
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException ex)
             {
@@ -121,12 +184,24 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    SELECT 
+                        user_id, 
+                        username, 
+                        email, 
+                        hashed_password, 
+                        developer, 
+                        created_at, 
+                        last_login
+                    FROM Users
+                    WHERE username = @EmailOrUsername OR email = @EmailOrUsername;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@EmailOrUsername", emailOrUsername),
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetUserByEmailOrUsername", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
 
                 if (dataTable.Rows.Count > 0)
                 {
@@ -146,12 +221,24 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    SELECT 
+                        user_id, 
+                        username, 
+                        email, 
+                        hashed_password, 
+                        developer, 
+                        created_at, 
+                        last_login
+                    FROM Users
+                    WHERE email = @email;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@email", email)
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetUserByEmail", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
@@ -164,12 +251,24 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    SELECT 
+                        user_id, 
+                        username, 
+                        email, 
+                        hashed_password, 
+                        developer, 
+                        created_at, 
+                        last_login
+                    FROM Users
+                    WHERE username = @username;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@username", username)
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetUserByUsername", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
             }
             catch (DatabaseOperationException exception)
@@ -182,13 +281,21 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    SELECT
+                        CASE
+                            WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @email) THEN 'EMAIL_EXISTS'
+                            WHEN EXISTS (SELECT 1 FROM Users WHERE Username = @username) THEN 'USERNAME_EXISTS'
+                            ELSE NULL
+                        END AS ErrorType;";
+
                 var parameters = new SqlParameter[]
                 {
-            new SqlParameter("@email", email),
-            new SqlParameter("@username", username)
+                    new SqlParameter("@email", email),
+                    new SqlParameter("@username", username)
                 };
 
-                var dataTable = dataLink.ExecuteReader("CheckUserExists", parameters);
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 if (dataTable.Rows.Count > 0)
                 {
                     var errorType = dataTable.Rows[0]["ErrorType"];
@@ -206,44 +313,64 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    UPDATE Users
+                    SET email = @newEmail
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId),
                     new SqlParameter("@newEmail", newEmail)
                 };
-                dataLink.ExecuteNonQuery("ChangeEmailForUserId", parameters);
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {
                 throw new RepositoryException($"Failed to change email for user ID {userId}.", exception);
             }
         }
+
         public void ChangePassword(int userId, string newPassword)
         {
             try
             {
+                const string sqlCommand = @"
+                    UPDATE Users 
+                    SET hashed_password = @newHashedPassword 
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId),
                     new SqlParameter("@newHashedPassword", PasswordHasher.HashPassword(newPassword))
                 };
-                dataLink.ExecuteNonQuery("ChangePassword", parameters);
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {
                 throw new RepositoryException($"Failed to change password for user ID {userId}.", exception);
             }
         }
+
         public void ChangeUsername(int userId, string newUsername)
         {
             try
             {
+                const string sqlCommand = @"
+                    UPDATE Users 
+                    SET username = @newUsername 
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId),
                     new SqlParameter("@newUsername", newUsername)
                 };
-                dataLink.ExecuteNonQuery("ChangeUsername", parameters);
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {
@@ -255,12 +382,27 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+                    UPDATE Users
+                    SET last_login = GETDATE()
+                    WHERE user_id = @user_id;
+                    
+                    SELECT
+                        user_id,
+                        username,
+                        email,
+                        developer,
+                        created_at,
+                        last_login
+                    FROM Users
+                    WHERE user_id = @user_id;";
+
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@user_id", userId)
                 };
 
-                dataLink.ExecuteNonQuery("UpdateLastLogin", parameters);
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
             catch (DatabaseOperationException exception)
             {

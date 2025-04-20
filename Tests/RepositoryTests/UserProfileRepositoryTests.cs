@@ -38,15 +38,21 @@ namespace Tests.RepositoryTests
             var profileId = 101; // Example profile ID
 
             var dataTable = new DataTable();
-            dataTable.Columns.Add("profile_id", typeof(int)); // Add the missing column
+            dataTable.Columns.Add("profile_id", typeof(int));
             dataTable.Columns.Add("user_id", typeof(int));
             dataTable.Columns.Add("bio", typeof(string));
             dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
             dataTable.Columns.Add("last_modified", typeof(DateTime));
-            dataTable.Rows.Add(profileId, userId, "Test Bio", "TestPicture.jpg", DateTime.Now);
+            dataTable.Rows.Add(profileId, userId, "Test Bio", "TestPicture.jpg", null, null, null, null, DateTime.Now);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserProfileByUserId", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("SELECT") && sql.Contains("FROM UserProfiles")),
+                    It.Is<SqlParameter[]>(parameters => parameters.Length == 1 && (int)parameters[0].Value == userId)))
                 .Returns(dataTable);
 
             // Act
@@ -54,6 +60,10 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.ProfileId, Is.EqualTo(profileId));
+            Assert.That(result.UserId, Is.EqualTo(userId));
+            Assert.That(result.Bio, Is.EqualTo("Test Bio"));
+            Assert.That(result.ProfilePicture, Is.EqualTo("TestPicture.jpg"));
         }
 
         [Test]
@@ -62,9 +72,21 @@ namespace Tests.RepositoryTests
             // Arrange
             var userId = 1;
             var dataTable = new DataTable();
+            dataTable.Columns.Add("profile_id", typeof(int));
+            dataTable.Columns.Add("user_id", typeof(int));
+            dataTable.Columns.Add("bio", typeof(string));
+            dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
+            dataTable.Columns.Add("last_modified", typeof(DateTime));
 
+            // No rows added
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserProfileByUserId", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("SELECT") && sql.Contains("FROM UserProfiles")),
+                    It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -81,7 +103,9 @@ namespace Tests.RepositoryTests
             var userId = 1;
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserProfileByUserId", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.IsAny<string>(),
+                    It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database Error"));
 
             // Act & Assert
@@ -97,18 +121,25 @@ namespace Tests.RepositoryTests
                 ProfileId = 1,
                 UserId = 1,
                 Bio = "Test Bio",
+                ProfilePicture = "test.jpg"
             };
 
             var dataTable = new DataTable();
-            dataTable.Columns.Add("profile_id", typeof(int)); // Add the missing column
+            dataTable.Columns.Add("profile_id", typeof(int));
             dataTable.Columns.Add("user_id", typeof(int));
             dataTable.Columns.Add("bio", typeof(string));
             dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
             dataTable.Columns.Add("last_modified", typeof(DateTime));
-            dataTable.Rows.Add(profile.ProfileId, profile.UserId, profile.Bio, "TestPicture.jpg", DateTime.Now);
+            dataTable.Rows.Add(profile.ProfileId, profile.UserId, profile.Bio, profile.ProfilePicture, null, null, null, null, DateTime.Now);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("UPDATE UserProfiles") && sql.Contains("SELECT")),
+                    It.Is<SqlParameter[]>(parameters => parameters.Length == 4)))
                 .Returns(dataTable);
 
             // Act
@@ -116,6 +147,10 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.ProfileId, Is.EqualTo(profile.ProfileId));
+            Assert.That(result.UserId, Is.EqualTo(profile.UserId));
+            Assert.That(result.Bio, Is.EqualTo(profile.Bio));
+            Assert.That(result.ProfilePicture, Is.EqualTo(profile.ProfilePicture));
         }
 
         [Test]
@@ -130,9 +165,21 @@ namespace Tests.RepositoryTests
             };
 
             var dataTable = new DataTable();
+            dataTable.Columns.Add("profile_id", typeof(int));
+            dataTable.Columns.Add("user_id", typeof(int));
+            dataTable.Columns.Add("bio", typeof(string));
+            dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
+            dataTable.Columns.Add("last_modified", typeof(DateTime));
 
+            // No rows added
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("UPDATE UserProfiles")),
+                    It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -154,7 +201,9 @@ namespace Tests.RepositoryTests
             };
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.IsAny<string>(),
+                    It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database Error"));
 
             // Act & Assert
@@ -178,11 +227,19 @@ namespace Tests.RepositoryTests
             dataTable.Columns.Add("user_id", typeof(int));
             dataTable.Columns.Add("bio", typeof(string));
             dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
             dataTable.Columns.Add("last_modified", typeof(DateTime));
-            dataTable.Rows.Add(profile.ProfileId, profile.UserId, DBNull.Value, "pic.png", DateTime.Now);
+            dataTable.Rows.Add(profile.ProfileId, profile.UserId, DBNull.Value, profile.ProfilePicture, null, null, null, null, DateTime.Now);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("UPDATE UserProfiles")),
+                    It.Is<SqlParameter[]>(parameters =>
+                        parameters.Length == 4 &&
+                        parameters[2].Value == DBNull.Value)))
                 .Returns(dataTable);
 
             // Act
@@ -190,37 +247,7 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
-        }
-
-        [Test]
-        public void UpdateProfile_WithProfilePicture_SetsProfilePictureParam()
-        {
-            // Arrange
-            var profile = new UserProfile
-            {
-                ProfileId = 1,
-                UserId = 1,
-                Bio = "Test Bio",
-                ProfilePicture = "pic.png"
-            };
-
-            var dataTable = new DataTable();
-            dataTable.Columns.Add("profile_id", typeof(int));
-            dataTable.Columns.Add("user_id", typeof(int));
-            dataTable.Columns.Add("bio", typeof(string));
-            dataTable.Columns.Add("profile_picture", typeof(string));
-            dataTable.Columns.Add("last_modified", typeof(DateTime));
-            dataTable.Rows.Add(profile.ProfileId, profile.UserId, profile.Bio, profile.ProfilePicture, DateTime.Now);
-
-            mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfile", It.IsAny<SqlParameter[]>()))
-                .Returns(dataTable);
-
-            // Act
-            var result = userProfileRepository.UpdateProfile(profile);
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Bio, Is.Null);
         }
 
         [Test]
@@ -231,15 +258,21 @@ namespace Tests.RepositoryTests
             var profileId = 101; // Example profile ID
 
             var dataTable = new DataTable();
-            dataTable.Columns.Add("profile_id", typeof(int)); // Add the missing column
+            dataTable.Columns.Add("profile_id", typeof(int));
             dataTable.Columns.Add("user_id", typeof(int));
             dataTable.Columns.Add("bio", typeof(string));
             dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
             dataTable.Columns.Add("last_modified", typeof(DateTime));
-            dataTable.Rows.Add(profileId, userId, "Test Bio", "TestPicture.jpg", DateTime.Now);
+            dataTable.Rows.Add(profileId, userId, null, null, null, null, null, null, DateTime.Now);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("CreateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("INSERT INTO UserProfiles") && sql.Contains("SCOPE_IDENTITY()")),
+                    It.Is<SqlParameter[]>(parameters => parameters.Length == 1 && (int)parameters[0].Value == userId)))
                 .Returns(dataTable);
 
             // Act
@@ -247,6 +280,8 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.ProfileId, Is.EqualTo(profileId));
+            Assert.That(result.UserId, Is.EqualTo(userId));
         }
 
         [Test]
@@ -255,9 +290,21 @@ namespace Tests.RepositoryTests
             // Arrange
             var userId = 1;
             var dataTable = new DataTable();
+            dataTable.Columns.Add("profile_id", typeof(int));
+            dataTable.Columns.Add("user_id", typeof(int));
+            dataTable.Columns.Add("bio", typeof(string));
+            dataTable.Columns.Add("profile_picture", typeof(string));
+            dataTable.Columns.Add("equipped_frame", typeof(string));
+            dataTable.Columns.Add("equipped_hat", typeof(string));
+            dataTable.Columns.Add("equipped_pet", typeof(string));
+            dataTable.Columns.Add("equipped_emoji", typeof(string));
+            dataTable.Columns.Add("last_modified", typeof(DateTime));
 
+            // No rows added
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("CreateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.Is<string>(sql => sql.Contains("INSERT INTO UserProfiles")),
+                    It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -274,7 +321,9 @@ namespace Tests.RepositoryTests
             var userId = 1;
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("CreateUserProfile", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(
+                    It.IsAny<string>(),
+                    It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database Error"));
 
             // Act & Assert
@@ -289,11 +338,21 @@ namespace Tests.RepositoryTests
             var bio = "This is a test bio.";
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfileBio", It.IsAny<SqlParameter[]>()))
-                .Returns(new DataTable());
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(
+                    It.Is<string>(sql => sql.Contains("UPDATE UserProfiles") && sql.Contains("SET bio =")),
+                    It.Is<SqlParameter[]>(parameters =>
+                        parameters.Length == 2 &&
+                        (int)parameters[0].Value == userId &&
+                        (string)parameters[1].Value == bio)))
+                .Verifiable();
 
-            // Act & Assert
-            Assert.DoesNotThrow(() => userProfileRepository.UpdateProfileBio(userId, bio));
+            // Act
+            userProfileRepository.UpdateProfileBio(userId, bio);
+
+            // Assert
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(
+                It.Is<string>(sql => sql.Contains("UPDATE UserProfiles") && sql.Contains("SET bio =")),
+                It.IsAny<SqlParameter[]>()), Times.Once);
         }
 
         [Test]
@@ -304,12 +363,14 @@ namespace Tests.RepositoryTests
             var bio = "This is a test bio.";
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfileBio", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(
+                    It.IsAny<string>(),
+                    It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database error"));
 
             // Act & Assert
             var exception = Assert.Throws<RepositoryException>(() => userProfileRepository.UpdateProfileBio(userId, bio));
-            Assert.That(exception.Message, Is.EqualTo($"Failed to update profile for user {userId}."));
+            Assert.That(exception.Message, Is.EqualTo($"Failed to update bio for user {userId}."));
         }
 
         [Test]
@@ -320,11 +381,21 @@ namespace Tests.RepositoryTests
             var picture = "profile_picture_url";
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfilePicture", It.IsAny<SqlParameter[]>()))
-                .Returns(new DataTable());
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(
+                    It.Is<string>(sql => sql.Contains("UPDATE UserProfiles") && sql.Contains("SET profile_picture =")),
+                    It.Is<SqlParameter[]>(parameters =>
+                        parameters.Length == 2 &&
+                        (int)parameters[0].Value == userId &&
+                        (string)parameters[1].Value == picture)))
+                .Verifiable();
 
-            // Act & Assert
-            Assert.DoesNotThrow(() => userProfileRepository.UpdateProfilePicture(userId, picture));
+            // Act
+            userProfileRepository.UpdateProfilePicture(userId, picture);
+
+            // Assert
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(
+                It.Is<string>(sql => sql.Contains("UPDATE UserProfiles") && sql.Contains("SET profile_picture =")),
+                It.IsAny<SqlParameter[]>()), Times.Once);
         }
 
         [Test]
@@ -335,12 +406,14 @@ namespace Tests.RepositoryTests
             var picture = "profile_picture_url";
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("UpdateUserProfilePicture", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(
+                    It.IsAny<string>(),
+                    It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database error"));
 
             // Act & Assert
             var exception = Assert.Throws<RepositoryException>(() => userProfileRepository.UpdateProfilePicture(userId, picture));
-            Assert.That(exception.Message, Is.EqualTo($"Failed to update profile for user {userId}."));
+            Assert.That(exception.Message, Is.EqualTo($"Failed to update profile picture for user {userId}."));
         }
     }
 }

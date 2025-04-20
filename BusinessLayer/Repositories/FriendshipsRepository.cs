@@ -1,7 +1,4 @@
-using System;
 using System.Data;
-using System.Linq;
-using System.Collections.Generic;
 using BusinessLayer.Data;
 using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
@@ -12,22 +9,6 @@ namespace BusinessLayer.Repositories
 {
     public class FriendshipsRepository : IFriendshipsRepository
     {
-        // SQL Parameter Names
-        private const string ParameterUserIdentifier = "@user_id";
-        private const string ParameterFriendIdentifier = "@friend_id";
-        private const string ParameterFriendshipIdentifierCamel = "@friendshipId";
-        private const string ParameterFriendshipIdentifierUnderscore = "@friendship_id";
-
-        // Stored Procedure Names
-        private const string StoredProcedure_GetFriendsForUser = "GetFriendsForUser";
-        private const string StoredProcedure_GetUserByIdentifier = "GetUserById";
-        private const string StoredProcedure_GetUserProfileByUserIdentifier = "GetUserProfileByUserId";
-        private const string StoredProcedure_AddFriend = "AddFriend";
-        private const string StoredProcedure_GetFriendshipByIdentifier = "GetFriendshipById";
-        private const string StoredProcedure_RemoveFriend = "RemoveFriend";
-        private const string StoredProcedure_GetFriendshipCountForUser = "GetFriendshipCountForUser";
-        private const string StoredProcedure_GetFriendshipIdentifier = "GetFriendshipId";
-
         // Error messages
         private const string Error_GetFriendshipsDataBase = "Database error while retrieving friendships.";
         private const string Error_GetFriendshipsUnexpected = "An unexpected error occurred while retrieving friendships.";
@@ -44,13 +25,6 @@ namespace BusinessLayer.Repositories
         private const string Error_GetFriendshipIdentifierDataBase = "Database error while retrieving friendship ID.";
         private const string Error_GetFriendshipIdentifierUnexpected = "An unexpected error occurred while retrieving friendship ID.";
 
-        // Column Names
-        private const string ColumnFriendshipIdentifier = "friendship_id";
-        private const string ColumnUserIdentifier = "user_id";
-        private const string ColumnFriendIdentifier = "friend_id";
-        private const string ColumnUsername = "username";
-        private const string ColumnProfilePicture = "profile_picture";
-
         private readonly IDataLink dataLink;
 
         public FriendshipsRepository(IDataLink dataLink)
@@ -62,53 +36,44 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var storedProcedureParameters = new SqlParameter[]
+                const string sqlCommand = @"
+                    SELECT
+                        f.friendship_id,
+                        f.user_id,
+                        f.friend_id,
+                        u.username as friend_username,
+                        p.profile_picture as friend_profile_picture
+                    FROM Friendships f
+                    JOIN Users u ON f.friend_id = u.user_id
+                    JOIN UserProfiles p ON p.user_id = f.friend_id
+                    WHERE f.user_id = @user_id
+                    ORDER BY u.username";
+
+                var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserIdentifier, userIdentifier)
+                    new SqlParameter("@user_id", userIdentifier)
                 };
 
-                var friendshipDataTable = dataLink.ExecuteReader(StoredProcedure_GetFriendsForUser, storedProcedureParameters);
+                var friendshipDataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
 
                 var listOfFriendships = new List<Friendship>();
                 foreach (DataRow friendshipDataRow in friendshipDataTable.Rows)
                 {
                     var friendship = new Friendship(
-                        friendshipId: Convert.ToInt32(friendshipDataRow[ColumnFriendshipIdentifier]),
-                        userId: Convert.ToInt32(friendshipDataRow[ColumnUserIdentifier]),
-                        friendId: Convert.ToInt32(friendshipDataRow[ColumnFriendIdentifier]));
-
-                    var friendProfileQueryParameters = new SqlParameter[]
+                        friendshipId: Convert.ToInt32(friendshipDataRow["friendship_id"]),
+                        userId: Convert.ToInt32(friendshipDataRow["user_id"]),
+                        friendId: Convert.ToInt32(friendshipDataRow["friend_id"]))
                     {
-                        new SqlParameter(ParameterUserIdentifier, friendship.FriendId)
+                        FriendUsername = friendshipDataRow["friend_username"].ToString(),
+                        FriendProfilePicture = friendshipDataRow["friend_profile_picture"].ToString()
                     };
-
-                    var friendUserProfileDataTable = dataLink.ExecuteReader(StoredProcedure_GetUserByIdentifier, friendProfileQueryParameters);
-                    if (friendUserProfileDataTable.Rows.Count > 0)
-                    {
-                        friendship.FriendUsername = friendUserProfileDataTable.Rows[0][ColumnUsername].ToString();
-
-                        var friendProfilePictureQueryParameters = new SqlParameter[]
-                        {
-                            new SqlParameter(ParameterUserIdentifier, friendship.FriendId)
-                        };
-
-                        var friendUserProfilePictureDataTable = dataLink.ExecuteReader(StoredProcedure_GetUserProfileByUserIdentifier, friendProfilePictureQueryParameters);
-                        if (friendUserProfilePictureDataTable.Rows.Count > 0)
-                        {
-                            friendship.FriendProfilePicture = friendUserProfilePictureDataTable.Rows[0][ColumnProfilePicture].ToString();
-                        }
-                    }
 
                     listOfFriendships.Add(friendship);
                 }
 
-                listOfFriendships = listOfFriendships
-                    .OrderBy(friendship => friendship.FriendUsername)
-                    .ToList();
-
                 return listOfFriendships;
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_GetFriendshipsDataBase, sqlException);
             }
@@ -122,42 +87,64 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var userExistenceCheckParameters = new SqlParameter[]
+                // Check if user exists
+                const string checkUserSql = @"
+                    SELECT COUNT(*) FROM Users WHERE user_id = @user_id";
+
+                var userExistenceParameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserIdentifier, userIdentifier)
-                };
-                var friendExistenceCheckParameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterUserIdentifier, friendUserIdentifier)
+                    new SqlParameter("@user_id", userIdentifier)
                 };
 
-                var userRecordDataTable = dataLink.ExecuteReader(StoredProcedure_GetUserByIdentifier, userExistenceCheckParameters);
-                var friendRecordDataTable = dataLink.ExecuteReader(StoredProcedure_GetUserByIdentifier, friendExistenceCheckParameters);
-
-                if (userRecordDataTable.Rows.Count == 0)
+                var userCount = dataLink.ExecuteScalarSql<int>(checkUserSql, userExistenceParameters);
+                if (userCount == 0)
                 {
                     throw new RepositoryException(string.Format(Error_UserDoesNotExist, userIdentifier));
                 }
 
-                if (friendRecordDataTable.Rows.Count == 0)
+                // Check if friend exists
+                var friendExistenceParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@user_id", friendUserIdentifier)
+                };
+
+                var friendCount = dataLink.ExecuteScalarSql<int>(checkUserSql, friendExistenceParameters);
+                if (friendCount == 0)
                 {
                     throw new RepositoryException(string.Format(Error_UserDoesNotExist, friendUserIdentifier));
                 }
 
-                var existingFriendshipsForUser = GetAllFriendships(userIdentifier);
-                if (existingFriendshipsForUser.Any(existingFriendship => existingFriendship.FriendId == friendUserIdentifier))
+                // Check if friendship already exists
+                const string checkFriendshipSql = @"
+                    SELECT COUNT(*) FROM Friendships 
+                    WHERE user_id = @user_id AND friend_id = @friend_id";
+
+                var checkFriendshipParameters = new SqlParameter[]
+                {
+                    new SqlParameter("@user_id", userIdentifier),
+                    new SqlParameter("@friend_id", friendUserIdentifier)
+                };
+
+                var friendshipCount = dataLink.ExecuteScalarSql<int>(checkFriendshipSql, checkFriendshipParameters);
+                if (friendshipCount > 0)
                 {
                     throw new RepositoryException(Error_FriendshipAlreadyExists);
                 }
 
-                var createFriendshipParameters = new SqlParameter[]
+                // Add friendship
+                const string addFriendshipSql = @"
+                    INSERT INTO Friendships (user_id, friend_id)
+                    VALUES (@user_id, @friend_id)";
+
+                var addFriendshipParameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserIdentifier, userIdentifier),
-                    new SqlParameter(ParameterFriendIdentifier, friendUserIdentifier)
+                    new SqlParameter("@user_id", userIdentifier),
+                    new SqlParameter("@friend_id", friendUserIdentifier)
                 };
-                dataLink.ExecuteNonQuery(StoredProcedure_AddFriend, createFriendshipParameters);
+
+                dataLink.ExecuteNonQuerySql(addFriendshipSql, addFriendshipParameters);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_AddFriendshipDataBase, sqlException);
             }
@@ -175,16 +162,26 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var retrieveFriendshipParameters = new SqlParameter[]
+                const string sqlCommand = @"
+                    SELECT 
+                        friendship_id,
+                        user_id,
+                        friend_id
+                    FROM Friendships
+                    WHERE friendship_id = @friendship_id";
+
+                var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterFriendshipIdentifierCamel, friendshipIdentifier)
+                    new SqlParameter("@friendship_id", friendshipIdentifier)
                 };
-                var friendshipDataTable = dataLink.ExecuteReader(StoredProcedure_GetFriendshipByIdentifier, retrieveFriendshipParameters);
+
+                var friendshipDataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
+
                 return friendshipDataTable.Rows.Count > 0
                     ? MapDataRowToFriendship(friendshipDataTable.Rows[0])
                     : null;
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_GetFriendshipByIdentifierDataBase, sqlException);
             }
@@ -198,13 +195,18 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var deleteFriendshipParameters = new SqlParameter[]
+                const string sqlCommand = @"
+                    DELETE FROM Friendships
+                    WHERE friendship_id = @friendship_id";
+
+                var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterFriendshipIdentifierUnderscore, friendshipIdentifier)
+                    new SqlParameter("@friendship_id", friendshipIdentifier)
                 };
-                dataLink.ExecuteNonQuery(StoredProcedure_RemoveFriend, deleteFriendshipParameters);
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_RemoveFriendshipDataBase, sqlException);
             }
@@ -218,13 +220,19 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var countQueryParameters = new SqlParameter[]
+                const string sqlCommand = @"
+                    SELECT COUNT(*) 
+                    FROM Friendships
+                    WHERE user_id = @user_id";
+
+                var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserIdentifier, userIdentifier)
+                    new SqlParameter("@user_id", userIdentifier)
                 };
-                return dataLink.ExecuteScalar<int>(StoredProcedure_GetFriendshipCountForUser, countQueryParameters);
+
+                return dataLink.ExecuteScalarSql<int>(sqlCommand, parameters);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_GetFriendshipCountDataBase, sqlException);
             }
@@ -238,15 +246,20 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var retrieveFriendshipIdParameters = new SqlParameter[]
+                const string sqlCommand = @"
+                    SELECT friendship_id
+                    FROM Friendships
+                    WHERE user_id = @user_id AND friend_id = @friend_id";
+
+                var parameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserIdentifier, userIdentifier),
-                    new SqlParameter(ParameterFriendIdentifier, friendIdentifier)
+                    new SqlParameter("@user_id", userIdentifier),
+                    new SqlParameter("@friend_id", friendIdentifier)
                 };
-                var friendshipIdentifierResult = dataLink.ExecuteScalar<int?>(StoredProcedure_GetFriendshipIdentifier, retrieveFriendshipIdParameters);
-                return friendshipIdentifierResult;
+
+                return dataLink.ExecuteScalarSql<int?>(sqlCommand, parameters);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException sqlException)
             {
                 throw new RepositoryException(Error_GetFriendshipIdentifierDataBase, sqlException);
             }
@@ -259,9 +272,9 @@ namespace BusinessLayer.Repositories
         private static Friendship MapDataRowToFriendship(DataRow friendshipDataRow)
         {
             return new Friendship(
-                friendshipId: Convert.ToInt32(friendshipDataRow[ColumnFriendshipIdentifier]),
-                userId: Convert.ToInt32(friendshipDataRow[ColumnUserIdentifier]),
-                friendId: Convert.ToInt32(friendshipDataRow[ColumnFriendIdentifier]));
+                friendshipId: Convert.ToInt32(friendshipDataRow["friendship_id"]),
+                userId: Convert.ToInt32(friendshipDataRow["user_id"]),
+                friendId: Convert.ToInt32(friendshipDataRow["friend_id"]));
         }
     }
 }

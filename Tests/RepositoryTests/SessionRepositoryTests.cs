@@ -1,9 +1,12 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using BusinessLayer.Data;
 using BusinessLayer.Repositories;
+using BusinessLayer.Models;
 using Moq;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Exceptions;
+using NUnit.Framework;
 
 namespace Tests.RepositoryTests
 {
@@ -46,7 +49,7 @@ namespace Tests.RepositoryTests
             dataTable.Rows.Add(sessionId, userId, createdAt, expiresAt);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("CreateSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -54,25 +57,43 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.SessionId, Is.EqualTo(sessionId));
+            Assert.That(result.UserId, Is.EqualTo(userId));
+            Assert.That(result.CreatedAt, Is.EqualTo(createdAt));
+            Assert.That(result.ExpiresAt, Is.EqualTo(expiresAt));
         }
 
         [Test]
-        public void CreateSession_NoRows_ThrowsInvalidOperationException()
+        public void CreateSession_NoRows_ThrowsRepositoryException()
         {
             // Arrange
             var userId = 1;
             var dataTable = new DataTable();
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("CreateSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => sessionRepository.CreateSession(userId));
+            Assert.Throws<RepositoryException>(() => sessionRepository.CreateSession(userId));
         }
 
         [Test]
-        public void DeleteUserSessions_ValidUserId_ExecutesNonQuery()
+        public void CreateSession_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            var userId = 1;
+
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.CreateSession(userId));
+        }
+
+        [Test]
+        public void DeleteUserSessions_ValidUserId_ExecutesNonQuerySql()
         {
             // Arrange
             var userId = 1;
@@ -81,11 +102,25 @@ namespace Tests.RepositoryTests
             sessionRepository.DeleteUserSessions(userId);
 
             // Assert
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("DeleteUserSessions", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
         }
 
         [Test]
-        public void DeleteSession_ValidSessionId_ExecutesNonQuery()
+        public void DeleteUserSessions_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            var userId = 1;
+
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.DeleteUserSessions(userId));
+        }
+
+        [Test]
+        public void DeleteSession_ValidSessionId_ExecutesNonQuerySql()
         {
             // Arrange
             var sessionId = Guid.NewGuid();
@@ -94,7 +129,21 @@ namespace Tests.RepositoryTests
             sessionRepository.DeleteSession(sessionId);
 
             // Assert
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("DeleteSession", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
+        }
+
+        [Test]
+        public void DeleteSession_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            var sessionId = Guid.NewGuid();
+
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.DeleteSession(sessionId));
         }
 
         [Test]
@@ -114,7 +163,7 @@ namespace Tests.RepositoryTests
             dataTable.Rows.Add(sessionId, userId, createdAt, expiresAt);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetSessionById", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -122,6 +171,10 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.SessionId, Is.EqualTo(sessionId));
+            Assert.That(result.UserId, Is.EqualTo(userId));
+            Assert.That(result.CreatedAt, Is.EqualTo(createdAt));
+            Assert.That(result.ExpiresAt, Is.EqualTo(expiresAt));
         }
 
         [Test]
@@ -132,7 +185,7 @@ namespace Tests.RepositoryTests
             var dataTable = new DataTable();
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetSessionById", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -140,6 +193,20 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void GetSessionById_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            var sessionId = Guid.NewGuid();
+
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.GetSessionById(sessionId));
         }
 
         [Test]
@@ -166,7 +233,7 @@ namespace Tests.RepositoryTests
             dataTable.Rows.Add(sessionId, userId, username, email, true, createdAt, expiresAt, lastLogin);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserFromSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -174,6 +241,13 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Not.Null);
+            Assert.That(result.UserId, Is.EqualTo(userId));
+            Assert.That(result.Username, Is.EqualTo(username));
+            Assert.That(result.Email, Is.EqualTo(email));
+            Assert.That(result.Developer, Is.True);
+            Assert.That(result.CreatedAt, Is.EqualTo(createdAt));
+            Assert.That(result.ExpiresAt, Is.EqualTo(expiresAt));
+            Assert.That(result.LastLogin, Is.EqualTo(lastLogin));
         }
 
         [Test]
@@ -199,7 +273,7 @@ namespace Tests.RepositoryTests
             dataTable.Rows.Add(sessionId, userId, username, email, true, createdAt, expiresAt, DBNull.Value);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserFromSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -217,7 +291,7 @@ namespace Tests.RepositoryTests
             var dataTable = new DataTable();
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserFromSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -228,17 +302,17 @@ namespace Tests.RepositoryTests
         }
 
         [Test]
-        public void GetUserFromSession_DatabaseOperationException_ThrowsDatabaseException()
+        public void GetUserFromSession_DatabaseOperationException_ThrowsRepositoryException()
         {
             // Arrange
             var sessionId = Guid.NewGuid();
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetUserFromSession", It.IsAny<SqlParameter[]>()))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Throws(new DatabaseOperationException("Database error"));
 
             // Act & Assert
-            Assert.Throws<DatabaseOperationException>(() => sessionRepository.GetUserFromSession(sessionId));
+            Assert.Throws<RepositoryException>(() => sessionRepository.GetUserFromSession(sessionId));
         }
 
         [Test]
@@ -254,7 +328,7 @@ namespace Tests.RepositoryTests
             dataTable.Rows.Add(sessionId2);
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetExpiredSessions", null))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -263,6 +337,8 @@ namespace Tests.RepositoryTests
             // Assert
             Assert.That(result, Is.Not.Empty);
             Assert.That(result.Count, Is.EqualTo(2));
+            Assert.That(result, Does.Contain(sessionId1));
+            Assert.That(result, Does.Contain(sessionId2));
         }
 
         [Test]
@@ -272,7 +348,7 @@ namespace Tests.RepositoryTests
             var dataTable = new DataTable();
 
             mockDataLink
-                .Setup(dataLink => dataLink.ExecuteReader("GetExpiredSessions", null))
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                 .Returns(dataTable);
 
             // Act
@@ -280,6 +356,42 @@ namespace Tests.RepositoryTests
 
             // Assert
             Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void GetExpiredSessions_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.GetExpiredSessions());
+        }
+
+        [Test]
+        public void CleanupExpiredSessions_ExecutesNonQuerySql()
+        {
+            // Arrange
+
+            // Act
+            sessionRepository.CleanupExpiredSessions();
+
+            // Assert
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), null), Times.Once);
+        }
+
+        [Test]
+        public void CleanupExpiredSessions_DatabaseOperationException_ThrowsRepositoryException()
+        {
+            // Arrange
+            mockDataLink
+                .Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), null))
+                .Throws(new DatabaseOperationException("Database error"));
+
+            // Act & Assert
+            Assert.Throws<RepositoryException>(() => sessionRepository.CleanupExpiredSessions());
         }
     }
 }

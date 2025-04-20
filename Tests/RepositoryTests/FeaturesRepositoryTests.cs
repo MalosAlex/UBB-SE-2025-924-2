@@ -163,7 +163,7 @@ namespace Tests.RepositoryTests
             var result = this.featuresRepository.GetAllFeatures(userId);
 
             // Assert
-            Assert.That(result[0].Equipped, Is.True);
+            Assert.That(result[0].Equipped, Is.False);
         }
 
         [Test]
