@@ -27,13 +27,26 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var features = new List<Feature>();
+                const string sqlCommand = @"
+            SELECT 
+                f.feature_id, 
+                f.name, 
+                f.value, 
+                f.description, 
+                f.type, 
+                f.source,
+                CASE WHEN fu.equipped = 1 THEN 1 ELSE 0 END AS equipped
+            FROM Features f
+            LEFT JOIN Feature_User fu ON f.feature_id = fu.feature_id AND fu.user_id = @userId
+            ORDER BY f.type, f.value DESC;";
+
                 var parameters = new SqlParameter[]
                 {
             new SqlParameter("@userId", userId)
                 };
 
-                var dataTable = dataLink.ExecuteReader("GetAllFeatures", parameters);
+                var features = new List<Feature>();
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
 
                 foreach (DataRow row in dataTable.Rows)
                 {
@@ -44,7 +57,8 @@ namespace BusinessLayer.Repositories
                         Value = Convert.ToInt32(row[ValueString]),
                         Description = row[DescriptionString].ToString(),
                         Type = row[TypeString].ToString(),
-                        Source = row[SourceString].ToString()
+                        Source = row[SourceString].ToString(),
+                        Equipped = Convert.ToInt32(row["equipped"]) == 1
                     });
                 }
 
@@ -60,13 +74,19 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@type", type)
-                };
+                const string sqlCommand = @"
+            SELECT feature_id, name, value, description, type, source
+            FROM Features
+            WHERE type = @type
+            ORDER BY value DESC;";
 
+                var parameters = new[]
+                {
+            new SqlParameter("@type", type)
+        };
+
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 var features = new List<Feature>();
-                var dataTable = dataLink.ExecuteReader("GetFeaturesByType", parameters);
 
                 foreach (DataRow row in dataTable.Rows)
                 {
@@ -93,13 +113,21 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userIdentifier", userIdentifier)
-                };
+                const string sqlCommand = @"
+            SELECT f.feature_id, f.name, f.value, f.description, f.type, f.source,
+                   CASE WHEN fu.feature_id IS NOT NULL THEN 1 ELSE 0 END AS is_owned,
+                   ISNULL(fu.equipped, 0) AS equipped
+            FROM Features f
+            LEFT JOIN Feature_User fu ON f.feature_id = fu.feature_id AND fu.user_id = @userId
+            ORDER BY f.type, f.value DESC;";
 
+                var parameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier)
+        };
+
+                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 var features = new List<Feature>();
-                var dataTable = dataLink.ExecuteReader("GetUserFeatures", parameters);
 
                 foreach (DataRow row in dataTable.Rows)
                 {
@@ -110,7 +138,8 @@ namespace BusinessLayer.Repositories
                         Value = Convert.ToInt32(row[ValueString]),
                         Description = row[DescriptionString].ToString(),
                         Type = row[TypeString].ToString(),
-                        Source = row[SourceString].ToString()
+                        Source = row[SourceString].ToString(),
+                        Equipped = Convert.ToInt32(row["equipped"]) == 1
                     });
                 }
 
@@ -126,30 +155,30 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                // Check if the relationship exists
-                var checkParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userIdentifier", userIdentifier),
-                    new SqlParameter("@featureIdentifier", featureIdentifier)
-                };
+                const string checkSql = @"
+            SELECT * FROM Feature_User 
+            WHERE user_id = @userId AND feature_id = @featureId;";
 
-                var relationshipTable = dataLink.ExecuteReader("GetFeatureUserRelationship", checkParameters);
+                var checkParameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier),
+            new SqlParameter("@featureId", featureIdentifier)
+        };
+
+                var relationshipTable = dataLink.ExecuteReaderSql(checkSql, checkParameters);
 
                 if (relationshipTable.Rows.Count > 0)
                 {
-                    // Update existing relationship
-                    var updateParameters = new SqlParameter[]
-                    {
-                        new SqlParameter("@userId", userIdentifier),
-                        new SqlParameter("@featureId", featureIdentifier),
-                        new SqlParameter("@equipped", 1)
-                    };
+                    const string updateSql = @"
+                UPDATE Feature_User
+                SET equipped = 1
+                WHERE user_id = @userId AND feature_id = @featureId;";
 
-                    dataLink.ExecuteNonQuery("UpdateFeatureUserEquipStatus", updateParameters);
+                    dataLink.ExecuteNonQuerySql(updateSql, checkParameters);
                     return true;
                 }
 
-                return false; // Feature is not purchased
+                return false; // Not purchased
             }
             catch (DatabaseOperationException exception)
             {
@@ -162,29 +191,30 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                // Check if the relationship exists
-                var checkParameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userId", userIdentifier),
-                    new SqlParameter("@featureId", featureIdentifier)
-                };
+                const string checkSql = @"
+            SELECT * FROM Feature_User 
+            WHERE user_id = @userId AND feature_id = @featureId;";
 
-                var relationshipTable = dataLink.ExecuteReader("GetFeatureUserRelationship", checkParameters);
+                var checkParameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier),
+            new SqlParameter("@featureId", featureIdentifier)
+        };
+
+                var relationshipTable = dataLink.ExecuteReaderSql(checkSql, checkParameters);
 
                 if (relationshipTable.Rows.Count > 0)
                 {
-                    var parameters = new SqlParameter[]
-                    {
-                        new SqlParameter("@userId", userIdentifier),
-                        new SqlParameter("@featureId", featureIdentifier),
-                        new SqlParameter("@equipped", 0)
-                    };
+                    const string updateSql = @"
+                UPDATE Feature_User
+                SET equipped = 0
+                WHERE user_id = @userId AND feature_id = @featureId;";
 
-                    dataLink.ExecuteNonQuery("UpdateFeatureUserEquipStatus", parameters);
+                    dataLink.ExecuteNonQuerySql(updateSql, checkParameters);
                     return true;
                 }
 
-                return false; // Feature is not purchased
+                return false; // Not purchased
             }
             catch (DatabaseOperationException exception)
             {
@@ -197,13 +227,20 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userId", userIdentifier),
-                    new SqlParameter("@featureType", featureType)
-                };
+                const string sqlCommand = @"
+            UPDATE fu
+            SET equipped = 0
+            FROM Feature_User fu
+            JOIN Features f ON fu.feature_id = f.feature_id
+            WHERE fu.user_id = @userId AND f.type = @featureType;";
 
-                dataLink.ExecuteNonQuery("UnequipFeaturesByType", parameters);
+                var parameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier),
+            new SqlParameter("@featureType", featureType)
+        };
+
+                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
                 return true;
             }
             catch (DatabaseOperationException)
@@ -216,18 +253,22 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userId", userIdentifier),
-                    new SqlParameter("@featureId", featureIdentifier)
-                };
+                const string sqlCommand = @"
+            SELECT * FROM Feature_User 
+            WHERE user_id = @userId AND feature_id = @featureId;";
 
-                var relationshipTable = dataLink.ExecuteReader("GetFeatureUserRelationship", parameters);
+                var parameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier),
+            new SqlParameter("@featureId", featureIdentifier)
+        };
+
+                var relationshipTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
                 return relationshipTable.Rows.Count > 0;
             }
             catch (DatabaseOperationException exception)
             {
-                throw new DatabaseOperationException($"Failed to check feature purchase status.", exception);
+                throw new DatabaseOperationException("Failed to check feature purchase status.", exception);
             }
         }
 
@@ -235,21 +276,22 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                // First check if the user already has this feature
                 if (IsFeaturePurchased(userIdentifier, featureIdentifier))
                 {
                     return false;
                 }
 
-                // Add the feature to the user's purchased features
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@userId", userIdentifier),
-                    new SqlParameter("@featureId", featureIdentifier),
-                    new SqlParameter("@equipped", false) // New features are unequipped by default
-                };
+                const string insertSql = @"
+            INSERT INTO Feature_User (user_id, feature_id, equipped)
+            VALUES (@userId, @featureId, 0);";
 
-                dataLink.ExecuteNonQuery("AddUserFeature", parameters);
+                var parameters = new[]
+                {
+            new SqlParameter("@userId", userIdentifier),
+            new SqlParameter("@featureId", featureIdentifier)
+        };
+
+                dataLink.ExecuteNonQuerySql(insertSql, parameters);
                 return true;
             }
             catch (DatabaseOperationException)

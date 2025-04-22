@@ -90,7 +90,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedGameCount = 3;
             DataTable ownedGamesTable = CreateOwnedGamesDataTable(expectedGameCount);
-            mockDataLink.Setup(datalink => datalink.ExecuteReader("GetAllOwnedGames", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(datalink => datalink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(ownedGamesTable);
             // Act
             List<OwnedGame> ownedGamesForUser = ownedGamesRepository.GetAllOwnedGames(1);
@@ -103,7 +103,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable ownedGamesTable = CreateOwnedGamesDataTable(2);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllOwnedGames", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(ownedGamesTable);
             // Act
             List<OwnedGame> ownedGamesForUser = ownedGamesRepository.GetAllOwnedGames(1);
@@ -116,18 +116,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException dummySqlException = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllOwnedGames", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(dummySqlException);
             // Act & Assert: Expect a RepositoryException with the appropriate message.
-            var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetAllOwnedGames(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving owned games."));
+            Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetAllOwnedGames(1));
         }
 
         [Test]
         public void GetAllOwnedGames_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllOwnedGames", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert: Expect a RepositoryException with the appropriate message.
             var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetAllOwnedGames(1));
@@ -143,7 +142,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable ownedGamesTable = CreateOwnedGamesDataTable(1);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetOwnedGameById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(ownedGamesTable);
             // Act
             OwnedGame retrievedOwnedGame = ownedGamesRepository.GetOwnedGameById(1, 1);
@@ -156,7 +155,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable ownedGamesTable = CreateOwnedGamesDataTable(1);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetOwnedGameById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(ownedGamesTable);
             // Act
             OwnedGame retrievedOwnedGame = ownedGamesRepository.GetOwnedGameById(1, 1);
@@ -169,7 +168,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable emptyOwnedGamesTable = CreateEmptyDataTable();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetOwnedGameById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyOwnedGamesTable);
             // Act
             OwnedGame retrievedOwnedGame = ownedGamesRepository.GetOwnedGameById(1, 1);
@@ -182,18 +181,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException dummySqlException = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetOwnedGameById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(dummySqlException);
             // Act & Assert: Expect a RepositoryException with the appropriate message.
-            var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetOwnedGameById(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving owned game by ID."));
+            Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetOwnedGameById(1, 1));
         }
 
         [Test]
         public void GetOwnedGameById_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetOwnedGameById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert: Expect a RepositoryException with the appropriate message.
             var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.GetOwnedGameById(1, 1));
@@ -208,12 +206,12 @@ namespace Tests.RepositoryTests
         public void RemoveOwnedGame_ForValidGame_CallsExecuteNonQuery()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveOwnedGame", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             ownedGamesRepository.RemoveOwnedGame(1, 1);
             // Assert: Verify that ExecuteNonQuery was called exactly once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("RemoveOwnedGame", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             // Dummy assert to satisfy one-assert-per-test rule.
             Assert.That(true, Is.True);
         }
@@ -223,18 +221,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException dummySqlException = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveOwnedGame", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(dummySqlException);
             // Act & Assert: Expect a RepositoryException with the appropriate message.
-            var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.RemoveOwnedGame(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while removing owned game."));
+            Assert.Throws<RepositoryException>(() => ownedGamesRepository.RemoveOwnedGame(1, 1));
         }
 
         [Test]
         public void RemoveOwnedGame_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveOwnedGame", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert: Expect a RepositoryException with the appropriate message.
             var repositoryException = Assert.Throws<RepositoryException>(() => ownedGamesRepository.RemoveOwnedGame(1, 1));

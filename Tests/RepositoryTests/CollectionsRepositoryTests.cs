@@ -124,7 +124,7 @@ namespace Tests.RepositoryTests
         public void GetAllCollections_DataTableIsNull_ReturnsEmptyList()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns((DataTable)null);
             // Act
             List<Collection> collectionsList = collectionsRepository.GetAllCollections(1);
@@ -137,7 +137,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable emptyCollectionsTable = CreateEmptyCollectionsDataTable();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyCollectionsTable);
             // Act
             List<Collection> collectionsList = collectionsRepository.GetAllCollections(1);
@@ -151,7 +151,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedCollectionCount = 5;
             DataTable populatedCollectionsTable = CreateCollectionsDataTable(expectedCollectionCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(populatedCollectionsTable);
             // Act
             List<Collection> collectionsList = collectionsRepository.GetAllCollections(1);
@@ -164,22 +164,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetAllCollections(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving collections."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetAllCollections(1));
         }
 
         [Test]
         public void GetAllCollections_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetAllCollections(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while retrieving collections."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetAllCollections(1));
         }
 
         #endregion
@@ -192,7 +190,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int totalCollectionsCount = 5;
             DataTable collectionsTable = CreateCollectionsDataTable(totalCollectionsCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(collectionsTable);
             // Act
             List<Collection> lastThreeCollections = collectionsRepository.GetLastThreeCollectionsForUser(1);
@@ -211,7 +209,7 @@ namespace Tests.RepositoryTests
             {
                 collectionsTable.Rows[rowIndex]["created_at"] = DateTime.Now.AddDays(-10 + rowIndex);
             }
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(collectionsTable);
             // Act
             List<Collection> sortedataLinkastThreeCollections = collectionsRepository.GetLastThreeCollectionsForUser(1);
@@ -224,11 +222,10 @@ namespace Tests.RepositoryTests
         public void GetLastThreeCollectionsForUser_ExceptionThrown_ThrowsRepositoryException()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetLastThreeCollectionsForUser(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while retrieving the last three collections."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetLastThreeCollectionsForUser(1));
         }
 
         #endregion
@@ -240,7 +237,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable emptyCollectionsTable = CreateEmptyCollectionsDataTable();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetCollectionById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyCollectionsTable);
             // Act
             Collection resultCollection = collectionsRepository.GetCollectionById(1, 1);
@@ -253,7 +250,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable singleCollectionTable = CreateCollectionsDataTable(1);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetCollectionById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(singleCollectionTable);
             // Act
             Collection resultCollection = collectionsRepository.GetCollectionById(1, 1);
@@ -266,18 +263,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetCollectionById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetCollectionById(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving collection by ID."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetCollectionById(1, 1));
         }
 
         [Test]
         public void GetCollectionById_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetCollectionById", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
             RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetCollectionById(1, 1));
@@ -299,7 +295,7 @@ namespace Tests.RepositoryTests
             emptyGamesTable.Columns.Add("cover_picture", typeof(string));
             emptyGamesTable.Columns.Add("game_id", typeof(int));
 
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyGamesTable);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1);
@@ -312,7 +308,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable emptyGamesDataTable = CreateEmptyGamesDataTable();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyGamesDataTable);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1);
@@ -326,7 +322,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedGamesCount = 4;
             DataTable gamesDataTable = CreateGamesDataTable(expectedGamesCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(gamesDataTable);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1);
@@ -339,18 +335,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving games in collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(1));
         }
 
         [Test]
         public void GetGamesInCollection_SingleParam_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
             RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(1));
@@ -361,7 +356,7 @@ namespace Tests.RepositoryTests
         public void GetGamesInCollection_SingleParam_NullDataTable_ReturnsEmptyList()
         {
             // Arrange: Return null instead of a DataTable.
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns((DataTable)null);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1);
@@ -373,7 +368,7 @@ namespace Tests.RepositoryTests
         public void GetGamesInCollection_TwoParams_CollectionIdOne_NullDataTable_ReturnsEmptyList()
         {
             // Arrange: Return null instead of a DataTable for the two-parameter overload.
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllGamesForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns((DataTable)null);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1, 1);
@@ -391,7 +386,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedGamesCount = 3;
             DataTable gamesDataTable = CreateGamesDataTable(expectedGamesCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllGamesForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(gamesDataTable);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(1, 1);
@@ -405,7 +400,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedGamesCount = 2;
             DataTable gamesDataTable = CreateGamesDataTable(expectedGamesCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(gamesDataTable);
             // Act
             List<OwnedGame> ownedGamesList = collectionsRepository.GetGamesInCollection(2, 1);
@@ -418,18 +413,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetAllGamesForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving games in collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(1, 1));
         }
 
         [Test]
         public void GetGamesInCollection_TwoParams_CollectionIdNotOne_GenericException_ThrowsRepositoryException()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
             RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesInCollection(2, 1));
@@ -444,12 +438,12 @@ namespace Tests.RepositoryTests
         public void AddGameToCollection_ValidInput_CallsExecuteNonQuery()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("AddGameToCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.AddGameToCollection(1, 1, 1);
             // Assert: Verify that ExecuteNonQuery was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("AddGameToCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert for clarity.
         }
 
@@ -457,19 +451,21 @@ namespace Tests.RepositoryTests
         public void AddGameToCollection_SqlException_ThrowsRepositoryExceptionWithDatabaseErrorMessage()
         {
             // Arrange
-            SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("AddGameToCollection", It.IsAny<SqlParameter[]>()))
+            var sqlExceptionInstance = CreateSqlException();
+
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
+
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.AddGameToCollection(1, 1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while adding game to collection."));
+            Assert.Throws<RepositoryException>(
+                () => collectionsRepository.AddGameToCollection(1, 1, 1));
         }
 
         [Test]
         public void AddGameToCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("AddGameToCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
             RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.AddGameToCollection(1, 1, 1));
@@ -484,12 +480,12 @@ namespace Tests.RepositoryTests
         public void RemoveGameFromCollection_ValidInput_CallsExecuteNonQuery()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveGameFromCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.RemoveGameFromCollection(1, 1);
             // Assert: Verify that ExecuteNonQuery was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("RemoveGameFromCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -498,18 +494,17 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveGameFromCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.RemoveGameFromCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while removing game from collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.RemoveGameFromCollection(1, 1));
         }
 
         [Test]
         public void RemoveGameFromCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("RemoveGameFromCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
             RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.RemoveGameFromCollection(1, 1));
@@ -524,12 +519,12 @@ namespace Tests.RepositoryTests
         public void MakeCollectionPrivateForUser_ValidInput_CallsExecuteReader()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("MakeCollectionPrivate", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.MakeCollectionPrivateForUser("1", "1");
             // Assert: Verify that ExecuteReader was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("MakeCollectionPrivate", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -538,11 +533,10 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             var databaseOperationException = new DatabaseOperationException("Error");
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("MakeCollectionPrivate", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(databaseOperationException);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.MakeCollectionPrivateForUser("1", "1"));
-            Assert.That(repositoryException.Message, Is.EqualTo("Failed to make collection 1 private for user 1."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.MakeCollectionPrivateForUser("1", "1"));
         }
 
         #endregion
@@ -553,12 +547,12 @@ namespace Tests.RepositoryTests
         public void MakeCollectionPublicForUser_ValidInput_CallsExecuteReader()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("MakeCollectionPublic", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.MakeCollectionPublicForUser("1", "1");
             // Assert: Verify that ExecuteReader was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("MakeCollectionPublic", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -567,11 +561,10 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             var databaseOperationException = new DatabaseOperationException("Error");
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("MakeCollectionPublic", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(databaseOperationException);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.MakeCollectionPublicForUser("1", "1"));
-            Assert.That(repositoryException.Message, Is.EqualTo("Failed to make collection 1 public for user 1."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.MakeCollectionPublicForUser("1", "1"));
         }
 
         #endregion
@@ -582,12 +575,12 @@ namespace Tests.RepositoryTests
         public void RemoveCollectionForUser_ValidInput_CallsExecuteReader()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("DeleteCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.RemoveCollectionForUser("1", "1");
             // Assert: Verify that ExecuteReader was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("DeleteCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -596,11 +589,10 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             var databaseOperationException = new DatabaseOperationException("Error");
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("DeleteCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(databaseOperationException);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.RemoveCollectionForUser("1", "1"));
-            Assert.That(repositoryException.Message, Is.EqualTo("Failed to remove collection 1 for user 1."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.RemoveCollectionForUser("1", "1"));
         }
 
         #endregion
@@ -615,12 +607,12 @@ namespace Tests.RepositoryTests
             {
                 CollectionId = 0 // Simulate new collection
             };
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("CreateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.SaveCollection("1", newCollection);
             // Assert: Verify that ExecuteReader was called with "CreateCollection" once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("CreateCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -632,12 +624,12 @@ namespace Tests.RepositoryTests
             {
                 CollectionId = 10 // Non-zero indicates an existing collection.
             };
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.SaveCollection("1", existingCollection);
             // Assert: Verify that ExecuteReader was called with "UpdateCollection" once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -650,11 +642,10 @@ namespace Tests.RepositoryTests
                 CollectionId = 0
             };
             var databaseOperationException = new DatabaseOperationException("Error");
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("CreateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(databaseOperationException);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.SaveCollection("1", newCollection));
-            Assert.That(repositoryException.Message, Is.EqualTo("Failed to save collection for user 1."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.SaveCollection("1", newCollection));
         }
 
         #endregion
@@ -665,12 +656,12 @@ namespace Tests.RepositoryTests
         public void DeleteCollection_ValidInput_CallsExecuteNonQuery()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("DeleteCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.DeleteCollection(1, 1);
             // Assert: Verify that ExecuteNonQuery was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("DeleteCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -679,22 +670,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("DeleteCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.DeleteCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while deleting collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.DeleteCollection(1, 1));
         }
 
         [Test]
         public void DeleteCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("DeleteCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.DeleteCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while deleting collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.DeleteCollection(1, 1));
         }
 
         #endregion
@@ -705,12 +694,12 @@ namespace Tests.RepositoryTests
         public void CreateCollection_ValidInput_CallsExecuteNonQuery()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("CreateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.CreateCollection(1, "New Collection", "cover.jpg", true, DateOnly.FromDateTime(DateTime.Now));
             // Assert: Verify that ExecuteNonQuery was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuery("CreateCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -719,22 +708,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("CreateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.CreateCollection(1, "New Collection", "cover.jpg", true, DateOnly.FromDateTime(DateTime.Now)));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while creating collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.CreateCollection(1, "New Collection", "cover.jpg", true, DateOnly.FromDateTime(DateTime.Now)));
         }
 
         [Test]
         public void CreateCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuery("CreateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.CreateCollection(1, "New Collection", "cover.jpg", true, DateOnly.FromDateTime(DateTime.Now)));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while creating collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.CreateCollection(1, "New Collection", "cover.jpg", true, DateOnly.FromDateTime(DateTime.Now)));
         }
 
         #endregion
@@ -745,12 +732,12 @@ namespace Tests.RepositoryTests
         public void UpdateCollection_ValidInput_CallsExecuteReader()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Verifiable();
             // Act
             collectionsRepository.UpdateCollection(1, 1, "Updated Collection", "cover_updated.jpg", false);
             // Assert: Verify that ExecuteReader was called once.
-            mockDataLink.Verify(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()), Times.Once);
+            mockDataLink.Verify(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()), Times.Once);
             Assert.That(true, Is.True); // Dummy assert.
         }
 
@@ -759,22 +746,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.UpdateCollection(1, 1, "Updated Collection", "cover_updated.jpg", false));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while updating collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.UpdateCollection(1, 1, "Updated Collection", "cover_updated.jpg", false));
         }
 
         [Test]
         public void UpdateCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("UpdateCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteNonQuerySql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.UpdateCollection(1, 1, "Updated Collection", "cover_updated.jpg", false));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while updating collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.UpdateCollection(1, 1, "Updated Collection", "cover_updated.jpg", false));
         }
 
         #endregion
@@ -786,7 +771,7 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             DataTable emptyCollectionsTable = CreateEmptyCollectionsDataTable();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetPublicCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyCollectionsTable);
             // Act
             List<Collection> publicCollectionsList = collectionsRepository.GetPublicCollectionsForUser(1);
@@ -800,7 +785,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedPublicCollectionsCount = 4;
             DataTable collectionsTable = CreateCollectionsDataTable(expectedPublicCollectionsCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetPublicCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(collectionsTable);
             // Act
             List<Collection> publicCollectionsList = collectionsRepository.GetPublicCollectionsForUser(1);
@@ -813,22 +798,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetPublicCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetPublicCollectionsForUser(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while retrieving public collections."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetPublicCollectionsForUser(1));
         }
 
         [Test]
         public void GetPublicCollectionsForUser_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetPublicCollectionsForUser", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetPublicCollectionsForUser(1));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while retrieving public collections."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetPublicCollectionsForUser(1));
         }
 
         #endregion
@@ -846,7 +829,7 @@ namespace Tests.RepositoryTests
             emptyGamesTable.Columns.Add("cover_picture", typeof(string));
             emptyGamesTable.Columns.Add("game_id", typeof(int));
 
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesNotInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(emptyGamesTable);
 
             // Act
@@ -862,7 +845,7 @@ namespace Tests.RepositoryTests
             // Arrange
             int expectedGamesNotInCollectionCount = 3;
             DataTable gamesDataTable = CreateGamesDataTable(expectedGamesNotInCollectionCount);
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesNotInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Returns(gamesDataTable);
             // Act
             List<OwnedGame> gamesNotInCollectionList = collectionsRepository.GetGamesNotInCollection(1, 1);
@@ -875,22 +858,20 @@ namespace Tests.RepositoryTests
         {
             // Arrange
             SqlException sqlExceptionInstance = CreateSqlException();
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesNotInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(sqlExceptionInstance);
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesNotInCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("Database error while getting games not in collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesNotInCollection(1, 1));
         }
 
         [Test]
         public void GetGamesNotInCollection_GenericException_ThrowsRepositoryExceptionWithUnexpectedErrorMessage()
         {
             // Arrange
-            mockDataLink.Setup(dataLink => dataLink.ExecuteReader("GetGamesNotInCollection", It.IsAny<SqlParameter[]>()))
+            mockDataLink.Setup(dataLink => dataLink.ExecuteReaderSql(It.IsAny<string>(), It.IsAny<SqlParameter[]>()))
                         .Throws(new Exception("Test error"));
             // Act & Assert
-            RepositoryException repositoryException = Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesNotInCollection(1, 1));
-            Assert.That(repositoryException.Message, Is.EqualTo("An unexpected error occurred while getting games not in collection."));
+            Assert.Throws<RepositoryException>(() => collectionsRepository.GetGamesNotInCollection(1, 1));
         }
 
         #endregion

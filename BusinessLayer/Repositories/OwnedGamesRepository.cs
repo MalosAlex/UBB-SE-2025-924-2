@@ -18,11 +18,6 @@ namespace BusinessLayer.Repositories
         private const string ParameterUserIdCamel = "@userId";
         private const string ParameterGameIdUnderscore = "@game_id";
 
-        // Stored Procedure Names
-        private const string StoredProcedure_GetAllOwnedGames = "GetAllOwnedGames";
-        private const string StoredProcedure_GetOwnedGameById = "GetOwnedGameById";
-        private const string StoredProcedure_RemoveOwnedGame = "RemoveOwnedGame";
-
         // Error messages
         private const string Error_GetOwnedGamesDataBase = "Database error while retrieving owned games.";
         private const string Error_GetOwnedGamesUnexpected = "An unexpected error occurred while retrieving owned games.";
@@ -49,19 +44,25 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+            SELECT game_id, user_id, title, description, cover_picture
+            FROM OwnedGames
+            WHERE user_id = @user_id
+            ORDER BY title;";
+
                 var sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterUserId, userId)
+            new SqlParameter("@user_id", userId)
                 };
 
-                var ownedGamesDataTable = dataLink.ExecuteReader(StoredProcedure_GetAllOwnedGames, sqlParameters);
+                var ownedGamesDataTable = dataLink.ExecuteReaderSql(sqlCommand, sqlParameters);
                 var ownedGamesList = MapDataTableToOwnedGames(ownedGamesDataTable);
 
                 return ownedGamesList;
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException dbException)
             {
-                throw new RepositoryException(Error_GetOwnedGamesDataBase, sqlException);
+                throw new RepositoryException(Error_GetOwnedGamesDataBase, dbException);
             }
             catch (Exception generalException)
             {
@@ -73,29 +74,33 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+            SELECT game_id, user_id, title, description, cover_picture
+            FROM OwnedGames
+            WHERE game_id = @game_id AND user_id = @user_id;";
+
                 var sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterGameIdCamel, gameId),
-                    new SqlParameter(ParameterUserIdCamel, userId)
+            new SqlParameter("@game_id", gameId),
+            new SqlParameter("@user_id", userId)
                 };
 
-                var ownedGameDataTable = dataLink.ExecuteReader(StoredProcedure_GetOwnedGameById, sqlParameters);
+                var ownedGameDataTable = dataLink.ExecuteReaderSql(sqlCommand, sqlParameters);
 
                 if (ownedGameDataTable.Rows.Count == 0)
                 {
                     return null;
                 }
 
-                var ownedGame = MapDataRowToOwnedGame(ownedGameDataTable.Rows[0]);
-                return ownedGame;
+                return MapDataRowToOwnedGame(ownedGameDataTable.Rows[0]);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException dbException)
             {
-                throw new RepositoryException(Error_GetOwnedGameByIdDataBase, sqlException);
+                throw new RepositoryException(Error_GetOwnedGameByIdDataBase, dbException);
             }
-            catch (Exception generalException)
+            catch (Exception ex)
             {
-                throw new RepositoryException(Error_GetOwnedGameByIdUnexpected, generalException);
+                throw new RepositoryException(Error_GetOwnedGameByIdUnexpected, ex);
             }
         }
 
@@ -103,21 +108,25 @@ namespace BusinessLayer.Repositories
         {
             try
             {
+                const string sqlCommand = @"
+            DELETE FROM OwnedGames
+            WHERE game_id = @game_id AND user_id = @user_id;";
+
                 var sqlParameters = new SqlParameter[]
                 {
-                    new SqlParameter(ParameterGameIdUnderscore, gameId),
-                    new SqlParameter(ParameterUserId, userId)
+            new SqlParameter("@game_id", gameId),
+            new SqlParameter("@user_id", userId)
                 };
 
-                dataLink.ExecuteNonQuery(StoredProcedure_RemoveOwnedGame, sqlParameters);
+                dataLink.ExecuteNonQuerySql(sqlCommand, sqlParameters);
             }
-            catch (SqlException sqlException)
+            catch (DatabaseOperationException dbException)
             {
-                throw new RepositoryException(Error_RemoveOwnedGameDataBase, sqlException);
+                throw new RepositoryException(Error_RemoveOwnedGameDataBase, dbException);
             }
-            catch (Exception generalException)
+            catch (Exception ex)
             {
-                throw new RepositoryException(Error_RemoveOwnedGameUnexpected, generalException);
+                throw new RepositoryException(Error_RemoveOwnedGameUnexpected, ex);
             }
         }
 
