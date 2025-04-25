@@ -16,6 +16,7 @@ using Windows.Foundation.Collections;
 using Search;
 using Steam_Community.DirectMessages.Views;
 using Steam_Community.DirectMessages.Models;
+using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

@@ -5,12 +5,13 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Steam_Community.Data;
 
 namespace Forum_Lib
 {
     public class DatabaseConnection : IDatabaseConnection
     {
-        const string CONNECTION_STRING = "Data Source=DESKTOP-45FVE4D\\SQLEXPRESS;Initial Catalog=Community;Integrated Security=true;";
+        //const string CONNECTION_STRING = "Data Source=DESKTOP-45FVE4D\\SQLEXPRESS;Initial Catalog=Community;Integrated Security=true;";
         public string ConnectionString;
         public string GetConnectionString()
         {
@@ -24,6 +25,7 @@ namespace Forum_Lib
 
         public DatabaseConnection()
         {
+            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
             ConnectionString = CONNECTION_STRING;
             Connection = new SqlConnection(CONNECTION_STRING);
         }

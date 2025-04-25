@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 using Steam_Community.DirectMessages.Models;
 using Steam_Community.DirectMessages.Interfaces;
+using System.Diagnostics;
 
 namespace Steam_Community.DirectMessages.Services
 {
@@ -41,6 +42,7 @@ namespace Steam_Community.DirectMessages.Services
             _uiDispatcherQueue = uiDispatcherQueue;
             _userStatus = new UserStatus();
             _infoChangeCommandRegex = new Regex(_infoChangeCommandPattern);
+
 
             try
             {

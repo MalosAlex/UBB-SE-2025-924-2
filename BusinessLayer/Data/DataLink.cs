@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using BusinessLayer.Exceptions;
 using Microsoft.Data.SqlClient;
@@ -87,6 +88,7 @@ namespace BusinessLayer.Data
                 // Integrated Security connection string
                 connectionString = $"Data Source={localDataSource};Initial Catalog={initialCatalog};Integrated Security={UseIntegratedSecurity};TrustServerCertificate={TrustServerCertificate};";
 
+                Debug.WriteLine(connectionString);
                 // Test the connection immediately
                 using var testConnection = new SqlConnection(connectionString);
                 testConnection.Open();

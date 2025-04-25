@@ -56,12 +56,10 @@ namespace Search
             {
 
                 String newIpAddress = Steam_Community.DirectMessages.Services.ChatService.GetLocalIpAddress();
-
                 this.repository.UpdateUserIpAddress(newIpAddress, userId);
-
                 return newIpAddress;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return Steam_Community.DirectMessages.Models.ChatConstants.GET_IP_REPLACER;
             }
