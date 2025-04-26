@@ -1,53 +1,52 @@
-﻿using Microsoft.UI.Xaml;
+﻿using System;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System.IO;
-using System;
+using Microsoft.UI.Xaml.Data;
+using News.ViewModels;
 
 namespace News
 {
+    public class BoolToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language) =>
+            (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+            (value is Visibility v && v == Visibility.Visible);
+    }
+
+    // InverseBoolToVisibilityConverter.cs
+    public class InverseBoolToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language) =>
+            (value is bool b && !b) ? Visibility.Visible : Visibility.Collapsed;
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) =>
+            (value is Visibility v && v == Visibility.Visible) == false;
+    }
+
     public sealed partial class CommentControl : UserControl
     {
+        public CommentViewModel ViewModel { get; } = new();
+
         public event RoutedEventHandler? CommentDeleted;
         public event RoutedEventHandler? CommentUpdated;
-        
-        private NewsService service;
-        public Comment CommentData { get; private set; }
 
-        private Users users = Users.Instance;
-        
         public CommentControl()
         {
             this.InitializeComponent();
 
-            service = new NewsService();
+            this.DataContext = ViewModel;
+
             EditCommentInput.CommentPosted += EditCommentInput_CommentPosted;
+            ViewModel.CommentDeleted += (_, __) => CommentDeleted?.Invoke(this, new RoutedEventArgs());
+            ViewModel.CommentUpdated += (_, __) => CommentUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
         public void SetCommentData(Comment comment)
         {
-            CommentData = comment;
-            User? user = users.GetUserById(CommentData.AuthorId);
-        
-            UsernameText.Text = user.username;
-            CommentDateText.Text = CommentData.CommentDate.ToString("MMM d, yyyy");
-
-            var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.profilePicture).AsRandomAccessStream());
-            ProfilePicture.ImageSource = image;
-
-            LoadCommentContent(comment.Content);
-
-            if (user.id == service.activeUser.id)
-            {
-                EditButton.Visibility = Visibility.Visible;
-                DeleteButton.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                EditButton.Visibility = Visibility.Collapsed;
-                DeleteButton.Visibility = Visibility.Collapsed;
-            }
+            ViewModel.LoadComment(comment);
+            LoadCommentContent(ViewModel.ContentHtml);
         }
 
         private async void LoadCommentContent(string content)
@@ -55,66 +54,24 @@ namespace News
             try
             {
                 if (CommentContent.CoreWebView2 == null)
-                {
-                    await CommentContent.EnsureCoreWebView2Async();
-                }
+                    await CommentContent.EnsureCoreWebView2Async().AsTask();
 
                 CommentContent.CoreWebView2.NavigateToString(content);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading comment content: {ex.Message}");
             }
         }
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
-        {
-            CommentContent.Visibility = Visibility.Collapsed;
-            
-            EditButton.Visibility = Visibility.Collapsed;
-            DeleteButton.Visibility = Visibility.Collapsed;
-            
-            EditCommentInput.PostId = CommentData.PostId;
-            EditCommentInput.CommentId = CommentData.CommentId;
-            EditCommentInput.SetEditMode(true);
-            
-            TextBox rawEditor = (TextBox)EditCommentInput.FindName("RawEditor");
-            if (rawEditor != null)
-            {
-                rawEditor.Text = CommentData.Content;
-            }
-            
-            EditPanel.Visibility = Visibility.Visible;
-        }
-        
         private void EditCommentInput_CommentPosted(object sender, RoutedEventArgs e)
         {
-
-            EditPanel.Visibility = Visibility.Collapsed;
-            
-            CommentContent.Visibility = Visibility.Visible;
-            EditButton.Visibility = Visibility.Visible;
-            DeleteButton.Visibility = Visibility.Visible;
-            
-            TextBox rawEditor = (TextBox)EditCommentInput.FindName("RawEditor");
+            var rawEditor = (TextBox)EditCommentInput.FindName("RawEditor");
             if (rawEditor != null)
             {
-                CommentData.Content = service.FormatAsPost(rawEditor.Text);
-            }
-            
-            EditCommentInput.ResetControl();
-            
-            CommentUpdated?.Invoke(this, new RoutedEventArgs());
-
-            LoadCommentContent(CommentData.Content);
-        }
-
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            bool success = service.DeleteComment(CommentData.CommentId);
-            if (success)
-            {
-                CommentDeleted?.Invoke(this, new RoutedEventArgs());
+                ViewModel.SubmitEdit(rawEditor.Text);
+                EditCommentInput.ResetControl();
+                LoadCommentContent(ViewModel.ContentHtml);
             }
         }
     }
