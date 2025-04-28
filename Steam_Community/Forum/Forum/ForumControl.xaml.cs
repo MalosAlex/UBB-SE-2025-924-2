@@ -18,23 +18,32 @@ namespace Forum
 {
     public sealed partial class ForumControl : UserControl
     {
-        private readonly uint _pageSize = 10;
-        private string _currentSearchFilter = null;
-        
+        private readonly uint _pageSize = 10; // Keep for now, PostsControl interaction not yet in VM
+        private string _currentSearchFilter = null; // Keep for now, PostsControl interaction not yet in VM
+        public ForumViewModel ViewModel { get; private set; } // Expose ViewModel
+
         public ForumControl()
         {
             this.InitializeComponent();
-            
-            // Set up post selection event handler
+
+            // --- MVVM Setup ---
+            // Instantiate the service using the static instance getter
+            IForumService forumService = ForumService.GetForumServiceInstance(); // Use correct instantiation
+            ViewModel = new ForumViewModel(forumService);
+            this.DataContext = ViewModel;
+            // --- End MVVM Setup ---
+
+            // Set up post selection event handler (Keep for now)
             if (PostsControl != null)
             {
-                PostsControl.PostSelected += PostsControl_PostSelected;
+                 PostsControl.PostSelected += PostsControl_PostSelected;
             }
 
-            // Initialize the UI after all elements are loaded
+            // Initialize the UI after all elements are loaded (Keep for now)
             LoadPosts();
         }
-        
+
+        // Keep LoadPosts for now as it interacts directly with PostsControl sorting/filtering
         private void LoadPosts()
         {
             try
@@ -128,42 +137,9 @@ namespace Forum
             PostsControl.LoadPagedPosts(0, _pageSize, positiveScoreOnly, null, _currentSearchFilter);
         }
         
-        private async void CreatePostButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Create the dialog
-                CreatePostDialog createDialog = new CreatePostDialog();
-                
-                // Set XamlRoot for proper dialog display
-                createDialog.XamlRoot = this.Content.XamlRoot;
-                
-                // Show the dialog and wait for user input
-                ContentDialogResult result = await createDialog.ShowAsync();
-                
-                // Check if a post was created
-                if (createDialog.PostCreated)
-                {
-                    // Reload posts to show the new post
-                    LoadPosts();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any errors showing the dialog
-                ContentDialog errorDialog = new ContentDialog
-                {
-                    Title = "Error",
-                    Content = $"An error occurred: {ex.Message}",
-                    CloseButtonText = "OK",
-                    XamlRoot = this.Content.XamlRoot
-                };
-                
-                await errorDialog.ShowAsync();
-            }
-        }
-        
-        private async void PostsControl_PostSelected(object sender, ForumPost post)
+        // CreatePostButton_Click is removed as it will be handled by ViewModel Command
+
+        private async void PostsControl_PostSelected(object sender, ForumPost post) // Keep for now
         {
             try
             {
