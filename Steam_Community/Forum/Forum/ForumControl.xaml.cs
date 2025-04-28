@@ -18,28 +18,26 @@ namespace Forum
 {
     public sealed partial class ForumControl : UserControl
     {
-        private readonly uint _pageSize = 10; // Keep for now, PostsControl interaction not yet in VM
-        private string _currentSearchFilter = null; // Keep for now, PostsControl interaction not yet in VM
-        public ForumViewModel ViewModel { get; private set; } // Expose ViewModel
+        private readonly uint pageSize = 10;
+        private string currentSearchFilter = null;
+        public ForumViewModel ViewModel { get; private set; }
 
         public ForumControl()
         {
             this.InitializeComponent();
 
-            // --- MVVM Setup ---
             // Instantiate the service using the static instance getter
-            IForumService forumService = ForumService.GetForumServiceInstance(); // Use correct instantiation
+            IForumService forumService = ForumService.GetForumServiceInstance();
             ViewModel = new ForumViewModel(forumService);
             this.DataContext = ViewModel;
-            // --- End MVVM Setup ---
 
-            // Set up post selection event handler (Keep for now)
+            // Set up post selection event handler
             if (PostsControl != null)
             {
                  PostsControl.PostSelected += PostsControl_PostSelected;
             }
 
-            // Initialize the UI after all elements are loaded (Keep for now)
+            // Initialize the UI after all elements are loaded
             LoadPosts();
         }
 
@@ -58,10 +56,10 @@ namespace Forum
                 int selectedIndex = SortComboBox.SelectedIndex;
                 bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
                 
-                if (selectedIndex == 0) // Recent
+                if (selectedIndex == 0)
                 {
                     // Load first page of posts - the PostsControl will handle paging
-                    PostsControl.LoadPagedPosts(0, _pageSize, positiveScoreOnly, null, _currentSearchFilter);
+                    PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
                 }
                 else
                 {
@@ -130,16 +128,16 @@ namespace Forum
             }
             
             string searchTerm = SearchBox.Text?.Trim();
-            _currentSearchFilter = string.IsNullOrEmpty(searchTerm) ? null : searchTerm;
+            currentSearchFilter = string.IsNullOrEmpty(searchTerm) ? null : searchTerm;
             
             // Reset to first page and apply search filter (PostsControl handles the paging)
             bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
-            PostsControl.LoadPagedPosts(0, _pageSize, positiveScoreOnly, null, _currentSearchFilter);
+            PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
         }
         
         // CreatePostButton_Click is removed as it will be handled by ViewModel Command
 
-        private async void PostsControl_PostSelected(object sender, ForumPost post) // Keep for now
+        private async void PostsControl_PostSelected(object sender, ForumPost post)
         {
             try
             {
