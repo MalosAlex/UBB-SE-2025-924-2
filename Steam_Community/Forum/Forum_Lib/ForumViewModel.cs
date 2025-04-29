@@ -7,15 +7,17 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.UI.Xaml.Controls;
+using Forum;
 
 namespace Forum_Lib
 {
-    public class RelayCommand : ICommand
+    public class ViewModelActionCommand : ICommand
     {
         private readonly Action<object> execute;
         private readonly Predicate<object> canExecute;
 
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+        public ViewModelActionCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
             execute = execute ?? throw new ArgumentNullException(nameof(execute));
             canExecute = canExecute;
@@ -57,7 +59,7 @@ namespace Forum_Lib
                     // Load comments when a post is selected and notify command state change
                     LoadCommentsForPost(); // Use synchronous method
                     // Manually raise CanExecuteChanged for the command
-                    ((RelayCommand)AddCommentCommand).RaiseCanExecuteChanged();
+                    ((ViewModelActionCommand)AddCommentCommand).RaiseCanExecuteChanged();
                 }
             }
         }
@@ -83,9 +85,10 @@ namespace Forum_Lib
             Comments = new ObservableCollection<ForumComment>();
 
             // Initialize Commands
-            LoadPostsCommand = new RelayCommand(parameter => LoadPosts());
-            CreatePostCommand = new RelayCommand(parameter => CreateNewPost());
-            AddCommentCommand = new RelayCommand(parameter => AddNewComment(), parameter => SelectedPost != null);
+            LoadPostsCommand = new ViewModelActionCommand(parameter => LoadPosts());
+            // Point RelayCommands to the async methods
+            CreatePostCommand = new ViewModelActionCommand(async parameter => await CreateNewPostAsync());
+            AddCommentCommand = new ViewModelActionCommand(async parameter => await AddNewCommentAsync(), parameter => SelectedPost != null);
 
             // Load initial posts
             LoadPosts(); // Call synchronous method directly
@@ -136,18 +139,38 @@ namespace Forum_Lib
             }
         }
 
-        // Placeholder method for Create Post command execution
-        private void CreateNewPost()
+        private async Task CreateNewPostAsync()
         {
-            // TODO: Implement logic to show Create Post Dialog/View
-             Console.WriteLine("Create Post command executed.");
+            // Instantiate the dialog
+            var createPostDialog = new CreatePostDialog();
+
+            // Show the dialog asynchronously
+            var result = await createPostDialog.ShowAsync();
+
+            // Check if the dialog was submitted successfully
+            // AND if the dialog indicated success via its PostCreated property.
+            if (result == ContentDialogResult.Primary && createPostDialog.PostCreated)
+            {
+                LoadPosts(); // Reload posts
+            }
         }
 
-        // Placeholder method for Add Comment command execution
-        private void AddNewComment()
+        private async Task AddNewCommentAsync()
         {
-            // TODO: Implement logic to show Add Comment Dialog/View for SelectedPost
-             Console.WriteLine($"Add Comment command executed for Post ID: {SelectedPost?.Id}.");
+            if (SelectedPost == null) return;
+
+            // Instantiate the dialog, passing the selected post's ID
+            var addCommentDialog = new AddCommentDialog(SelectedPost.Id);
+
+            // Show the dialog asynchronously
+            var result = await addCommentDialog.ShowAsync();
+
+            // Check if the dialog was submitted successfully
+            // AND if the dialog indicated success via its CommentCreated property.
+            if (result == ContentDialogResult.Primary && addCommentDialog.CommentCreated)
+            {
+                LoadCommentsForPost(); // Reload comments for the current post
+            }
         }
 
 
