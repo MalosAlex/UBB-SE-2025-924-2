@@ -47,7 +47,7 @@ namespace Steam_Community.DirectMessages.Views
             this.viewModel = new ChatRoomViewModel(username, serverInviteIpAddress, uiDispatcherQueue);
 
             // Register event handlers
-            this.viewModel.StatusChanged += HandleStatusChanged;
+            // this.viewModel.StatusChanged += HandleStatusChanged; // Removed - Handled by PropertyChanged binding
             this.viewModel.ExceptionOccurred += HandleException;
             this.viewModel.WindowClosed += (sender, args) => this.WindowClosed?.Invoke(this, args);
 
@@ -142,15 +142,14 @@ namespace Steam_Community.DirectMessages.Views
             }
         }
 
-        /// <summary>
-        /// Updates the UI when the user's status changes.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="eventArgs">The event arguments.</param>
-        private void HandleStatusChanged(object sender, EventArgs eventArgs)
-        {
-            this.UpdateAvailableButtonsBasedOnUserStatus();
-        }
+        // Removed HandleStatusChanged method - UI updates should now happen via data binding
+        // to the ViewModel properties (IsAdmin, IsHost, IsMuted) thanks to INotifyPropertyChanged.
+        // The UpdateAvailableButtonsBasedOnUserStatus() logic might need to be triggered differently
+        // or incorporated into XAML bindings/converters if it depends on these properties.
+        // private void HandleStatusChanged(object sender, EventArgs eventArgs)
+        // {
+        //     this.UpdateAvailableButtonsBasedOnUserStatus();
+        // }
 
         /// <summary>
         /// Connects to the server after waiting for the UI to initialize.
