@@ -2,17 +2,19 @@
 using System.Data;
 using System.Text;
 using Microsoft.Data.SqlClient;
+using Steam_Community.Data;
 
 namespace Search
 {
     public class DatabaseConnection
     {
-        private const string CONNECTION_STRING = "Integrated Security=True;TrustServerCertificate=True;data source=DESKTOP-BI53R5C\\SQLEXPRESS02;initial catalog=Steam;user id=sa";
+        //private const string CONNECTION_STRING = "Integrated Security=True;TrustServerCertificate=True;data source=DESKTOP-BI53R5C\\SQLEXPRESS02;initial catalog=Steam;user id=sa";
         public string ConnectionString { get; }
         public SqlConnection Connection { get; }
 
         public DatabaseConnection()
         {
+            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
             ConnectionString = CONNECTION_STRING;
             Connection = new SqlConnection(CONNECTION_STRING);
         }

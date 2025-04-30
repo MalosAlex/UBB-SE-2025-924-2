@@ -1,5 +1,6 @@
 ﻿using System.Data.SqlClient;
 using System;
+using Steam_Community.Data;
 
 namespace SteamCommunity.Reviews.Database
 {
@@ -9,7 +10,8 @@ namespace SteamCommunity.Reviews.Database
 
         public DatabaseConnection()
         {
-            connectionString = "Data Source=Raul\\SQLEXPRESS01;Initial Catalog=Community;Integrated Security=true;";
+            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
+            connectionString = CONNECTION_STRING;
         }
 
         public SqlConnection GetConnection()

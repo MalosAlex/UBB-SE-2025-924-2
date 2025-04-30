@@ -2,16 +2,18 @@ using System;
 using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Steam_Community.Data;
 
 namespace App1.Database
 {
     public class DatabaseConnection
     {
-        private readonly string _connectionString = "Data Source=DESKTOP-2OA983C;Initial Catalog=Community;Integrated Security=True;TrustServerCertificate=True;";
+        //private readonly string _connectionString = "Data Source=DESKTOP-2OA983C;Initial Catalog=Community;Integrated Security=True;TrustServerCertificate=True;";
 
         // Create a new connection each time rather than reusing a single connection
         private SqlConnection CreateConnection()
         {
+            string _connectionString = DatabaseConnectionSettings.CONNECTION_STRING;
             return new SqlConnection(_connectionString);
         }
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 
@@ -11,9 +13,18 @@ namespace Steam_Community.DirectMessages.ViewModels
     /// <summary>
     /// View model for the chat room UI, handling the presentation logic.
     /// </summary>
-    public class ChatRoomViewModel
+    public class ChatRoomViewModel : INotifyPropertyChanged
     {
         private IChatService chatService;
+        private bool isWindowOpen;
+        private bool isAdmin;
+        private bool isHost;
+        private bool isMuted;
+
+        /// <summary>
+        /// Event required by INotifyPropertyChanged.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Collection of messages to display in the UI.
@@ -33,32 +44,72 @@ namespace Steam_Community.DirectMessages.ViewModels
         /// <summary>
         /// Gets or sets whether the chat window is open.
         /// </summary>
-        public bool IsWindowOpen { get; set; }
+        public bool IsWindowOpen
+        {
+            get => isWindowOpen;
+            set
+            {
+                if (isWindowOpen != value)
+                {
+                    isWindowOpen = value;
+                    OnPropertyChanged(); // Notify UI of change
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the current user is an admin.
         /// </summary>
-        public bool IsAdmin { get; private set; }
+        public bool IsAdmin
+        {
+            get => isAdmin;
+            private set
+            {
+                if (isAdmin != value)
+                {
+                    isAdmin = value;
+                    OnPropertyChanged(); // Notify UI of change
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the current user is the host.
         /// </summary>
-        public bool IsHost { get; private set; }
+        public bool IsHost
+        {
+            get => isHost;
+            private set
+            {
+                if (isHost != value)
+                {
+                    isHost = value;
+                    OnPropertyChanged(); // Notify UI of change
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets whether the current user is muted.
         /// </summary>
-        public bool IsMuted { get; private set; }
+        public bool IsMuted
+        {
+            get => isMuted;
+            private set
+            {
+                if (isMuted != value)
+                {
+                    isMuted = value;
+                    OnPropertyChanged(); // Notify UI of change
+                }
+            }
+        }
 
         /// <summary>
         /// Event raised when an exception occurs.
         /// </summary>
         public event EventHandler<ExceptionEventArgs> ExceptionOccurred;
 
-        /// <summary>
-        /// Event raised when the user's status changes.
-        /// </summary>
-        public event EventHandler StatusChanged;
 
         /// <summary>
         /// Initializes a new instance of the ChatRoomViewModel class.
@@ -69,6 +120,7 @@ namespace Steam_Community.DirectMessages.ViewModels
         public ChatRoomViewModel(string username, string serverInviteIpAddress, DispatcherQueue uiDispatcherQueue)
         {
             this.Username = username;
+            // Use the property setter to ensure notification logic runs if needed initially
             this.IsWindowOpen = true;
             this.Messages = new ObservableCollection<Message>();
 
@@ -168,13 +220,13 @@ namespace Steam_Community.DirectMessages.ViewModels
         {
             UserStatus userStatus = userStatusEventArgs.UserStatus;
 
-            // Update status properties
+            // Update status properties using the setters to trigger PropertyChanged
             this.IsHost = userStatus.IsHost;
             this.IsAdmin = userStatus.IsAdmin;
             this.IsMuted = userStatus.IsMuted;
 
-            // Notify UI of status change
-            this.StatusChanged?.Invoke(this, EventArgs.Empty);
+            // The PropertyChanged event is now raised automatically by the setters.
+            // No need for: this.StatusChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -203,6 +255,15 @@ namespace Steam_Community.DirectMessages.ViewModels
         {
             // Users cannot moderate themselves
             return targetUsername != this.Username;
+        }
+
+        /// <summary>
+        /// Helper method to raise the PropertyChanged event.
+        /// </summary>
+        /// <param name="propertyName">Name of the property that changed. Automatically determined by the compiler.</param>
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

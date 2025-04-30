@@ -30,10 +30,10 @@
                           IsChecked="False" Checked="PositiveScoreToggle_CheckedChanged" 
                           Unchecked="PositiveScoreToggle_CheckedChanged"/>
 
-            <!-- Create Post Button -->
-            <Button x:Name="CreatePostButton" Content="Create Post" Width="100" Height="30" 
-                    Margin="10,0,0,0" Click="CreatePostButton_Click"/>
-
+            <!-- Create Post Button - Bound to ViewModel Command -->
+            <Button Content="Create Post" Width="100" Height="30"
+                    Margin="10,0,0,0" Command="{Binding CreatePostCommand}"/>
+                    
             <!-- Spacer -->
             <Border Width="10"/>
 
@@ -47,7 +47,8 @@
                     Margin="5,0,0,0" Click="SearchButton_Click"/>
         </StackPanel>
 
-        <!-- Posts Control -->
+        <!-- Posts Control - Manages its own data. x:Name restored for code-behind access. -->
         <local:PostsControl x:Name="PostsControl" Grid.Row="1" Margin="10" />
+                          <!-- Removed invalid ItemsSource and SelectedItem bindings -->
     </Grid>
-</UserControl> 
+</UserControl>

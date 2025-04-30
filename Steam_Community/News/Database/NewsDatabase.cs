@@ -4,12 +4,12 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Steam_Community.Data;
 
 namespace News
 {
     public class NewsDatabase : INewsDatabase
     {
-        private const string CONNECTION_STRING = "Data Source=DESKTOP-FL15V3S\\SQLEXPRESS;" + "Initial Catalog=Community;Integrated Security=true;TrustServerCertificate=True";
         private const string SEARCH_VALUE = "@search";
 
         public string ConnectionString { get; }
@@ -18,6 +18,7 @@ namespace News
 
         public NewsDatabase()
         {
+            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
             ConnectionString = CONNECTION_STRING;
             Connection = new SqlConnection(CONNECTION_STRING);
         }

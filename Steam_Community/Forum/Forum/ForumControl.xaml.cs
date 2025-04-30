@@ -18,23 +18,30 @@ namespace Forum
 {
     public sealed partial class ForumControl : UserControl
     {
-        private readonly uint _pageSize = 10;
-        private string _currentSearchFilter = null;
-        
+        private readonly uint pageSize = 10;
+        private string currentSearchFilter = null;
+        public ForumViewModel ViewModel { get; private set; }
+
         public ForumControl()
         {
             this.InitializeComponent();
-            
+
+            // Instantiate the service using the static instance getter
+            IForumService forumService = ForumService.GetForumServiceInstance();
+            ViewModel = new ForumViewModel(forumService);
+            this.DataContext = ViewModel;
+
             // Set up post selection event handler
             if (PostsControl != null)
             {
-                PostsControl.PostSelected += PostsControl_PostSelected;
+                 PostsControl.PostSelected += PostsControl_PostSelected;
             }
 
             // Initialize the UI after all elements are loaded
             LoadPosts();
         }
-        
+
+        // Keep LoadPosts for now as it interacts directly with PostsControl sorting/filtering
         private void LoadPosts()
         {
             try
@@ -49,10 +56,10 @@ namespace Forum
                 int selectedIndex = SortComboBox.SelectedIndex;
                 bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
                 
-                if (selectedIndex == 0) // Recent
+                if (selectedIndex == 0)
                 {
                     // Load first page of posts - the PostsControl will handle paging
-                    PostsControl.LoadPagedPosts(0, _pageSize, positiveScoreOnly, null, _currentSearchFilter);
+                    PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
                 }
                 else
                 {
@@ -121,48 +128,15 @@ namespace Forum
             }
             
             string searchTerm = SearchBox.Text?.Trim();
-            _currentSearchFilter = string.IsNullOrEmpty(searchTerm) ? null : searchTerm;
+            currentSearchFilter = string.IsNullOrEmpty(searchTerm) ? null : searchTerm;
             
             // Reset to first page and apply search filter (PostsControl handles the paging)
             bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
-            PostsControl.LoadPagedPosts(0, _pageSize, positiveScoreOnly, null, _currentSearchFilter);
+            PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
         }
         
-        private async void CreatePostButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Create the dialog
-                CreatePostDialog createDialog = new CreatePostDialog();
-                
-                // Set XamlRoot for proper dialog display
-                createDialog.XamlRoot = this.Content.XamlRoot;
-                
-                // Show the dialog and wait for user input
-                ContentDialogResult result = await createDialog.ShowAsync();
-                
-                // Check if a post was created
-                if (createDialog.PostCreated)
-                {
-                    // Reload posts to show the new post
-                    LoadPosts();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any errors showing the dialog
-                ContentDialog errorDialog = new ContentDialog
-                {
-                    Title = "Error",
-                    Content = $"An error occurred: {ex.Message}",
-                    CloseButtonText = "OK",
-                    XamlRoot = this.Content.XamlRoot
-                };
-                
-                await errorDialog.ShowAsync();
-            }
-        }
-        
+        // CreatePostButton_Click is removed as it will be handled by ViewModel Command
+
         private async void PostsControl_PostSelected(object sender, ForumPost post)
         {
             try
