@@ -27,6 +27,7 @@ namespace News
             if (e.Key == Windows.System.VirtualKey.Enter)
             {
                 ViewModel.LoadPosts(true, News_SearchBox.Text.Trim());
+                RefreshPostGrid();
             }
         }
 
@@ -49,7 +50,7 @@ namespace News
             RefreshPostGrid();
         }
 
-        private void RefreshPostGrid()
+        public void RefreshPostGrid()
         {
             News_PostsGrid.Children.Clear();
             News_PostsGrid.RowDefinitions.Clear();
