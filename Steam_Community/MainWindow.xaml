@@ -4,37 +4,35 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Steam_Community"
     xmlns:news="using:News"
-    xmlns:forum="using:Forum"
+    xmlns:forum="using:Forum.Forum"
     xmlns:reviews="using:SteamCommunity.Reviews.Views"
-    xmlns:friend_requests="using:App1"
+    xmlns:friend_requests="using:FriendRequests"
     xmlns:search="using:Search"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
     <Grid>
         <TabView x:Name="MainTabView" 
                  IsAddTabButtonVisible="False" 
                  TabWidthMode="Equal">
             <TabView.TabItems>
                 <TabViewItem Header="News" IsClosable="False">
-                    <news:NewsControl/>
+                    <news:NewsPage/>
                 </TabViewItem>
-            
+
                 <TabViewItem Header="Forum" IsClosable="False">
-                    <forum:ForumControl/>
+                    <forum:ForumPage/>
                 </TabViewItem>
-                
-                <!---
+
                 <TabViewItem Header="Reviews" IsClosable="False">
-                    <reviews:ReviewView/>
+                    <reviews:ReviewsPage/>
                 </TabViewItem>
-                -->
+
                 <TabViewItem Header="Friend Requests" IsClosable="False">
-                    <friend_requests:ProfileControl/>
+                    <friend_requests:FriendRequestsPage/>
                 </TabViewItem>
                 <TabViewItem Header="Search" IsClosable="False">
-                    <search:SearchControl x:Name="searchControl"/>
+                    <search:SearchPage x:Name="searchPage"/>
                 </TabViewItem>
             </TabView.TabItems>
         </TabView>
