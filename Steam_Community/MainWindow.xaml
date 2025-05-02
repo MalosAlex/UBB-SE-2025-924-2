@@ -24,11 +24,10 @@
                     <forum:ForumPage/>
                 </TabViewItem>
 
-                <!---
                 <TabViewItem Header="Reviews" IsClosable="False">
-                    <reviews:ReviewView/>
+                    <reviews:ReviewsPage/>
                 </TabViewItem>
-                -->
+
                 <TabViewItem Header="Friend Requests" IsClosable="False">
                     <friend_requests:FriendRequestsPage/>
                 </TabViewItem>
