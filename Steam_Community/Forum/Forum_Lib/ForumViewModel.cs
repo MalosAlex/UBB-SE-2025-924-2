@@ -79,7 +79,7 @@ namespace Forum_Lib
         // Constructor
         public ForumViewModel(IForumService forumService)
         {
-            forumService = forumService ?? throw new ArgumentNullException(nameof(forumService));
+            this.forumService = forumService ?? throw new ArgumentNullException(nameof(forumService));
 
             Posts = new ObservableCollection<ForumPost>();
             Comments = new ObservableCollection<ForumComment>();
