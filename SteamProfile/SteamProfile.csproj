@@ -77,11 +77,13 @@
     <Content Remove="Assets\Achievements\1_point.svg" />
     <Content Remove="Assets\Achievements\3_points.svg" />
     <Content Remove="Assets\Achievements\5_points.svg" />
+    <Content Remove="Assets\SplashScreen.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Include="Google.Protobuf" Version="3.30.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.3" />

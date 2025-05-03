@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 
 // Bare bones garbage 'cause others weren't willing to share their repos
-namespace News
+namespace BusinessLogic.Models
 {
     public class User
     {
