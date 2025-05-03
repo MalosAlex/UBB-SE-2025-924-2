@@ -356,7 +356,7 @@ namespace SteamProfile.ViewModels
                             NumberOfReviewsReceived = GetTopAchievement(currentUser.UserId, "Number of Reviews Received");
                             DeveloperAchievement = GetTopAchievement(currentUser.UserId, "Developer");
                             YearsOfActivity = GetTopAchievement(currentUser.UserId, "Years of Activity");
-                            NumberOfPostsGetTopAchievement = GetTopAchievement(currentUser.UserId, "Number of Posts");
+                            NumberOfPostsGetTopAchievement = GetTopAchievement(currentUser.UserId, "Number of Posts");
 
                             Debug.WriteLine($"Loaded achievements for user {currentUser.UserId}:");
                             Debug.WriteLine($"Friendships: {FriendshipsAchievement?.Achievement?.AchievementName}, Unlocked: {FriendshipsAchievement?.IsUnlocked}");
@@ -652,6 +652,38 @@ namespace SteamProfile.ViewModels
         {
             // Navigate to Points page
             NavigationService.Instance.Navigate(typeof(Views.WalletPage));
+        }
+
+        /// <summary>
+        /// Launches the Steam_Community application as a separate process.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToCommunity()
+        {
+            // Declare variables at the start of the function.
+            string communityAppPath = @"C:\Users\Alex\Documents\GitHub\UBB-SE-2025-924-2\Steam_Community\bin\x64\Debug\net8.0-windows10.0.19041.0\Steam_Community.exe";
+            bool canStartProcess = false;
+
+            try
+            {
+                // Check if the file exists before starting the process.
+                canStartProcess = System.IO.File.Exists(communityAppPath);
+                if (canStartProcess)
+                {
+                    Process.Start(communityAppPath);
+                    return;
+                }
+                else
+                {
+                    this.ErrorMessage = "Community application not found. Please check the path.";
+                }
+            }
+            catch (Exception exception)
+            {
+                // Log the error.
+                Debug.WriteLine($"Error launching Steam_Community: {exception.Message}");
+                this.ErrorMessage = "Failed to launch Community application.";
+            }
         }
 
         [RelayCommand]
