@@ -29,4 +29,12 @@ namespace BusinessLayer.Models
             LastLogin = other.LastLogin;
         }
     }
+
+    public enum FriendshipStatus
+    {
+        NotFriends,
+        Friends,
+        RequestSent,
+        RequestReceived
+    }
 }

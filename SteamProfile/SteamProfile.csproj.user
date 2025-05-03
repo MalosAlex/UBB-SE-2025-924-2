@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Page Update="Implementation\ChatRoomWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\AddCommentDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ChatRoomWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CommentControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CommentInputControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\CreatePostDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ForumControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ForumPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\FriendRequestsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\NewsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\NewsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\PostControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\PostDetailDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\PostEditorControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\PostPreviewControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\PostsControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ProfileControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ReviewExpandedView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ReviewsPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\SearchControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\SearchPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>
