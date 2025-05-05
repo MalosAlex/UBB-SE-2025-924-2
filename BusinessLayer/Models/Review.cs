@@ -8,25 +8,20 @@ namespace BusinessLayer.Models
 {
     public class Review : INotifyPropertyChanged
     {
-        private int _reviewIdentifier;
-        private string _reviewTitleText = string.Empty;
-        private string _reviewContentText = string.Empty;
-        private bool _isRecommended;
-        private double _numericRatingGivenByUser;
-        private int _totalHelpfulVotesReceived;
-        private int _totalFunnyVotesReceived;
-        private int _totalHoursPlayedByReviewer;
-        private DateTime _dateAndTimeWhenReviewWasCreated;
-        private int _userIdentifier;
-        private int _gameIdentifier;
-        private string _userName = string.Empty;
-        private string _titleOfGame = string.Empty;
-
-
+        private int reviewIdentifier;
+        private string reviewTitleText = string.Empty;
+        private string reviewContentText = string.Empty;
+        private bool isRecommended;
+        private double numericRatingGivenByUser;
+        private int totalHelpfulVotesReceived;
+        private int totalFunnyVotesReceived;
+        private int totalHoursPlayedByReviewer;
+        private DateTime dateAndTimeWhenReviewWasCreated;
+        private int userIdentifier;
+        private int gameIdentifier;
+        private string userName = string.Empty;
+        private string titleOfGame = string.Empty;
         public byte[]? ProfilePictureBlob { get; set; }
-
-
-
         // REMOVE!! NO GUI IN MODEL!!!!
         public BitmapImage? ProfileImage
         {
@@ -35,7 +30,9 @@ namespace BusinessLayer.Models
                 try
                 {
                     if (ProfilePictureBlob == null || ProfilePictureBlob.Length == 0)
+                    {
                         return null;
+                    }
 
                     var bitmap = new BitmapImage();
                     using var stream = new MemoryStream(ProfilePictureBlob);
@@ -49,94 +46,97 @@ namespace BusinessLayer.Models
                 }
             }
         }
-
-
-
         public bool HasVotedHelpful { get; set; } = false; // temporary flag
         public bool HasVotedFunny { get; set; } = false;
 
         public int ReviewIdentifier
         {
-            get => _reviewIdentifier;
-            set => SetProperty(ref _reviewIdentifier, value);
+            get => reviewIdentifier;
+            set => SetProperty(ref reviewIdentifier, value);
         }
 
         public string ReviewTitleText
         {
-            get => _reviewTitleText;
-            set => SetProperty(ref _reviewTitleText, value);
+            get => reviewTitleText;
+            set => SetProperty(ref reviewTitleText, value);
         }
 
         public string ReviewContentText
         {
-            get => _reviewContentText;
-            set => SetProperty(ref _reviewContentText, value);
+            get => reviewContentText;
+            set => SetProperty(ref reviewContentText, value);
         }
 
         public bool IsRecommended
         {
-            get => _isRecommended;
-            set => SetProperty(ref _isRecommended, value);
+            get => isRecommended;
+            set => SetProperty(ref isRecommended, value);
         }
 
         public double NumericRatingGivenByUser
         {
-            get => _numericRatingGivenByUser;
-            set => SetProperty(ref _numericRatingGivenByUser, value);
+            get => numericRatingGivenByUser;
+            set => SetProperty(ref numericRatingGivenByUser, value);
         }
 
         public int TotalHelpfulVotesReceived
         {
-            get => _totalHelpfulVotesReceived;
-            set => SetProperty(ref _totalHelpfulVotesReceived, value);
+            get => totalHelpfulVotesReceived;
+            set => SetProperty(ref totalHelpfulVotesReceived, value);
         }
 
         public int TotalFunnyVotesReceived
         {
-            get => _totalFunnyVotesReceived;
-            set => SetProperty(ref _totalFunnyVotesReceived, value);
+            get => totalFunnyVotesReceived;
+            set => SetProperty(ref totalFunnyVotesReceived, value);
         }
 
         public int TotalHoursPlayedByReviewer
         {
-            get => _totalHoursPlayedByReviewer;
-            set => SetProperty(ref _totalHoursPlayedByReviewer, value);
+            get => totalHoursPlayedByReviewer;
+            set => SetProperty(ref totalHoursPlayedByReviewer, value);
         }
 
         public DateTime DateAndTimeWhenReviewWasCreated
         {
-            get => _dateAndTimeWhenReviewWasCreated;
-            set => SetProperty(ref _dateAndTimeWhenReviewWasCreated, value);
+            get => dateAndTimeWhenReviewWasCreated;
+            set => SetProperty(ref dateAndTimeWhenReviewWasCreated, value);
         }
 
         public int UserIdentifier
         {
-            get => _userIdentifier;
-            set => SetProperty(ref _userIdentifier, value);
+            get => userIdentifier;
+            set => SetProperty(ref userIdentifier, value);
         }
 
         public int GameIdentifier
         {
-            get => _gameIdentifier;
-            set => SetProperty(ref _gameIdentifier, value);
+            get => gameIdentifier;
+            set => SetProperty(ref gameIdentifier, value);
         }
 
         public string UserName
         {
-            get => _userName;
-            set => SetProperty(ref _userName, value);
+            get => userName;
+            set => SetProperty(ref userName, value);
         }
 
         public string TitleOfGame
         {
-            get => _titleOfGame;
-            set => SetProperty(ref _titleOfGame, value);
+            get => titleOfGame;
+            set => SetProperty(ref titleOfGame, value);
         }
 
         public void AddVote(string typeOfVote)
         {
-            if (typeOfVote == "Helpful") TotalHelpfulVotesReceived++;
-            else if (typeOfVote == "Funny") TotalFunnyVotesReceived++;
+            if (typeOfVote == "Helpful")
+            {
+                TotalHelpfulVotesReceived++;
+            }
+            else if (typeOfVote == "Funny")
+            {
+                TotalFunnyVotesReceived++;
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -148,7 +148,10 @@ namespace BusinessLayer.Models
 
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
         {
-            if (Equals(storage, value)) return false;
+            if (Equals(storage, value))
+            {
+                return false;
+            }
             storage = value;
             OnPropertyChanged(propertyName);
             return true;

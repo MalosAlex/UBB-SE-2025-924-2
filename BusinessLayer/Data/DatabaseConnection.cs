@@ -81,7 +81,7 @@ namespace BusinessLayer.Data
         {
             string query = $"DELETE FROM {tableName} WHERE {columnName} = @Value";
 
-            SqlCommand command = new SqlCommand(query , Connection);
+            SqlCommand command = new SqlCommand(query, Connection);
 
             command.Parameters.AddWithValue("@value", value);
 
