@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Data;
+using Microsoft.Data.SqlClient;
 using BusinessLayer.Models;
 using BusinessLayer.Data;
 
@@ -10,11 +10,11 @@ namespace BusinessLayer.Repositories
 {
     public class ReviewRepository : IReviewRepository
     {
-        private readonly DatabaseConnection _reviewDatabaseConnection;
+        private readonly DatabaseConnection reviewDatabaseConnection;
 
         public ReviewRepository()
         {
-            _reviewDatabaseConnection = new DatabaseConnection();
+            reviewDatabaseConnection = new DatabaseConnection();
         }
 
         // Fetch all reviews for a given game
@@ -28,9 +28,8 @@ namespace BusinessLayer.Repositories
                                                 INNER JOIN ReviewsUsers u ON r.UserId = u.UserId
                                                 WHERE r.GameId = @GameId
                                                ORDER BY r.CreatedAt DESC";
-            ;
 
-            using (SqlConnection connection = _reviewDatabaseConnection.GetConnection())
+            using (SqlConnection connection = reviewDatabaseConnection.GetConnection())
             using (SqlCommand sqlCommandToFetchReviews = new SqlCommand(sqlQueryToGetReviewsForGame, connection))
             {
                 sqlCommandToFetchReviews.Parameters.AddWithValue("@GameId", gameId);
@@ -39,7 +38,9 @@ namespace BusinessLayer.Repositories
                 using (SqlDataReader sqlDataReaderForReviewRows = sqlCommandToFetchReviews.ExecuteReader())
                 {
                     while (sqlDataReaderForReviewRows.Read())
+                    {
                         listOfReviewsForGame.Add(MapSqlReaderRowToReviewObject(sqlDataReaderForReviewRows));
+                    }
                 }
             }
 
@@ -107,11 +108,6 @@ namespace BusinessLayer.Repositories
                 sqlCommand.Parameters.AddWithValue("@ReviewId", reviewIdToVoteOn);
             });
         }
-
-
-
-
-
         // Retrieve review statistics for a specific game
         public (int TotalReviews, int TotalPositiveRecommendations, double AverageRatingValue) RetrieveReviewStatisticsForGame(int gameIdToFetchStatsFor)
         {
@@ -126,7 +122,7 @@ namespace BusinessLayer.Repositories
             int totalReviewsCount = 0, totalPositiveRecommendationsCount = 0;
             double averageRatingForGame = 0.0;
 
-            using (SqlConnection connectionForStatisticsQuery = _reviewDatabaseConnection.GetConnection())
+            using (SqlConnection connectionForStatisticsQuery = reviewDatabaseConnection.GetConnection())
             using (SqlCommand sqlCommandForStatisticsQuery = new SqlCommand(sqlQueryToGetReviewStatistics, connectionForStatisticsQuery))
             {
                 sqlCommandForStatisticsQuery.Parameters.AddWithValue("@GameId", gameIdToFetchStatsFor);
@@ -148,9 +144,6 @@ namespace BusinessLayer.Repositories
             return (totalReviewsCount, totalPositiveRecommendationsCount, averageRatingForGame);
         }
 
-
-
-
         // Helper: Reusable review mapping from SqlDataReader
         private Review MapSqlReaderRowToReviewObject(SqlDataReader sqlDataReaderRow)
         {
@@ -159,8 +152,8 @@ namespace BusinessLayer.Repositories
                 return new Review
                 {
                     ReviewIdentifier = Convert.ToInt32(sqlDataReaderRow["ReviewId"]),
-                    ReviewTitleText = sqlDataReaderRow["Title"]?.ToString() ?? "",
-                    ReviewContentText = sqlDataReaderRow["Content"]?.ToString() ?? "",
+                    ReviewTitleText = sqlDataReaderRow["Title"]?.ToString() ?? string.Empty,
+                    ReviewContentText = sqlDataReaderRow["Content"]?.ToString() ?? string.Empty,
                     IsRecommended = Convert.ToBoolean(sqlDataReaderRow["IsRecommended"]),
                     NumericRatingGivenByUser = Convert.ToDouble(sqlDataReaderRow["Rating"]),
                     TotalHelpfulVotesReceived = Convert.ToInt32(sqlDataReaderRow["HelpfulVotes"]),
@@ -179,7 +172,6 @@ namespace BusinessLayer.Repositories
                 throw;
             }
         }
-
 
         // Bind parameters from Review object into SQL Command
         private void BindReviewObjectToSqlCommandParameters(SqlCommand sqlCommandToBindParametersTo, Review reviewDataToBind, bool isUpdateOperation)
@@ -203,7 +195,7 @@ namespace BusinessLayer.Repositories
         // Execute a non-query SQL command (INSERT, UPDATE, DELETE) with parameter binding
         private bool ExecuteSqlNonQueryWithParameterBinding(string sqlQueryToExecute, Action<SqlCommand> bindSqlParametersAction)
         {
-            using (SqlConnection connectionToExecuteNonQuery = _reviewDatabaseConnection.GetConnection())
+            using (SqlConnection connectionToExecuteNonQuery = reviewDatabaseConnection.GetConnection())
             using (SqlCommand sqlCommandToExecute = new SqlCommand(sqlQueryToExecute, connectionToExecuteNonQuery))
             {
                 bindSqlParametersAction(sqlCommandToExecute);

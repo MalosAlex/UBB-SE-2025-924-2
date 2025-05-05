@@ -96,6 +96,13 @@ namespace BusinessLayer.Models
             this.IsDeveloper = isDeveloper;
         }
 
+        public User(int id, string userName, string ipAddress)
+        {
+            this.UserId = id;
+            this.Username = userName;
+            this.IpAddress = ipAddress;
+        }
+
         public User()
         {
             LoadProfilePicture();

@@ -29,8 +29,6 @@ namespace SteamProfile.Views
             };
         }
 
-
-
         public void OnClosing(object sender, WindowEventArgs e)
         {
             ViewModel.OnClosing();

@@ -46,12 +46,12 @@ namespace SteamProfile.ViewModels
 
         private void LoadUserInfo()
         {
-            var user = service.activeUser;
-            Username = user.username;
+            var user = service.ActiveUser;
+            Username = user.Username;
             CurrentDate = DateTime.Now.ToString("MMM d, yyyy");
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.profilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
             ProfilePicture = image;
         }
 
@@ -94,7 +94,9 @@ namespace SteamProfile.ViewModels
         private void Upload()
         {
             if (string.IsNullOrWhiteSpace(RawHtml))
+            {
                 return;
+            }
 
             string html = service.FormatAsPost(RawHtml);
 

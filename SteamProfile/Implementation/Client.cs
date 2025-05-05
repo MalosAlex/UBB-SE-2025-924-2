@@ -10,7 +10,51 @@ namespace SteamProfile.Implementation
 {
     public partial class Client
     {
-        public async partial Task ConnectToServer()
+        private IPEndPoint serverEndPoint;
+        private Socket clientSocket;
+        private DispatcherQueue uiThread;
+        private Regex infoChangeCommandRegex;
+
+        private ClientStatus clientStatus;
+
+        public event EventHandler<MessageEventArgs> NewMessageReceivedEvent;
+        public event EventHandler<ClientStatusEventArgs> ClientStatusChangedEvent;
+
+        private string userName;
+        private string infoChangeCommandPattern;
+
+        /// <summary>
+        /// Creates the client component used to connect to a server
+        /// </summary>
+        /// <param name="hostIpAddress">The ip address of the user who sent the invite</param>
+        /// <param name="userName">The name of the user who joined the chat room</param>
+        /// <param name="uiThread">Updating the ui can be done using only the main thread</param>
+        /// <exception cref="Exception">Ip address of the server provided in the wrong format</exception>
+        public Client(string hostIpAddress, string userName, DispatcherQueue uiThread)
+        {
+            this.userName = userName;
+            // A client will only receive valid commands in the form "<INFO>|Status|<INFO>"
+            // Once he receives that status, he will change the value to it's negation (admin -> !admin) from the client status
+            this.infoChangeCommandPattern = @"^<INFO>\|.*\|<INFO>$";
+            this.uiThread = uiThread;
+
+            this.clientStatus = new ClientStatus();
+
+            // Command matches are found via regex
+            this.infoChangeCommandRegex = new Regex(this.infoChangeCommandPattern);
+
+            try
+            {
+                this.serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIpAddress), Server.PORT_NUMBER);
+                this.clientSocket = new(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+        }
+
+        public async Task ConnectToServer()
         {
             try
             {
@@ -31,13 +75,13 @@ namespace SteamProfile.Implementation
                 // the client, so we update the client status to the ui
                 this.uiThread.TryEnqueue(() => this.ClientStatusChangedEvent?.Invoke(this, new ClientStatusEventArgs(clientStatus)));
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 throw new Exception(exception.Message);
             }
         }
 
-        public async partial Task SendMessageToServer(String message)
+        public async Task SendMessageToServer(string message)
         {
             try
             {
@@ -51,7 +95,7 @@ namespace SteamProfile.Implementation
                 throw new Exception(exception.Message);
             }
         }
-        private async partial Task ReceiveMessage()
+        private async Task ReceiveMessage()
         {
             try
             {
@@ -70,14 +114,13 @@ namespace SteamProfile.Implementation
                     // Message is a Google protobuf auto generated class
                     // Check the "message.proto" for it's attributes (properties are auto generated as well)
                     Message message = Message.Parser.ParseFrom(messageBuffer, 0, messageLength);
-                    
                     // Check if the message content is a "info" command (a status change)
                     if (this.infoChangeCommandRegex.IsMatch(message.MessageContent))
                     {
                         // We are looking for the status that is between the | | in "<INFO>|Status|<INFO>
                         int newInfoIndex = 1;
                         char commandSeparator = '|';
-                        String newInfo = message.MessageContent.Split(commandSeparator)[newInfoIndex];
+                        string newInfo = message.MessageContent.Split(commandSeparator)[newInfoIndex];
 
                         this.UpdateClientStatus(newInfo);
                         continue;
@@ -98,12 +141,12 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial bool IsConnected()
+        public bool IsConnected()
         {
             return this.clientStatus.IsConnected;
         }
 
-        private partial void UpdateClientStatus(String newStatus)
+        private void UpdateClientStatus(string newStatus)
         {
             switch (newStatus)
             {
@@ -125,12 +168,12 @@ namespace SteamProfile.Implementation
             this.uiThread.TryEnqueue(() => this.ClientStatusChangedEvent?.Invoke(this, new ClientStatusEventArgs(clientStatus)));
         }
 
-        public partial void SetIsHost()
+        public void SetIsHost()
         {
             this.clientStatus.IsHost = true;
         }
 
-        public async partial void Disconnect()
+        public async void Disconnect()
         {
             try
             {
@@ -144,7 +187,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private partial void CloseConnection()
+        private void CloseConnection()
         {
             this.clientStatus.IsConnected = false;
             clientSocket.Shutdown(SocketShutdown.Both);

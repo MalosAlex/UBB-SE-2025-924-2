@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SteamProfile.ViewModels;
 using BusinessLayer.Services;
+using BusinessLayer.Models;
 
 namespace SteamProfile.Views
 {
@@ -39,7 +40,6 @@ namespace SteamProfile.Views
             ViewModel.StoppedHosting();
         }
 
-
         private void MessageButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is User user)
@@ -71,10 +71,7 @@ namespace SteamProfile.Views
                 ViewModel.DeclineInvite(user);
             }
         }
-
     }
-
-
     // Event arguments for when a chat room is opened
     public class ChatRoomOpenedEventArgs : EventArgs
     {

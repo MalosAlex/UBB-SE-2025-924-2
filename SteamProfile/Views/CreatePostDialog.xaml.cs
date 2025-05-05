@@ -2,39 +2,33 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Models;
+using BusinessLayer.Services;
 
 namespace SteamProfile.Views
 {
     public sealed partial class CreatePostDialog : ContentDialog
     {
         // Hard-coded current user ID for demo
-        private readonly uint _currentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
-        private User _currentUser;
-        
+        private readonly uint currentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
+        private User currentUser;
         // Result indicating if a post was created
         public bool PostCreated { get; private set; }
-        
         public CreatePostDialog()
         {
             this.InitializeComponent();
-            
             // Get current user and set up user display
-            _currentUser = User.GetUserById(_currentUserId);
-            UserNameTextBlock.Text = _currentUser.Username;
-            UserProfileImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(_currentUser.ProfilePicturePath));
-            
+            currentUser = User.GetUserById((int)currentUserId);
+            UserNameTextBlock.Text = currentUser.Username;
+            UserProfileImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(currentUser.ProfilePicturePath));
             // Register for button click events
             this.PrimaryButtonClick += CreatePostDialog_PrimaryButtonClick;
         }
-        
         private void CreatePostDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             // Defer the close operation so we can validate inputs
             var deferral = args.GetDeferral();
-            
             // Validate inputs
             bool isValid = ValidateInputs();
-            
             if (!isValid)
             {
                 // Prevent dialog from closing
@@ -42,13 +36,11 @@ namespace SteamProfile.Views
                 deferral.Complete();
                 return;
             }
-            
             try
             {
                 // Get values from controls
                 string title = TitleTextBox.Text.Trim();
                 string body = BodyTextBox.Text.Trim();
-                
                 // Get game ID (if selected)
                 uint? gameId = null;
                 if (GameComboBox.SelectedIndex > 0) // First option is "No game"
@@ -60,11 +52,9 @@ namespace SteamProfile.Views
                         gameId = parsedGameId;
                     }
                 }
-                
                 // Create the post
                 string currentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 ForumService.GetForumServiceInstance().CreatePost(title, body, currentDate, gameId);
-                
                 // Indicate that a post was created
                 PostCreated = true;
             }
@@ -77,22 +67,17 @@ namespace SteamProfile.Views
                     Content = $"There was an error creating your post: {ex.Message}",
                     CloseButtonText = "OK"
                 };
-                
                 // Don't wait for this to complete in this method
                 _ = errorDialog.ShowAsync();
-                
                 // Prevent dialog from closing
                 args.Cancel = true;
             }
-            
             // Complete the deferral
             deferral.Complete();
         }
-        
         private bool ValidateInputs()
         {
             bool isValid = true;
-            
             // Check title
             if (string.IsNullOrWhiteSpace(TitleTextBox.Text))
             {
@@ -103,7 +88,6 @@ namespace SteamProfile.Views
             {
                 TitleErrorText.Visibility = Visibility.Collapsed;
             }
-            
             // Check body
             if (string.IsNullOrWhiteSpace(BodyTextBox.Text))
             {
@@ -114,8 +98,7 @@ namespace SteamProfile.Views
             {
                 BodyErrorText.Visibility = Visibility.Collapsed;
             }
-            
             return isValid;
         }
     }
-} 
+}

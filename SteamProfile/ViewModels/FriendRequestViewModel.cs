@@ -12,26 +12,25 @@ namespace SteamProfile.ViewModels
 {
     public class FriendRequestViewModel : INotifyPropertyChanged
     {
-        private readonly IFriendRequestService _friendRequestService;
-        private readonly IFriendService _friendService;
-        private ObservableCollection<FriendRequest> _friendRequests;
-        private ObservableCollection<Friend> _friends;
-        private bool _isLoading;
-        private string _currentUsername;
+        private readonly IFriendRequestService friendRequestService;
+        private readonly IFriendService friendService;
+        private ObservableCollection<FriendRequest> friendRequests;
+        private ObservableCollection<Friend> friends;
+        private bool isLoading;
+        private string currentUsername;
 
         public FriendRequestViewModel(IFriendRequestService friendRequestService, string currentUsername)
         {
-            _friendRequestService = friendRequestService ?? throw new ArgumentNullException(nameof(friendRequestService));
-            _friendService = SteamProfile.App.GetService<IFriendService>(); // Get from service container
-            _currentUsername = currentUsername ?? throw new ArgumentNullException(nameof(currentUsername));
-            _friendRequests = new ObservableCollection<FriendRequest>();
-            _friends = new ObservableCollection<Friend>();
+            friendRequestService = friendRequestService ?? throw new ArgumentNullException(nameof(friendRequestService));
+            friendService = SteamProfile.App.GetService<IFriendService>(); // Get from service container
+            currentUsername = currentUsername ?? throw new ArgumentNullException(nameof(currentUsername));
+            friendRequests = new ObservableCollection<FriendRequest>();
+            friends = new ObservableCollection<Friend>();
 
             // Initialize commands
             AcceptRequestCommand = new RelayCommand<FriendRequest>(AcceptRequest);
             RejectRequestCommand = new RelayCommand<FriendRequest>(RejectRequest);
             RemoveFriendCommand = new RelayCommand<Friend>(RemoveFriend);
-            
             // Load friend requests and friends
             LoadFriendRequestsAsync();
             LoadFriendsAsync();
@@ -39,12 +38,12 @@ namespace SteamProfile.ViewModels
 
         public ObservableCollection<FriendRequest> FriendRequests
         {
-            get => _friendRequests;
+            get => friendRequests;
             set
             {
-                if (_friendRequests != value)
+                if (friendRequests != value)
                 {
-                    _friendRequests = value;
+                    friendRequests = value;
                     OnPropertyChanged();
                 }
             }
@@ -52,12 +51,12 @@ namespace SteamProfile.ViewModels
 
         public ObservableCollection<Friend> Friends
         {
-            get => _friends;
+            get => friends;
             set
             {
-                if (_friends != value)
+                if (friends != value)
                 {
-                    _friends = value;
+                    friends = value;
                     OnPropertyChanged();
                 }
             }
@@ -65,12 +64,12 @@ namespace SteamProfile.ViewModels
 
         public bool IsLoading
         {
-            get => _isLoading;
+            get => isLoading;
             set
             {
-                if (_isLoading != value)
+                if (isLoading != value)
                 {
-                    _isLoading = value;
+                    isLoading = value;
                     OnPropertyChanged();
                 }
             }
@@ -86,8 +85,7 @@ namespace SteamProfile.ViewModels
             try
             {
                 IsLoading = true;
-                var requests = await _friendRequestService.GetFriendRequestsAsync(_currentUsername);
-                
+                var requests = await friendRequestService.GetFriendRequestsAsync(currentUsername);
                 FriendRequests.Clear();
                 foreach (var request in requests)
                 {
@@ -110,8 +108,7 @@ namespace SteamProfile.ViewModels
             try
             {
                 IsLoading = true;
-                var friends = await _friendService.GetFriendsAsync(_currentUsername);
-                
+                var friends = await friendService.GetFriendsAsync(currentUsername);
                 Friends.Clear();
                 foreach (var friend in friends)
                 {
@@ -131,16 +128,18 @@ namespace SteamProfile.ViewModels
 
         private async void AcceptRequest(FriendRequest request)
         {
-            if (request == null) return;
+            if (request == null)
+            {
+                return;
+            }
 
             try
             {
-                bool success = await _friendRequestService.AcceptFriendRequestAsync(request.Username, _currentUsername);
+                bool success = await friendRequestService.AcceptFriendRequestAsync(request.Username, currentUsername);
                 if (success)
                 {
                     // Remove from the local collection
                     FriendRequests.Remove(request);
-                    
                     // Add to friends collection
                     Friends.Add(new Friend
                     {
@@ -159,11 +158,14 @@ namespace SteamProfile.ViewModels
 
         private async void RejectRequest(FriendRequest request)
         {
-            if (request == null) return;
+            if (request == null)
+            {
+                return;
+            }
 
             try
             {
-                bool success = await _friendRequestService.RejectFriendRequestAsync(request.Username, _currentUsername);
+                bool success = await friendRequestService.RejectFriendRequestAsync(request.Username, currentUsername);
                 if (success)
                 {
                     // Remove from the local collection
@@ -179,11 +181,14 @@ namespace SteamProfile.ViewModels
 
         private async void RemoveFriend(Friend friend)
         {
-            if (friend == null) return;
+            if (friend == null)
+            {
+                return;
+            }
 
             try
             {
-                bool success = await _friendService.RemoveFriendAsync(_currentUsername, friend.Username);
+                bool success = await friendService.RemoveFriendAsync(currentUsername, friend.Username);
                 if (success)
                 {
                     // Remove from the local collection
@@ -204,4 +209,4 @@ namespace SteamProfile.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
-} 
+}

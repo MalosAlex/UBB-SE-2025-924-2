@@ -18,29 +18,29 @@ namespace SteamProfile.Services
     /// </summary>
     public class NetworkServer : INetworkServer
     {
-        private Socket _serverSocket;
-        private IPEndPoint _ipEndPoint;
-        private Timer _serverTimeoutTimer;
-        private readonly object _timerLock = new object();
+        private Socket serverSocket;
+        private IPEndPoint ipEndPoint;
+        private Timer serverTimeoutTimer;
+        private readonly object timerLock = new object();
 
-        private ConcurrentDictionary<string, string> _ipAddressesToUsernames = new ConcurrentDictionary<string, string>();
-        private ConcurrentDictionary<Socket, string> _socketsToIpAddresses = new ConcurrentDictionary<Socket, string>();
-        private ConcurrentDictionary<string, Socket> _usernamesToSockets = new ConcurrentDictionary<string, Socket>();
-        private ConcurrentDictionary<string, bool> _mutedUsers = new ConcurrentDictionary<string, bool>();
-        private ConcurrentDictionary<string, bool> _adminUsers = new ConcurrentDictionary<string, bool>();
+        private ConcurrentDictionary<string, string> ipAddressesToUsernames = new ConcurrentDictionary<string, string>();
+        private ConcurrentDictionary<Socket, string> socketsToIpAddresses = new ConcurrentDictionary<Socket, string>();
+        private ConcurrentDictionary<string, Socket> usernamesToSockets = new ConcurrentDictionary<string, Socket>();
+        private ConcurrentDictionary<string, bool> mutedUsers = new ConcurrentDictionary<string, bool>();
+        private ConcurrentDictionary<string, bool> adminUsers = new ConcurrentDictionary<string, bool>();
 
-        private Regex _muteCommandRegex;
-        private Regex _adminCommandRegex;
-        private Regex _kickCommandRegex;
-        private Regex _infoChangeCommandRegex;
+        private Regex muteCommandRegex;
+        private Regex adminCommandRegex;
+        private Regex kickCommandRegex;
+        private Regex infoChangeCommandRegex;
 
-        private string _hostUsername;
-        private readonly string _muteCommandPattern = @"^<.*>\|" + ChatConstants.MUTE_STATUS + @"\|<.*>$";
-        private readonly string _adminCommandPattern = @"^<.*>\|" + ChatConstants.ADMIN_STATUS + @"\|<.*>$";
-        private readonly string _kickCommandPattern = @"^<.*>\|" + ChatConstants.KICK_STATUS + @"\|<.*>$";
-        private readonly string _infoCommandPattern = @"^<INFO>\|.*\|<INFO>$";
+        private string hostUsername;
+        private readonly string muteCommandPattern = @"^<.*>\|" + ChatConstants.MUTE_STATUS + @"\|<.*>$";
+        private readonly string adminCommandPattern = @"^<.*>\|" + ChatConstants.ADMIN_STATUS + @"\|<.*>$";
+        private readonly string kickCommandPattern = @"^<.*>\|" + ChatConstants.KICK_STATUS + @"\|<.*>$";
+        private readonly string infoCommandPattern = @"^<INFO>\|.*\|<INFO>$";
 
-        private bool _isRunning;
+        private bool isRunning;
 
         /// <summary>
         /// Initializes a new instance of the NetworkServer class.
@@ -50,28 +50,28 @@ namespace SteamProfile.Services
         /// <exception cref="Exception">Thrown when server creation fails.</exception>
         public NetworkServer(string hostIpAddress, string hostUsername)
         {
-            _hostUsername = hostUsername;
+            hostUsername = hostUsername;
 
             // Initialize regex patterns for command matching
-            _muteCommandRegex = new Regex(_muteCommandPattern);
-            _adminCommandRegex = new Regex(_adminCommandPattern);
-            _kickCommandRegex = new Regex(_kickCommandPattern);
-            _infoChangeCommandRegex = new Regex(_infoCommandPattern);
+            muteCommandRegex = new Regex(muteCommandPattern);
+            adminCommandRegex = new Regex(adminCommandPattern);
+            kickCommandRegex = new Regex(kickCommandPattern);
+            infoChangeCommandRegex = new Regex(infoCommandPattern);
 
             try
             {
                 // Set up server socket
-                _ipEndPoint = new IPEndPoint(IPAddress.Parse(hostIpAddress), ChatConstants.PORT_NUMBER);
-                _serverSocket = new Socket(_ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                _serverSocket.Bind(_ipEndPoint);
-                _serverSocket.Listen(ChatConstants.NUMBER_OF_QUEUED_CONNECTIONS);
+                ipEndPoint = new IPEndPoint(IPAddress.Parse(hostIpAddress), ChatConstants.PORT_NUMBER);
+                serverSocket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                serverSocket.Bind(ipEndPoint);
+                serverSocket.Listen(ChatConstants.NUMBER_OF_QUEUED_CONNECTIONS);
             }
             catch (Exception exception)
             {
                 throw new Exception($"Server creation failed: {exception.Message}");
             }
 
-            _isRunning = true;
+            isRunning = true;
         }
 
         /// <summary>
@@ -80,12 +80,12 @@ namespace SteamProfile.Services
         public async void Start()
         {
             // Accept connections until server is stopped
-            while (_isRunning)
+            while (isRunning)
             {
                 try
                 {
                     // Accept new client connection
-                    Socket clientSocket = await _serverSocket.AcceptAsync();
+                    Socket clientSocket = await serverSocket.AcceptAsync();
                     string defaultEndpointValue = "Not Connected";
 
                     // Get client IP address
@@ -95,22 +95,22 @@ namespace SteamProfile.Services
                         ipAddressWithPort.IndexOf(ChatConstants.ADDRESS_SEPARATOR));
 
                     // Check if server is at capacity
-                    if (_socketsToIpAddresses.Count >= ChatConstants.MAXIMUM_NUMBER_OF_ACTIVE_CONNECTIONS)
+                    if (socketsToIpAddresses.Count >= ChatConstants.MAXIMUM_NUMBER_OF_ACTIVE_CONNECTIONS)
                     {
                         // Notify client and close connection
                         SendMessageToClient(
-                            CreateMessage(ChatConstants.SERVER_CAPACITY_REACHED, _hostUsername),
+                            CreateMessage(ChatConstants.SERVER_CAPACITY_REACHED, hostUsername),
                             clientSocket);
 
                         SendMessageToClient(
-                            CreateMessage(ChatConstants.INFO_CHANGE_KICK_STATUS_COMMAND, _hostUsername),
+                            CreateMessage(ChatConstants.INFO_CHANGE_KICK_STATUS_COMMAND, hostUsername),
                             clientSocket);
 
                         continue;
                     }
 
                     // Store client connection information
-                    _socketsToIpAddresses.TryAdd(clientSocket, clientIpAddress);
+                    socketsToIpAddresses.TryAdd(clientSocket, clientIpAddress);
 
                     // Check if minimum connections requirement is met
                     CheckAndStartTimeoutIfNeeded();
@@ -143,16 +143,16 @@ namespace SteamProfile.Services
                     usernameLength);
 
                 // Get client IP address
-                string clientIpAddress = _socketsToIpAddresses.GetValueOrDefault(clientSocket) ?? "";
+                string clientIpAddress = socketsToIpAddresses.GetValueOrDefault(clientSocket) ?? string.Empty;
 
                 // Store client information
-                _ipAddressesToUsernames.TryAdd(clientIpAddress, clientUsername);
-                _usernamesToSockets.TryAdd(clientUsername, clientSocket);
-                _adminUsers.TryAdd(clientUsername, false);
-                _mutedUsers.TryAdd(clientUsername, false);
+                ipAddressesToUsernames.TryAdd(clientIpAddress, clientUsername);
+                usernamesToSockets.TryAdd(clientUsername, clientSocket);
+                adminUsers.TryAdd(clientUsername, false);
+                mutedUsers.TryAdd(clientUsername, false);
 
                 // Process client messages
-                while (_isRunning)
+                while (isRunning)
                 {
                     // Check if client is still connected
                     if (clientSocket == null)
@@ -166,7 +166,7 @@ namespace SteamProfile.Services
                     int messageLength = await clientSocket.ReceiveAsync(messageBuffer, SocketFlags.None);
 
                     // Check if server is still running
-                    if (!_isRunning)
+                    if (!isRunning)
                     {
                         break;
                     }
@@ -178,7 +178,7 @@ namespace SteamProfile.Services
                         messageLength);
 
                     // Ignore info change commands sent by clients
-                    if (_infoChangeCommandRegex.IsMatch(messageContent))
+                    if (infoChangeCommandRegex.IsMatch(messageContent))
                     {
                         continue;
                     }
@@ -209,15 +209,15 @@ namespace SteamProfile.Services
                     // Check if message is a command
                     bool isCommand = true;
 
-                    if (_muteCommandRegex.IsMatch(messageContent))
+                    if (muteCommandRegex.IsMatch(messageContent))
                     {
-                        ProcessStatusChangeCommand(messageContent, ChatConstants.MUTE_STATUS, clientUsername, clientSocket, _mutedUsers);
+                        ProcessStatusChangeCommand(messageContent, ChatConstants.MUTE_STATUS, clientUsername, clientSocket, mutedUsers);
                     }
-                    else if (_adminCommandRegex.IsMatch(messageContent))
+                    else if (adminCommandRegex.IsMatch(messageContent))
                     {
-                        ProcessStatusChangeCommand(messageContent, ChatConstants.ADMIN_STATUS, clientUsername, clientSocket, _adminUsers);
+                        ProcessStatusChangeCommand(messageContent, ChatConstants.ADMIN_STATUS, clientUsername, clientSocket, adminUsers);
                     }
-                    else if (_kickCommandRegex.IsMatch(messageContent))
+                    else if (kickCommandRegex.IsMatch(messageContent))
                     {
                         ProcessStatusChangeCommand(messageContent, ChatConstants.KICK_STATUS, clientUsername, clientSocket);
                     }
@@ -276,7 +276,7 @@ namespace SteamProfile.Services
         /// <param name="message">The message to broadcast.</param>
         private void BroadcastMessageToAllClients(Message message)
         {
-            foreach (KeyValuePair<Socket, string> socketAndIpAddress in _socketsToIpAddresses)
+            foreach (KeyValuePair<Socket, string> socketAndIpAddress in socketsToIpAddresses)
             {
                 try
                 {
@@ -307,7 +307,7 @@ namespace SteamProfile.Services
         /// <returns>True if it is the host's IP address, false otherwise.</returns>
         private bool IsHostIpAddress(string ipAddress)
         {
-            return ipAddress == _ipEndPoint.Address.ToString();
+            return ipAddress == ipEndPoint.Address.ToString();
         }
 
         /// <summary>
@@ -315,16 +315,16 @@ namespace SteamProfile.Services
         /// </summary>
         private void InitializeServerTimeout()
         {
-            lock (_timerLock)
+            lock (timerLock)
             {
                 // Dispose of existing timer if any
-                _serverTimeoutTimer?.Dispose();
+                serverTimeoutTimer?.Dispose();
 
                 // Create new timeout timer
-                _serverTimeoutTimer = new Timer(_ =>
+                serverTimeoutTimer = new Timer(_ =>
                 {
                     // Check if minimum connections requirement is still not met
-                    if (_socketsToIpAddresses.Count < ChatConstants.MINIMUM_CONNECTIONS_REQUIRED)
+                    if (socketsToIpAddresses.Count < ChatConstants.MINIMUM_CONNECTIONS_REQUIRED)
                     {
                         ShutdownServer();
                     }
@@ -339,9 +339,9 @@ namespace SteamProfile.Services
         {
             try
             {
-                if (_serverSocket.Connected)
+                if (serverSocket.Connected)
                 {
-                    _serverSocket.Shutdown(SocketShutdown.Both);
+                    serverSocket.Shutdown(SocketShutdown.Both);
                 }
             }
             catch (Exception)
@@ -349,8 +349,8 @@ namespace SteamProfile.Services
                 // Socket might already be closed
             }
 
-            _serverSocket.Close();
-            _isRunning = false;
+            serverSocket.Close();
+            isRunning = false;
         }
 
         /// <summary>
@@ -358,7 +358,7 @@ namespace SteamProfile.Services
         /// </summary>
         private void CheckAndStartTimeoutIfNeeded()
         {
-            if (_socketsToIpAddresses.Count < ChatConstants.MINIMUM_CONNECTIONS_REQUIRED)
+            if (socketsToIpAddresses.Count < ChatConstants.MINIMUM_CONNECTIONS_REQUIRED)
             {
                 InitializeServerTimeout();
             }
@@ -370,7 +370,7 @@ namespace SteamProfile.Services
         /// <returns>True if the server is running, false otherwise.</returns>
         public bool IsRunning()
         {
-            return _isRunning;
+            return isRunning;
         }
 
         /// <summary>
@@ -380,12 +380,12 @@ namespace SteamProfile.Services
         /// <returns>The highest status of the user.</returns>
         private string GetHighestUserStatus(string username)
         {
-            if (_hostUsername == username)
+            if (hostUsername == username)
             {
                 return ChatConstants.HOST_STATUS;
             }
 
-            return _adminUsers.GetValueOrDefault(username, false)
+            return adminUsers.GetValueOrDefault(username, false)
                 ? ChatConstants.ADMIN_STATUS
                 : ChatConstants.REGULAR_USER_STATUS;
         }
@@ -448,7 +448,7 @@ namespace SteamProfile.Services
 
             // Find target user's socket
             Socket targetSocket = null;
-            foreach (KeyValuePair<string, Socket> usernameAndSocket in _usernamesToSockets)
+            foreach (KeyValuePair<string, Socket> usernameAndSocket in usernamesToSockets)
             {
                 if (targetUsername == usernameAndSocket.Key)
                 {
@@ -463,7 +463,7 @@ namespace SteamProfile.Services
                 return;
             }
 
-            string targetIpAddress = _socketsToIpAddresses.GetValueOrDefault(targetSocket) ?? "Not found";
+            string targetIpAddress = socketsToIpAddresses.GetValueOrDefault(targetSocket) ?? "Not found";
 
             string requesterStatus = GetHighestUserStatus(requesterUsername);
             string targetStatus = GetHighestUserStatus(targetUsername);
@@ -514,7 +514,7 @@ namespace SteamProfile.Services
 
             // Notify requester that the command was rejected
             SendMessageToClient(
-                CreateMessage(ChatConstants.SERVER_REJECT_COMMAND, _hostUsername),
+                CreateMessage(ChatConstants.SERVER_REJECT_COMMAND, hostUsername),
                 requesterSocket);
         }
 
@@ -526,11 +526,11 @@ namespace SteamProfile.Services
         /// <param name="ipAddress">The IP address of the client.</param>
         private void RemoveClientInformation(Socket clientSocket, string username, string ipAddress)
         {
-            _ipAddressesToUsernames.TryRemove(ipAddress, out _);
-            _socketsToIpAddresses.TryRemove(clientSocket, out _);
-            _usernamesToSockets.TryRemove(username, out _);
-            _adminUsers.TryRemove(username, out _);
-            _mutedUsers.TryRemove(username, out _);
+            ipAddressesToUsernames.TryRemove(ipAddress, out _);
+            socketsToIpAddresses.TryRemove(clientSocket, out _);
+            usernamesToSockets.TryRemove(username, out _);
+            adminUsers.TryRemove(username, out _);
+            mutedUsers.TryRemove(username, out _);
         }
     }
 }

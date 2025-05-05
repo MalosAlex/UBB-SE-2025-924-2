@@ -55,15 +55,15 @@ namespace SteamProfile.ViewModels
             CommentData = comment;
             var user = users.GetUserById(comment.AuthorId);
 
-            Username = user?.username ?? "Unknown";
+            Username = user?.Username ?? "Unknown";
             CommentDate = comment.CommentDate.ToString("MMM d, yyyy");
             ContentHtml = comment.Content;
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.profilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
             ProfilePicture = image;
 
-            bool isOwnComment = user.id == service.activeUser.id;
+            bool isOwnComment = user.UserId == service.ActiveUser.UserId;
             IsEditVisible = isOwnComment;
             IsDeleteVisible = isOwnComment;
         }
@@ -79,7 +79,9 @@ namespace SteamProfile.ViewModels
         {
             bool success = service.DeleteComment(CommentData.CommentId);
             if (success)
+            {
                 CommentDeleted?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void SubmitEdit(string rawText)

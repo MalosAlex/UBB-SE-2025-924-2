@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System;
+using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -8,14 +9,70 @@ namespace SteamProfile.Implementation
 {
     public partial class ChatRoomWindow : Window
     {
-        public partial void Send_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        private IService service;
+        private ObservableCollection<Message> messages;
+
+        private string userName;
+
+        private bool isAdmin;
+        private bool isHost;
+        private bool isMuted;
+
+        public event EventHandler<bool> WindowClosed;
+
+        /// <summary>
+        /// This property is bound to the ListView from the View
+        /// </summary>
+        public ObservableCollection<Message> Messages
         {
-            this.service.SendMessage(this.MessageTextBox.Text);
-            //Clear the input
-            this.MessageTextBox.Text = "";
+            get => this.messages;
         }
 
-        public partial void Mute_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        /// <summary>
+        /// This property is used to trigger a change in the text shown by the friend
+        /// request button
+        /// </summary>
+        private bool IsOpen { get; set; }
+
+        /// <summary>
+        /// Creates a new window representing a chat room for users
+        /// </summary>
+        /// <param name="userName">The name of the user who joined the chat room</param>
+        /// <param name="serverInviteIp">The ip of the person who invited the user
+        ///                              Don't provide the argument if you want to host</param>
+        public ChatRoomWindow(string userName, string serverInviteIp = Service.HOST_IP_FINDER)
+        {
+            this.InitializeComponent();
+
+            // Extra buttons: Admin/Mute/Kick
+            this.HideExtraButtonsFromUser();
+
+            // In the client we use the thread pool, but we need to update the ui in the main thread, so we capture it
+            Microsoft.UI.Dispatching.DispatcherQueue uiThread = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
+            this.userName = userName;
+            this.IsOpen = true;
+            this.messages = new ObservableCollection<Message>();
+            this.service = new Service(userName, serverInviteIp, uiThread);
+
+            // Events -> if something happened, alert the listeners, in this case we are the listeners
+            //          and we assign functions for each trigger of an event
+            this.service.NewMessageEvent += HandleNewMessage;
+            this.service.ClientStatusChangedEvent += HandleUserStatusChange;
+            this.service.ExceptionEvent += HandleException;
+
+            this.Closed += this.DisconnectService;
+
+            WaitAndConnectToTheServer();
+        }
+        public void Send_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        {
+            this.service.SendMessage(this.MessageTextBox.Text);
+            // Clear the input
+            this.MessageTextBox.Text = string.Empty;
+        }
+
+        public void Mute_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
@@ -23,7 +80,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial void Admin_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        public void Admin_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
@@ -31,7 +88,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial void Kick_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        public void Kick_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
@@ -39,17 +96,17 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial void Clear_Button_Click(object sender, RoutedEventArgs routedEventArgs)
+        public void Clear_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
             this.messages.Clear();
         }
 
-        public partial void OnHighlightedMessageChange(object sender, RoutedEventArgs routedEventArgs)
+        public void OnHighlightedMessageChange(object sender, RoutedEventArgs routedEventArgs)
         {
-            if(this.InvertedListView.SelectedItem is Message message)
+            if (this.InvertedListView.SelectedItem is Message message)
             {
                 // Check if the current user sent the message, in which case hide these buttons
-                switch(message.MessageSenderName == this.userName)
+                switch (message.MessageSenderName == this.userName)
                 {
                     case true:
                         this.HideExtraButtonsFromUser();
@@ -60,8 +117,7 @@ namespace SteamProfile.Implementation
                 }
             }
         }
-        
-        private partial void HandleUserStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)
+        private void HandleUserStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)
         {
             ClientStatus clientStatus = clientStatusEventArgs.ClientStatus;
 
@@ -73,7 +129,7 @@ namespace SteamProfile.Implementation
             this.ShowAvailableButtons();
         }
 
-        private partial void HandleNewMessage(object? sender, MessageEventArgs messageEventArgs)
+        private void HandleNewMessage(object? sender, MessageEventArgs messageEventArgs)
         {
             this.messages.Add(messageEventArgs.Message);
 
@@ -85,7 +141,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private async partial void WaitAndConnectToTheServer()
+        private async void WaitAndConnectToTheServer()
         {
             // "XamlRoot" is required to display the errors
             while (this.Content.XamlRoot == null)
@@ -95,7 +151,7 @@ namespace SteamProfile.Implementation
             this.service.ConnectUserToServer();
         }
 
-        public partial void DisconnectService(object sender, WindowEventArgs args)
+        public void DisconnectService(object sender, WindowEventArgs args)
         {
             this.IsOpen = false;
 
@@ -108,8 +164,7 @@ namespace SteamProfile.Implementation
                 this.WindowClosed.Invoke(this, true);
             }
         }
-        
-        private async partial void HandleException(object? sender, ExceptionEventArgs exceptionEventArgs)
+        private async void HandleException(object? sender, ExceptionEventArgs exceptionEventArgs)
         {
             // If somebody created this class, they could get an error if the window was closed fast
             // since the socket will attempt to connect for around 15 - 30 seconds
@@ -125,7 +180,7 @@ namespace SteamProfile.Implementation
                 Content = exceptionEventArgs.Exception.Message,
                 CloseButtonText = "Ok",
                 XamlRoot = this.Content.XamlRoot,
-                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(230, 219, 112, 147)), 
+                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(230, 219, 112, 147)),
                 Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
                 CornerRadius = new CornerRadius(8)
             };
@@ -142,26 +197,26 @@ namespace SteamProfile.Implementation
             await errorDialog.ShowAsync();
         }
 
-        private partial void HideExtraButtonsFromUser()
+        private void HideExtraButtonsFromUser()
         {
             this.AdminButton.Visibility = Visibility.Collapsed;
             this.MuteButton.Visibility = Visibility.Collapsed;
             this.KickButton.Visibility = Visibility.Collapsed;
         }
 
-        private partial void ShowAdminButtons()
+        private void ShowAdminButtons()
         {
             this.MuteButton.Visibility = Visibility.Visible;
             this.KickButton.Visibility = Visibility.Visible;
         }
 
-        private partial void ShowHostButtons()
+        private void ShowHostButtons()
         {
             this.AdminButton.Visibility = Visibility.Visible;
             this.ShowAdminButtons();
         }
 
-        private partial void ShowAvailableButtons()
+        private void ShowAvailableButtons()
         {
             if (this.isHost)
             {

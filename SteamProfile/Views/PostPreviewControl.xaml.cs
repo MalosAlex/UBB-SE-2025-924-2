@@ -28,14 +28,14 @@ namespace SteamProfile.Views
         {
             User? user = users.GetUserById(post.AuthorId);
             PostData = post;
-            Username.Text = user.username;
+            Username.Text = user.Username;
             UploadDate.Text = post.UploadDate.ToString("MMM d, yyyy");
             LikesCount.Text = post.NrLikes.ToString();
             DislikesCount.Text = post.NrDislikes.ToString();
             CommentsCount.Text = post.NrComments.ToString();
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.profilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
             ProfilePicture.ImageSource = image;
 
             UpdateWebViewContent();

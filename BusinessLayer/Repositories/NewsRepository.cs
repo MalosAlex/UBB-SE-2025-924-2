@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Windows.Security.Authentication.OnlineId;
 using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Data;
@@ -18,7 +17,7 @@ namespace BusinessLayer.Repositories
         private INewsDatabase databaseConnection;
         public const int PAGE_SIZE = 9;
 
-        public NewsRepository(INewsDatabase? db = null)  // Constructor has parameter for injection
+        public NewsRepository(INewsDatabase? db = null) // Constructor has parameter for injection
         {
             databaseConnection = db ?? new NewsDatabase();
         }

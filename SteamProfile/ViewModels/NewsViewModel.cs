@@ -49,7 +49,7 @@ namespace SteamProfile.ViewModels
             LoadMoreCommand = new RelayCommand(() => LoadPosts(false));
             ShowCreatePostPanelCommand = new RelayCommand(() => EditorOverlayVisibility = Visibility.Visible);
 
-            createPostButtonVisibility = service.activeUser.bIsDeveloper ? Visibility.Visible : Visibility.Collapsed;
+            createPostButtonVisibility = service.ActiveUser.IsDeveloper ? Visibility.Visible : Visibility.Collapsed;
             LoadPosts(true);
         }
 

@@ -12,6 +12,10 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using SteamProfile.ViewModels;
+using BusinessLayer.Services.Interfaces;
+using BusinessLayer.Services;
+using BusinessLayer.Models;
 
 namespace SteamProfile.Views
 {
@@ -50,11 +54,9 @@ namespace SteamProfile.Views
                 {
                     return;
                 }
-                
                 // Determine selected sort option
                 int selectedIndex = SortComboBox.SelectedIndex;
                 bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
-                
                 if (selectedIndex == 0)
                 {
                     // Load first page of posts - the PostsControl will handle paging
@@ -85,7 +87,6 @@ namespace SteamProfile.Views
                             filter = TimeSpanFilter.AllTime;
                             break;
                     }
-                    
                     // Load top posts with selected filter
                     PostsControl.LoadTopPosts(filter);
                 }
@@ -95,17 +96,14 @@ namespace SteamProfile.Views
                 // Handle exceptions
             }
         }
-        
         private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadPosts();
         }
-        
         private void PositiveScoreToggle_CheckedChanged(object sender, RoutedEventArgs e)
         {
             LoadPosts();
         }
-        
         private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
@@ -113,49 +111,42 @@ namespace SteamProfile.Views
                 PerformSearch();
             }
         }
-        
         private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
         }
-        
         private void PerformSearch()
         {
             if (SearchBox == null || PositiveScoreToggle == null || PostsControl == null)
             {
                 return;
             }
-            
             string searchTerm = SearchBox.Text?.Trim();
             currentSearchFilter = string.IsNullOrEmpty(searchTerm) ? null : searchTerm;
-            
             // Reset to first page and apply search filter (PostsControl handles the paging)
             bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
             PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
         }
-        
         // CreatePostButton_Click is removed as it will be handled by ViewModel Command
-
         private async void PostsControl_PostSelected(object sender, ForumPost post)
         {
             try
             {
                 // Create and show the post detail dialog
                 PostDetailDialog dialog = new PostDetailDialog(post);
-                
                 // Set XamlRoot for proper display
                 dialog.XamlRoot = this.Content.XamlRoot;
-                
+
                 // Handle post deleted event
-                dialog.PostDeleted += (s, e) => 
+                dialog.PostDeleted += (s, e) =>
                 {
                     // Reload posts when a post is deleted
                     LoadPosts();
                 };
-                
+
                 // Show the dialog
                 ContentDialogResult result = await dialog.ShowAsync();
-                
+
                 // Check if changes were made to reload posts if needed
                 if (dialog.ChangesWereMade)
                 {
@@ -172,9 +163,9 @@ namespace SteamProfile.Views
                     CloseButtonText = "OK",
                     XamlRoot = this.Content.XamlRoot
                 };
-                
+
                 await errorDialog.ShowAsync();
             }
         }
     }
-} 
+}

@@ -10,17 +10,16 @@ namespace BusinessLayer.Repositories
 {
     public class FriendRepository : IFriendRepository
     {
-        private readonly DatabaseConnection _dbConnection;
+        private readonly DatabaseConnection dbConnection;
 
         public FriendRepository(DatabaseConnection dbConnection)
         {
-            _dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
+            dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
         }
 
         public async Task<IEnumerable<Friend>> GetFriendsAsync(string username)
         {
             var result = new List<Friend>();
-            
             // Define the SQL query to retrieve friends
             string query = @"
                 -- Get friends where the user is User1
@@ -44,7 +43,7 @@ namespace BusinessLayer.Repositories
             };
 
             // Execute the query and process the results
-            var dataTable = await _dbConnection.ExecuteReaderAsync(query, CommandType.Text, parameters);
+            var dataTable = await dbConnection.ExecuteReaderAsync(query, CommandType.Text, parameters);
             foreach (DataRow row in dataTable.Rows)
             {
                 result.Add(new Friend
@@ -79,7 +78,7 @@ namespace BusinessLayer.Repositories
                 };
 
                 // Execute the query
-                await _dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
+                await dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
                 return true;
             }
             catch (Exception)
@@ -106,7 +105,7 @@ namespace BusinessLayer.Repositories
                 };
 
                 // Execute the query
-                await _dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
+                await dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
                 return true;
             }
             catch (Exception)
@@ -115,4 +114,4 @@ namespace BusinessLayer.Repositories
             }
         }
     }
-} 
+}

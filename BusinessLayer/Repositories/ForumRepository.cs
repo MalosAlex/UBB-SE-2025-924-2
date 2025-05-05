@@ -6,7 +6,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Web.AtomPub;
+using BusinessLayer.Models;
+using BusinessLayer.Repositories.Interfaces;
+using BusinessLayer.Data;
 
 namespace BusinessLayer.Repositories
 {
@@ -65,7 +67,7 @@ namespace BusinessLayer.Repositories
                     Body = Convert.ToString(row["body"]),
                     Score = Convert.ToInt32(row["score"]),
                     TimeStamp = Convert.ToString(row["creation_date"]),
-                    AuthorId = Convert.ToUInt32(row["author_id"]),
+                    AuthorId = (int)Convert.ToUInt32(row["author_id"]),
                     GameId = row.IsNull("game_id") ? null : Convert.ToUInt32(row["game_id"]),
                 };
 
@@ -322,7 +324,7 @@ namespace BusinessLayer.Repositories
                     Body = Convert.ToString(row["body"]),
                     Score = Convert.ToInt32(row["score"]),
                     TimeStamp = Convert.ToString(row["creation_date"]),
-                    AuthorId = Convert.ToUInt32(row["author_id"]),
+                    AuthorId = (int)Convert.ToUInt32(row["author_id"]),
                     GameId = row.IsNull("game_id") ? null : Convert.ToUInt32(row["game_id"]),
                 };
 

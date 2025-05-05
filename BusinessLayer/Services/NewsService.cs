@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
-using Windows.ApplicationModel.ExtendedExecution;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Models;
@@ -17,7 +16,7 @@ namespace BusinessLayer.Services
     public class NewsService : INewsService
     {
         private INewsRepository repository;
-        public readonly User activeUser;    // Active user logged in
+        public readonly User ActiveUser;    // Active user logged in
         private const int POSITIVE_RATING = 1;
         private const int NEGATIVE_RATING = 0;
         private const int DEFAULT_ROWS_AFFECTED_VALUE = 0;
@@ -30,7 +29,7 @@ namespace BusinessLayer.Services
         public NewsService(INewsRepository? repo = null)
         {
             repository = repo ?? new NewsRepository();
-            activeUser = Users.Instance.GetUserById(1); // Load a temporary use for showcase
+            ActiveUser = Users.Instance.GetUserById(1); // Load a temporary use for showcase
         }
 
         /// <summary>
@@ -91,7 +90,7 @@ namespace BusinessLayer.Services
         {
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
             rowsAffected += repository.UpdatePostLikeCount(postId);
-            rowsAffected += repository.AddRatingToPost(postId, activeUser.id, POSITIVE_RATING);
+            rowsAffected += repository.AddRatingToPost(postId, ActiveUser.UserId, POSITIVE_RATING);
 
             if (rowsAffected == SUCCESSFUL_EXECUTIONS)
             {
@@ -113,7 +112,7 @@ namespace BusinessLayer.Services
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
 
             rowsAffected += repository.UpdatePostLikeCount(postId);
-            rowsAffected += repository.AddRatingToPost(postId, activeUser.id, NEGATIVE_RATING);
+            rowsAffected += repository.AddRatingToPost(postId, ActiveUser.UserId, NEGATIVE_RATING);
 
             if (rowsAffected == SUCCESSFUL_EXECUTIONS)
             {
@@ -134,7 +133,7 @@ namespace BusinessLayer.Services
         {
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
 
-            rowsAffected += repository.RemoveRatingFromPost(postId, activeUser.id);
+            rowsAffected += repository.RemoveRatingFromPost(postId, ActiveUser.UserId);
 
             return CheckRowsAffected(rowsAffected);
         }
@@ -149,7 +148,7 @@ namespace BusinessLayer.Services
         {
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
 
-            rowsAffected += repository.AddCommentToPost(postId, commentContent.Replace("'", "''"), activeUser.id, DateTime.Now);
+            rowsAffected += repository.AddCommentToPost(postId, commentContent.Replace("'", "''"), ActiveUser.UserId, DateTime.Now);
 
             return CheckRowsAffected(rowsAffected);
         }
@@ -202,7 +201,7 @@ namespace BusinessLayer.Services
         {
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
 
-            rowsAffected += repository.AddPostToDatabase(activeUser.id, postContent.Replace("'", "''"), DateTime.Today);
+            rowsAffected += repository.AddPostToDatabase(ActiveUser.UserId, postContent.Replace("'", "''"), DateTime.Today);
 
             return CheckRowsAffected(rowsAffected);
         }
@@ -245,7 +244,7 @@ namespace BusinessLayer.Services
         /// <returns>List of found posts</returns>
         public List<Post> LoadNextPosts(int pageNumber, string searchedText)
         {
-            return repository.LoadFollowingPosts(pageNumber, activeUser.id, searchedText);
+            return repository.LoadFollowingPosts(pageNumber, ActiveUser.UserId, searchedText);
         }
 
         /// <summary>
@@ -311,9 +310,9 @@ namespace BusinessLayer.Services
         /// <param name="htmlCode">Normal text</param>
         private void SanitizeHtml(ref string htmlCode)
         {
-            string[] ALLOWED_TAGS = { "h1", "/h1", "h2", "/h2", "h3", "/h3", "b", "/b", "i", "/i", "s", "/s", "sub", "/sub", "sup", "/sup", "spoiler", "/spoiler", "img.*" };
-            htmlCode = Regex.Replace(htmlCode, $@"</?(?!({string.Join('|', ALLOWED_TAGS)})\b)[^>]*>", "");
-            htmlCode = Regex.Replace(htmlCode, @"<img\s+(?!src=(['""])[^'""]+\1\s*\/?>)[^>]*>", "");
+            string[] allowed_tags = { "h1", "/h1", "h2", "/h2", "h3", "/h3", "b", "/b", "i", "/i", "s", "/s", "sub", "/sub", "sup", "/sup", "spoiler", "/spoiler", "img.*" };
+            htmlCode = Regex.Replace(htmlCode, $@"</?(?!({string.Join('|', allowed_tags)})\b)[^>]*>", string.Empty);
+            htmlCode = Regex.Replace(htmlCode, @"<img\s+(?!src=(['""])[^'""]+\1\s*\/?>)[^>]*>", string.Empty);
         }
 
         /// <summary>
@@ -354,7 +353,7 @@ namespace BusinessLayer.Services
         }
 
         /// <summary>
-        /// Check if the repository's methods were successful by checking how many rows they affected in the database 
+        /// Check if the repository's methods were successful by checking how many rows they affected in the database
         /// </summary>
         /// <param name="rowsAffected">Rows affected on execution</param>
         /// <returns>True if at least one row was affected, False if no rows were affected</returns>

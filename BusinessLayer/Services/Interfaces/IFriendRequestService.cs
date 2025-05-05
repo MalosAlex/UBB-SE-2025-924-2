@@ -11,4 +11,4 @@ namespace BusinessLayer.Services.Interfaces
         Task<bool> AcceptFriendRequestAsync(string senderUsername, string receiverUsername);
         Task<bool> RejectFriendRequestAsync(string senderUsername, string receiverUsername);
     }
-} 
+}

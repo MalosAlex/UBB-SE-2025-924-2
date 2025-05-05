@@ -1,11 +1,35 @@
 ﻿using System;
 using System.Net;
+using Microsoft.UI.Dispatching;
 
 namespace SteamProfile.Implementation
 {
     public partial class Service : IService
     {
-        public async partial void ConnectUserToServer()
+        private Client? client;
+        private DispatcherQueue uiThread;
+        private Server? server;
+
+        public event EventHandler<MessageEventArgs> NewMessageEvent;
+        public event EventHandler<ClientStatusEventArgs> ClientStatusChangedEvent;
+        public event EventHandler<ExceptionEventArgs> ExceptionEvent;
+
+        private string userName;
+        private string userIpAddress;
+        private string serverInviteIp;
+
+        public const string HOST_IP_FINDER = "None";
+        public const string GET_IP_REPLACER = "NULL";
+
+        public Service(string userName, string serverInviteIp, DispatcherQueue uiThread)
+        {
+            this.userName = userName;
+            this.userIpAddress = Service.GetIpAddressOfCurrentUser();
+            this.serverInviteIp = serverInviteIp;
+            this.uiThread = uiThread;
+        }
+
+        public async void ConnectUserToServer()
         {
             try
             {
@@ -46,7 +70,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial void SendMessage(String message)
+        public void SendMessage(string message)
         {
             try
             {
@@ -82,7 +106,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private partial void UpdateNewMessage(object? sender, MessageEventArgs messageEventArgs)
+        private void UpdateNewMessage(object? sender, MessageEventArgs messageEventArgs)
         {
             Message newMessage = messageEventArgs.Message;
             // Messages are sent with a left alligment by the server
@@ -93,53 +117,53 @@ namespace SteamProfile.Implementation
             this.uiThread.TryEnqueue(() => this.NewMessageEvent?.Invoke(this, new MessageEventArgs(newMessage)));
         }
 
-        public partial void DisconnectClient()
+        public void DisconnectClient()
         {
             // Further call to disconnect the client on window close
             this.client?.Disconnect();
         }
 
-        public partial void TryChangeMuteStatus(String targetedUser)
+        public void TryChangeMuteStatus(string targetedUser)
         {
             // Commands can be found in more detail on the Server class
             // They follow a defined patter like "<something>|something|<something>"
             // Any user can send a message that is a command, even if they don't have access to
             // but the server will check for user status in the chat (this is where the try comes from)
             // Change means that it can become true or false
-            String command = "<" + this.userName + ">|" + Server.MUTE_STATUS + "|<" + targetedUser + ">";
+            string command = "<" + this.userName + ">|" + Server.MUTE_STATUS + "|<" + targetedUser + ">";
             this.SendMessage(command);
         }
 
-        public partial void TryChangeAdminStatus(String targetedUser)
+        public void TryChangeAdminStatus(string targetedUser)
         {
-            String command = "<" + this.userName + ">|" + Server.ADMIN_STATUS + "|<" + targetedUser + ">";
+            string command = "<" + this.userName + ">|" + Server.ADMIN_STATUS + "|<" + targetedUser + ">";
             this.SendMessage(command);
         }
 
-        public partial void TryKick(String targetedUser)
+        public void TryKick(string targetedUser)
         {
-            String command = "<" + this.userName + ">|" + Server.KICK_STATUS + "|<" + targetedUser + ">";
+            string command = "<" + this.userName + ">|" + Server.KICK_STATUS + "|<" + targetedUser + ">";
             this.SendMessage(command);
         }
 
-        private partial void InvokeClientStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)
+        private void InvokeClientStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)
         {
             // Alerts the ui about a user status change
             this.uiThread.TryEnqueue(() => this.ClientStatusChangedEvent?.Invoke(this, new ClientStatusEventArgs(clientStatusEventArgs.ClientStatus)));
         }
 
-        public static partial String GetIpAddressOfCurrentUser()
+        public static string GetIpAddressOfCurrentUser()
         {
             try
             {
-                String hostName = Dns.GetHostName();
+                string hostName = Dns.GetHostName();
 
                 System.Net.IPAddress[] ipAddresses = System.Net.Dns.GetHostEntry(hostName).AddressList;
-                String ipAddress = null;
+                string ipAddress = null;
 
                 foreach (System.Net.IPAddress ip in ipAddresses)
                 {
-                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) 
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         ipAddress = ip.ToString();
                         break;

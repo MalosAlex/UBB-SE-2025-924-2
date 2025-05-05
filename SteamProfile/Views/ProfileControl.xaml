@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <UserControl
-    x:Class="App1.ProfileControl"
+    x:Class="SteamProfile.Views.ProfileControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SteamProfile"
@@ -27,7 +27,7 @@
             <Border Grid.Column="0" Width="150" Height="150" CornerRadius="75" 
                     BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="3" Margin="0,0,20,0">
                 <Border.Background>
-                    <ImageBrush ImageSource="{x:Bind ProfileViewModel.ProfilePhotoPath, Mode=OneWay}" Stretch="UniformToFill" />
+                    <ImageBrush ImageSource="{x:Bind ProfileViewModel.profilePhotoPath, Mode=OneWay}" Stretch="UniformToFill" />
                 </Border.Background>
             </Border>
 

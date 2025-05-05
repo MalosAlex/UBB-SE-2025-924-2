@@ -3,7 +3,7 @@
     x:Class="SteamProfile.Views.SearchPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:SteamProfile.Views"
+    xmlns:local="using:BusinessLayer.Models"
     xmlns:viewmodels="using:SteamProfile.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -136,7 +136,7 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{x:Bind UserName}"
+                                                        <TextBlock Text="{x:Bind Username}"
                                                                    Foreground="White"
                                                                    VerticalAlignment="Center"
                                                                    Margin="10,0,0,0"
@@ -201,7 +201,7 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Border Width="50" Height="50" CornerRadius="25" Background="#30FFFFFF"/>
-                                                <TextBlock Text="{x:Bind UserName}"
+                                                <TextBlock Text="{x:Bind Username}"
                                                            Foreground="White"
                                                            VerticalAlignment="Center"
                                                            FontWeight="SemiBold"

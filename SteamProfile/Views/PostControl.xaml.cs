@@ -6,16 +6,17 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.System;
 using Windows.UI;
+using BusinessLayer.Services;
+using BusinessLayer.Models;
 
 namespace SteamProfile.Views
 {
     public sealed partial class PostControl : UserControl
     {
         private const int VALUE_ONE = 1;
-        private Color BACKGROUND_COLOR_1 = Color.FromArgb(255, 255, 194, 217);
-        private Color BACKGROUND_COLOR_2 = Color.FromArgb(150, 100, 7, 41);
+        private Color background_color_1 = Color.FromArgb(255, 255, 194, 217);
+        private Color background_color_2 = Color.FromArgb(150, 100, 7, 41);
 
         public event RoutedEventHandler? PanelClosed;
         public event RoutedEventHandler? PostDeleted;
@@ -50,17 +51,17 @@ namespace SteamProfile.Views
         {
             User? user = users.GetUserById(post.AuthorId);
             PostData = post;
-            Username.Text = user.username;
+            Username.Text = user.Username;
             UploadDate.Text = post.UploadDate.ToString("MMM d, yyyy");
             LikesCount.Text = post.NrLikes.ToString();
             DislikesCount.Text = post.NrDislikes.ToString();
             CommentsCount.Text = post.NrComments.ToString();
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.profilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
             ProfilePicture.ImageSource = image;
 
-            bool isDeveloper = service.activeUser.bIsDeveloper;
+            bool isDeveloper = service.ActiveUser.IsDeveloper;
             EditButton.Visibility = isDeveloper ? Visibility.Visible : Visibility.Collapsed;
             DeleteButton.Visibility = isDeveloper ? Visibility.Visible : Visibility.Collapsed;
 
@@ -133,7 +134,7 @@ namespace SteamProfile.Views
                     PostData.NrLikes -= VALUE_ONE;
                     LikesCount.Text = PostData.NrLikes.ToString();
                     PostData.ActiveUserRating = null;
-                    LikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_1);
+                    LikeButton.Background = new SolidColorBrush(background_color_1);
                     break;
 
                 case PostRatingType.DISLIKE:
@@ -144,8 +145,8 @@ namespace SteamProfile.Views
                     PostData.ActiveUserRating = PostRatingType.LIKE;
                     LikesCount.Text = PostData.NrLikes.ToString();
                     DislikesCount.Text = PostData.NrDislikes.ToString();
-                    LikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_2);
-                    DislikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_1);
+                    LikeButton.Background = new SolidColorBrush(background_color_2);
+                    DislikeButton.Background = new SolidColorBrush(background_color_1);
                     break;
 
                 default:
@@ -153,7 +154,7 @@ namespace SteamProfile.Views
                     PostData.NrLikes += VALUE_ONE;
                     LikesCount.Text = PostData.NrLikes.ToString();
                     PostData.ActiveUserRating = PostRatingType.LIKE;
-                    LikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_2);
+                    LikeButton.Background = new SolidColorBrush(background_color_2);
                     break;
             }
         }
@@ -170,8 +171,8 @@ namespace SteamProfile.Views
                     PostData.ActiveUserRating = PostRatingType.DISLIKE;
                     LikesCount.Text = PostData.NrLikes.ToString();
                     DislikesCount.Text = PostData.NrDislikes.ToString();
-                    LikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_1);
-                    DislikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_2);
+                    LikeButton.Background = new SolidColorBrush(background_color_1);
+                    DislikeButton.Background = new SolidColorBrush(background_color_2);
                     break;
 
                 case PostRatingType.DISLIKE:
@@ -179,7 +180,7 @@ namespace SteamProfile.Views
                     PostData.NrDislikes -= VALUE_ONE;
                     DislikesCount.Text = PostData.NrDislikes.ToString();
                     PostData.ActiveUserRating = null;
-                    DislikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_1);
+                    DislikeButton.Background = new SolidColorBrush(background_color_1);
                     break;
 
                 default:
@@ -187,7 +188,7 @@ namespace SteamProfile.Views
                     PostData.NrDislikes += VALUE_ONE;
                     DislikesCount.Text = PostData.NrDislikes.ToString();
                     PostData.ActiveUserRating = PostRatingType.DISLIKE;
-                    DislikeButton.Background = new SolidColorBrush(BACKGROUND_COLOR_2);
+                    DislikeButton.Background = new SolidColorBrush(background_color_2);
                     break;
             }
         }

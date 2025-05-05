@@ -1,7 +1,8 @@
-﻿using System;
+﻿/*using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BusinessLayer.Models
 {
@@ -20,8 +21,31 @@ namespace BusinessLayer.Models
         private int gameIdentifier;
         private string userName = string.Empty;
         private string titleOfGame = string.Empty;
-        public byte[]? ProfilePictureBlob { get; set; } // store image data as byte array
+        public byte[]? ProfilePictureBlob { get; set; }
+        // REMOVE!! NO GUI IN MODEL!!!!
+        public BitmapImage? ProfileImage
+        {
+            get
+            {
+                try
+                {
+                    if (ProfilePictureBlob == null || ProfilePictureBlob.Length == 0)
+                    {
+                        return null;
+                    }
 
+                    var bitmap = new BitmapImage();
+                    using var stream = new MemoryStream(ProfilePictureBlob);
+                    var ras = stream.AsRandomAccessStream();
+                    bitmap.SetSource(ras);
+                    return bitmap;
+                }
+                catch
+                {
+                    return new BitmapImage(new Uri("ms-appx:///Assets/default_avatar.png"));
+                }
+            }
+        }
         public bool HasVotedHelpful { get; set; } = false; // temporary flag
         public bool HasVotedFunny { get; set; } = false;
 
@@ -134,3 +158,5 @@ namespace BusinessLayer.Models
         }
     }
 }
+
+*/

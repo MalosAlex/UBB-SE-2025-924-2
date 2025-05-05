@@ -10,4 +10,4 @@ namespace BusinessLayer.Repositories
         Task<bool> AddFriendRequestAsync(FriendRequest request);
         Task<bool> DeleteFriendRequestAsync(string senderUsername, string receiverUsername);
     }
-} 
+}

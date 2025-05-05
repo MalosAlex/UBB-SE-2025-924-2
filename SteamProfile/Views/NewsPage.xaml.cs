@@ -57,7 +57,9 @@ namespace SteamProfile.Views
             foreach (var post in ViewModel.PositionedPosts)
             {
                 while (News_PostsGrid.RowDefinitions.Count <= post.Row)
+                {
                     News_PostsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                }
 
                 var preview = new PostPreviewControl();
                 preview.SetPostData(post.Post);

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Models
 {
-
     public class Post
     {
         public int Id { get; set; }

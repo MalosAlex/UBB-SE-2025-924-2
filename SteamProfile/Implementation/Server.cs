@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Google.Protobuf;
 
@@ -12,7 +13,95 @@ namespace SteamProfile.Implementation
 {
     public partial class Server
     {
-        public async partial void Start()
+        private Socket serverSocket;
+        private IPEndPoint ipEndPoint;
+        private System.Threading.Timer? serverTimeout;
+        private readonly object lockTimer;
+
+        private ConcurrentDictionary<string, string> addressesAndUserNames;
+        private ConcurrentDictionary<Socket, string> socketsAndAddresses;
+        private ConcurrentDictionary<string, Socket> userNamesAndSockets;
+        private ConcurrentDictionary<string, bool> mutedUsers;
+        private ConcurrentDictionary<string, bool> adminUsers;
+
+        private Regex muteCommandRegex;
+        private Regex adminCommandRegex;
+        private Regex kickCommandRegex;
+        private Regex infoChangeCommandRegex;
+
+        private string hostName;
+        private string muteCommandPattern;
+        private string adminCommandPattern;
+        private string kickCommandPattern;
+        private string infoCommandPattern;
+
+        private bool isRunning;
+
+        // Port number is always the same
+        public const int PORT_NUMBER = 6000;
+
+        public const int MESSAGE_MAXIMUM_SIZE = 4112;
+        public const int USER_NAME_MAXIMUM_SIZE = 512;
+        public const int MAXIMUN_NUMBER_OF_ACTIVE_CONNECTIONS = 20;
+        public const int NUMBER_OF_QUEUED_CONNECTIONS = 10;
+        public const int STARTING_INDEX = 0;
+        public const int DISCONNECT_CODE = 0;
+        public const int SERVER_TIMEOUT_COUNTDOWN = 180000;
+        public const int MINIMUM_CONNECTIONS = 2;
+        public const char ADDRESS_SEPARATOR = ':';
+        public const string ADMIN_STATUS = "ADMIN";
+        public const string MUTE_STATUS = "MUTE";
+        public const string KICK_STATUS = "KICK";
+        public const string HOST_STATUS = "HOST";
+        public const string REGULAR_USER_STATUS = "USER";
+        public const string INFO_CHANGE_MUTE_STATUS_COMMAND = "<INFO>|" + MUTE_STATUS + "|<INFO>";
+        public const string INFO_CHANGE_ADMIN_STATUS_COMMAND = "<INFO>|" + ADMIN_STATUS + "|<INFO>";
+        public const string INFO_CHANGE_KICK_STATUS_COMMAND = "<INFO>|" + KICK_STATUS + "|<INFO>";
+        public const string SERVER_REJECT_COMMAND = "Server rejected your command!\n You don't have the rights to that user!";
+        public const string SERVER_CAPACITY_REACHED = "Server capacity reached!\n Closing Connection!";
+
+        public Server(string hostAddress, string hostName)
+        {
+            // Info commands change a user status, they are sent by the server after receiving
+            // a mute/admin/kick command. They follow the following pattern: "<nameOfTheInvoker>|targetedStatus|<nameOfTheTargetedUser>"
+            this.muteCommandPattern = @"^<.*>\|" + Server.MUTE_STATUS + @"\|<.*>$";
+            this.adminCommandPattern = @"^<.*>\|" + Server.ADMIN_STATUS + @"\|<.*>$";
+            this.kickCommandPattern = @"^<.*>\|" + Server.KICK_STATUS + @"\|<.*>$";
+            this.infoCommandPattern = @"^<INFO>\|.*\|<INFO>$";
+
+            this.muteCommandRegex = new Regex(this.muteCommandPattern);
+            this.adminCommandRegex = new Regex(this.adminCommandPattern);
+            this.kickCommandRegex = new Regex(this.kickCommandPattern);
+            this.infoChangeCommandRegex = new Regex(this.infoCommandPattern);
+
+            this.addressesAndUserNames = new ConcurrentDictionary<string, string>();
+            this.socketsAndAddresses = new ConcurrentDictionary<Socket, string>();
+            this.userNamesAndSockets = new ConcurrentDictionary<string, Socket>();
+            this.mutedUsers = new ConcurrentDictionary<string, bool>();
+            this.adminUsers = new ConcurrentDictionary<string, bool>();
+
+            // The data structures used for storing informations about the users are thread safe
+            // but the server will also work with a timeout, so we use a lock to guarantee safety
+            this.lockTimer = new object();
+
+            this.hostName = hostName;
+
+            try
+            {
+                this.ipEndPoint = new IPEndPoint(IPAddress.Parse(hostAddress), Server.PORT_NUMBER);
+                this.serverSocket = new(this.ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                this.serverSocket.Bind(this.ipEndPoint);
+                this.serverSocket.Listen(Server.NUMBER_OF_QUEUED_CONNECTIONS);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception($"Server create error: {exception.Message}");
+            }
+
+            this.isRunning = true;
+        }
+
+        public async void Start()
         {
             // Handle new connection until the server is no longer running
             while (this.isRunning)
@@ -22,13 +111,13 @@ namespace SteamProfile.Implementation
                     // Accepts a new connection
                     Socket clientSocket = await this.serverSocket.AcceptAsync();
 
-                    String endPointNullResult = "Not Connected";
+                    string endPointNullResult = "Not Connected";
 
                     // RemoteEndPoint provides us with a string of form: "ip_address:port"
-                    String ipAddressAndPort = clientSocket.RemoteEndPoint?.ToString() ?? endPointNullResult;
+                    string ipAddressAndPort = clientSocket.RemoteEndPoint?.ToString() ?? endPointNullResult;
 
                     // If the remote end point was null, this will throw an error from the IndexOf call
-                    String ipAddress = ipAddressAndPort.Substring(Server.STARTING_INDEX, ipAddressAndPort.IndexOf(Server.ADDRESS_SEPARATOR));
+                    string ipAddress = ipAddressAndPort.Substring(Server.STARTING_INDEX, ipAddressAndPort.IndexOf(Server.ADDRESS_SEPARATOR));
 
                     // Server has a limit of 20 active users per requirements
                     if (this.socketsAndAddresses.Count >= Server.MAXIMUN_NUMBER_OF_ACTIVE_CONNECTIONS)
@@ -55,7 +144,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private async partial Task HandleClient(Socket clientSocket)
+        private async Task HandleClient(Socket clientSocket)
         {
             try
             {
@@ -63,8 +152,8 @@ namespace SteamProfile.Implementation
                 byte[] userNameBuffer = new byte[Server.USER_NAME_MAXIMUM_SIZE];
                 int userNameLength = await clientSocket.ReceiveAsync(userNameBuffer, SocketFlags.None);
 
-                String userName = Encoding.UTF8.GetString(userNameBuffer, Server.STARTING_INDEX, userNameLength);
-                String ipAddress = this.socketsAndAddresses.GetValueOrDefault(clientSocket) ?? "";
+                string userName = Encoding.UTF8.GetString(userNameBuffer, Server.STARTING_INDEX, userNameLength);
+                string ipAddress = this.socketsAndAddresses.GetValueOrDefault(clientSocket) ?? string.Empty;
 
                 // Add new information about the client to the server
                 this.addressesAndUserNames.TryAdd(ipAddress, userName);
@@ -91,7 +180,7 @@ namespace SteamProfile.Implementation
                         break;
                     }
 
-                    String messageContentReceived = Encoding.UTF8.GetString(messageBuffer, Server.STARTING_INDEX, charactersReceivedCount);
+                    string messageContentReceived = Encoding.UTF8.GetString(messageBuffer, Server.STARTING_INDEX, charactersReceivedCount);
 
                     // Don't allow users to change info, the server does that
                     if (this.infoChangeCommandRegex.IsMatch(messageContentReceived))
@@ -141,7 +230,7 @@ namespace SteamProfile.Implementation
 
                     // Don't send the command to users
                     if (commandFound)
-                    { 
+                    {
                         continue;
                     }
 
@@ -161,7 +250,7 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private partial Message CreateMessage(String contentMessage, String userName)
+        private Message CreateMessage(string contentMessage, string userName)
         {
             // Creates a new message object (google protobuf auto-generated class)
             // Assign the time of the sent (from the server), senders name and status (beside the content)
@@ -177,33 +266,33 @@ namespace SteamProfile.Implementation
             return message;
         }
 
-        private partial void SendMessageToAllClients(Message message)
+        private void SendMessageToAllClients(Message message)
         {
-            foreach (KeyValuePair<Socket, String> clientSocketsAndAddresses in this.socketsAndAddresses)
+            foreach (KeyValuePair<Socket, string> clientSocketsAndAddresses in this.socketsAndAddresses)
             {
                 try
                 {
                     this.SendMessageToOneClient(message, clientSocketsAndAddresses.Key);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     // The socket could be disposed
                 }
             }
         }
 
-        private partial void SendMessageToOneClient(Message message, Socket clientSocket)
+        private void SendMessageToOneClient(Message message, Socket clientSocket)
         {
             byte[] messageBytes = message.ToByteArray();
             _ = clientSocket.SendAsync(messageBytes, SocketFlags.None);
         }
 
-        private partial bool IsHost(String ipAddress)
+        private bool IsHost(string ipAddress)
         {
             return ipAddress == ipEndPoint.Address.ToString();
         }
 
-        private partial void InitializeServerTimeout()
+        private void InitializeServerTimeout()
         {
             // Lock is used for thread safety
             lock (this.lockTimer)
@@ -221,10 +310,10 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private partial void ShutDownServer()
+        private void ShutDownServer()
         {
             // Check if it's connected, otherwise it throws an error
-            if(this.serverSocket.Connected == true)
+            if (this.serverSocket.Connected == true)
             {
                 this.serverSocket.Shutdown(SocketShutdown.Both);
             }
@@ -232,7 +321,7 @@ namespace SteamProfile.Implementation
             this.isRunning = false;
         }
 
-        private partial void StartTimeoutIfMinimumConnectionsNotMet()
+        private void StartTimeoutIfMinimumConnectionsNotMet()
         {
             if (this.socketsAndAddresses.Count < Server.MINIMUM_CONNECTIONS)
             {
@@ -240,12 +329,12 @@ namespace SteamProfile.Implementation
             }
         }
 
-        public partial bool IsServerRunning()
+        public bool IsServerRunning()
         {
             return this.isRunning;
         }
 
-        private partial String GetHighestStatus(String userName)
+        private string GetHighestStatus(string userName)
         {
             if (this.hostName == userName)
             {
@@ -261,35 +350,33 @@ namespace SteamProfile.Implementation
             }
         }
 
-        private partial bool IsUserAllowedOnTargetStatusChange(String firstUserStatus, String secondUserStatus)
+        private bool IsUserAllowedOnTargetStatusChange(string firstUserStatus, string secondUserStatus)
         {
             // Host is not able to kick / mute / admin himself
             return (firstUserStatus == Server.HOST_STATUS && secondUserStatus != Server.HOST_STATUS)
                 || (firstUserStatus == Server.ADMIN_STATUS && secondUserStatus == Server.REGULAR_USER_STATUS);
         }
-        
-        private partial String FindTargetedUserNameFromCommand(String command)
+        private string FindTargetedUserNameFromCommand(string command)
         {
             // Command follows the pattern : <username>|Status|<username>
-
             int commandTargetIndex = 2;
             char commandSeparator = '|';
-            String commandTarget = command.Split(commandSeparator)[commandTargetIndex];
+            string commandTarget = command.Split(commandSeparator)[commandTargetIndex];
 
             int nameStartIndex = 1, nameEndIndex = commandTarget.Length - 2;
-            String targetedUserName = commandTarget.Substring(nameStartIndex, nameEndIndex);
+            string targetedUserName = commandTarget.Substring(nameStartIndex, nameEndIndex);
 
             return targetedUserName;
         }
 
-        private partial void TryChangeStatus(String command, String targetedStatus, String userName, Socket userSocket, ConcurrentDictionary<string, bool>? statusDataHolder)
+        private void TryChangeStatus(string command, string targetedStatus, string userName, Socket userSocket, ConcurrentDictionary<string, bool>? statusDataHolder = null)
         {
-            String targetedUserName = this.FindTargetedUserNameFromCommand(command);
+            string targetedUserName = this.FindTargetedUserNameFromCommand(command);
 
             // Socket can be null if it's not found (the user never existed, if the command was written
             // or the user disconnected)
             Socket? targetedUserSocket = null;
-            foreach (KeyValuePair<String, Socket> userNamesAndSockets in this.userNamesAndSockets)
+            foreach (KeyValuePair<string, Socket> userNamesAndSockets in this.userNamesAndSockets)
             {
                 if (targetedUserName == userNamesAndSockets.Key)
                 {
@@ -304,17 +391,17 @@ namespace SteamProfile.Implementation
                 return;
             }
 
-            String targetedUserIpAddress = this.socketsAndAddresses.GetValueOrDefault(targetedUserSocket) ?? "Not found";
+            string targetedUserIpAddress = this.socketsAndAddresses.GetValueOrDefault(targetedUserSocket) ?? "Not found";
 
-            String userStatus = this.GetHighestStatus(userName);
-            String targetedUserStatus = this.GetHighestStatus(targetedUserName);
+            string userStatus = this.GetHighestStatus(userName);
+            string targetedUserStatus = this.GetHighestStatus(targetedUserName);
 
             if (this.IsUserAllowedOnTargetStatusChange(userStatus, targetedUserStatus))
             {
                 // Add is ignored, since we already have his data, but if add happens, it takes the value false
                 // Update operation should negate the current status that is targeted
                 bool isStatus = statusDataHolder?.AddOrUpdate(targetedUserName, false, (key, oldValue) => !oldValue) ?? false;
-                String messageContent;
+                string messageContent;
 
                 if (targetedStatus.Equals(Server.MUTE_STATUS))
                 {
@@ -351,11 +438,10 @@ namespace SteamProfile.Implementation
                 this.SendMessageToAllClients(CreateMessage(messageContent, userName));
                 return;
             }
-            
             this.SendMessageToOneClient(CreateMessage(Server.SERVER_REJECT_COMMAND, this.hostName), userSocket);
         }
 
-        private partial void RemoveClientInformation(Socket clientSocket, String userName, String ipAddress)
+        private void RemoveClientInformation(Socket clientSocket, string userName, string ipAddress)
         {
             this.addressesAndUserNames.TryRemove(ipAddress, out _);
             this.socketsAndAddresses.TryRemove(clientSocket, out _);

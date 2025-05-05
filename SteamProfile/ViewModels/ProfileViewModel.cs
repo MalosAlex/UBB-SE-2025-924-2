@@ -32,6 +32,12 @@ namespace SteamProfile.ViewModels
         private string username = string.Empty;
 
         [ObservableProperty]
+        public string email = string.Empty;
+
+        [ObservableProperty]
+        private string profilePhotoPath = string.Empty;
+
+        [ObservableProperty]
         private string biography = string.Empty;
 
         [ObservableProperty]
@@ -211,6 +217,10 @@ namespace SteamProfile.ViewModels
                     await RefreshEquippedFeaturesAsync();
                 }
             };
+        }
+
+        public ProfileViewModel()
+        {
         }
 
         public async Task LoadProfileAsync(int user_id)

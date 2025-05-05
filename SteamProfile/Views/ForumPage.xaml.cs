@@ -2,8 +2,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Forum_Lib;
+using BusinessLayer.Services.Interfaces;
+using BusinessLayer.Services;
 using SteamProfile.ViewModels;
+using BusinessLayer.Models;
 
 namespace SteamProfile.Views
 {

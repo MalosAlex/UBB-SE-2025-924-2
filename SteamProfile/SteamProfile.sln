@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\Tests\Tests.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLayer", "..\BusinessLayer\BusinessLayer.csproj", "{099646CD-6B72-4623-9112-DDAB9DC403D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Steam_Community", "..\Steam_Community\Steam_Community.csproj", "{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -63,24 +61,6 @@ Global
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x64.Build.0 = Release|Any CPU
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x86.ActiveCfg = Release|Any CPU
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x86.Build.0 = Release|Any CPU
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|ARM64.ActiveCfg = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|ARM64.Build.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|ARM64.Deploy.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x64.ActiveCfg = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x64.Build.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x64.Deploy.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x86.ActiveCfg = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x86.Build.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Debug|x86.Deploy.0 = Debug|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|ARM64.ActiveCfg = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|ARM64.Build.0 = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|ARM64.Deploy.0 = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x64.ActiveCfg = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x64.Build.0 = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x64.Deploy.0 = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x86.ActiveCfg = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x86.Build.0 = Release|x64
-		{E667D7C6-29B4-F462-BF79-D5EFE2EA9B0A}.Release|x86.Deploy.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

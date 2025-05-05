@@ -7,20 +7,23 @@ namespace SteamProfile.Views
 {
     public sealed partial class ReviewsPage : Page
     {
-        private readonly ReviewViewModel _reviewViewModel;
+        private readonly ReviewViewModel reviewViewModel;
 
         public ReviewsPage()
         {
-            _reviewViewModel = new ReviewViewModel();
-            DataContext = _reviewViewModel;
-            _reviewViewModel.OnValidationFailed = ShowValidationMessage;
+            reviewViewModel = new ReviewViewModel();
+            DataContext = reviewViewModel;
+            reviewViewModel.OnValidationFailed = ShowValidationMessage;
 
             InitializeComponent();
         }
 
         private void OnWriteReviewClicked(object sender, RoutedEventArgs e)
         {
-            if (ReviewPanel == null) return;
+            if (ReviewPanel == null)
+            {
+                return;
+            }
 
             ReviewPanel.Visibility = ReviewPanel.Visibility == Visibility.Visible
                 ? Visibility.Collapsed
@@ -29,7 +32,7 @@ namespace SteamProfile.Views
 
         private void OnSubmitReviewClicked(object sender, RoutedEventArgs e)
         {
-            _reviewViewModel.SubmitNewReview();
+            reviewViewModel.SubmitNewReview();
             ReviewPanel.Visibility = Visibility.Collapsed;
         }
 
@@ -39,7 +42,7 @@ namespace SteamProfile.Views
                 e.AddedItems[0] is ComboBoxItem { Content: string sortOption } &&
                 !string.IsNullOrWhiteSpace(sortOption))
             {
-                _reviewViewModel.ApplySortinOption(sortOption);
+                reviewViewModel.ApplySortinOption(sortOption);
             }
         }
 
@@ -49,20 +52,22 @@ namespace SteamProfile.Views
                 e.AddedItems[0] is ComboBoxItem { Content: string filter } &&
                 !string.IsNullOrWhiteSpace(filter))
             {
-                _reviewViewModel.ApplyReccomendationFilter(filter);
+                reviewViewModel.ApplyReccomendationFilter(filter);
             }
         }
 
         private void OnEditReviewClicked(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn &&
-                btn.DataContext is Models.Review review)
+                btn.DataContext is BusinessLayer.Models.Review review)
             {
-                _reviewViewModel.EditAReview(review);
+                reviewViewModel.EditAReview(review);
 
                 // Ensure ReviewPanel is visible
                 if (ReviewPanel != null)
+                {
                     ReviewPanel.Visibility = Visibility.Visible;
+                }
             }
         }
 
@@ -71,31 +76,31 @@ namespace SteamProfile.Views
             if (sender is Button btn &&
                 btn.Tag is int reviewId)
             {
-                _reviewViewModel.DeleteSelectedReview(reviewId);
+                reviewViewModel.DeleteSelectedReview(reviewId);
             }
         }
 
         private void OnVoteHelpfulClicked(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn &&
-                btn.DataContext is Models.Review review)
+                btn.DataContext is BusinessLayer.Models.Review review)
             {
-                _reviewViewModel.ToggleVoteForReview(review.ReviewIdentifier, "Helpful", review);
+                reviewViewModel.ToggleVoteForReview(review.ReviewIdentifier, "Helpful", review);
             }
         }
 
         private void OnVoteFunnyClicked(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn &&
-                btn.DataContext is Models.Review review)
+                btn.DataContext is BusinessLayer.Models.Review review)
             {
-                _reviewViewModel.ToggleVoteForReview(review.ReviewIdentifier, "Funny", review);
+                reviewViewModel.ToggleVoteForReview(review.ReviewIdentifier, "Funny", review);
             }
         }
 
         public string FormatHoursPlayed(int hours)
         {
-            return $"Played {hours} hour{(hours == 1 ? "" : "s")}";
+            return $"Played {hours} hour{(hours == 1 ? string.Empty : "s")}";
         }
 
         private async void ShowValidationMessage(string message)

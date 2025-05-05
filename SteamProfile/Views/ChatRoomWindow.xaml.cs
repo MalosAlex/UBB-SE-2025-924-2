@@ -69,7 +69,7 @@ namespace SteamProfile.Views
             this.viewModel.SendMessage(messageContent);
 
             // Clear input field
-            this.MessageTextBox.Text = "";
+            this.MessageTextBox.Text = string.Empty;
         }
 
         /// <summary>
