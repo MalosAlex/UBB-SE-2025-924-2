@@ -304,7 +304,7 @@ namespace BusinessLayer.Repositories
             {
                 query += " AND score >= 0";
             }
-            if (!string.IsNullOrEmpty(filter)
+            if (!string.IsNullOrEmpty(filter))
             {
                 query += $" AND title LIKE '%{filter}%'";
             }

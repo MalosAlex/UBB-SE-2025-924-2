@@ -104,7 +104,7 @@ namespace BusinessLayer.Repositories.Fakes
                 return null;
             }
 
-            User u = new User();
+            User u = new User(0, "fake", false);
             u.Email = emailOrUsername;
             u.Password = PasswordHasher.HashPassword("password");
             return u;
