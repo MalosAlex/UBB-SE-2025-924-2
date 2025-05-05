@@ -21,7 +21,7 @@ namespace SteamProfile.ViewModels
 
         public FriendRequestViewModel(IFriendRequestService friendRequestService, string currentUsername)
         {
-            friendRequestService = friendRequestService ?? throw new ArgumentNullException(nameof(friendRequestService));
+            this.friendRequestService = friendRequestService ?? throw new ArgumentNullException(nameof(friendRequestService));
             friendService = SteamProfile.App.GetService<IFriendService>(); // Get from service container
             currentUsername = currentUsername ?? throw new ArgumentNullException(nameof(currentUsername));
             friendRequests = new ObservableCollection<FriendRequest>();

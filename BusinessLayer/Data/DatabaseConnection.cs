@@ -11,7 +11,7 @@ namespace BusinessLayer.Data
 {
     public class DatabaseConnection : IDatabaseConnection
     {
-        // const string CONNECTION_STRING = "Data Source=DESKTOP-45FVE4D\\SQLEXPRESS;Initial Catalog=Community;Integrated Security=true;";
+        // const string CONNECTION_STRING = "Server=GHASTERLAPTOP;Database=Community;User Id=sa;Password=1808;TrustServerCertificate=True";
         public string ConnectionString;
         private SqlConnection CreateConnection()
         {
