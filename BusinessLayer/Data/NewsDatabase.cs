@@ -18,9 +18,9 @@ namespace BusinessLayer.Data
 
         public NewsDatabase()
         {
-            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
-            ConnectionString = CONNECTION_STRING;
-            Connection = new SqlConnection(CONNECTION_STRING);
+            string connection_string = DatabaseConnectionSettings.CONNECTION_STRING;
+            ConnectionString = connection_string;
+            Connection = new SqlConnection(connection_string);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace BusinessLayer.Data
         public SqlDataReader ExecuteSearchReader(string query, string searchedText)
         {
             SqlCommand command = new SqlCommand(query, Connection);
-            command.Parameters.AddWithValue(SEARCH_VALUE, searchedText == "" ? "%" : $"%{searchedText}%");
+            command.Parameters.AddWithValue(SEARCH_VALUE, searchedText == string.Empty ? "%" : $"%{searchedText}%");
 
             SqlDataReader reader = command.ExecuteReader();
 

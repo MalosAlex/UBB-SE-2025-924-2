@@ -11,7 +11,7 @@ namespace BusinessLayer.Data
 {
     public class DatabaseConnection : IDatabaseConnection
     {
-        //const string CONNECTION_STRING = "Data Source=DESKTOP-45FVE4D\\SQLEXPRESS;Initial Catalog=Community;Integrated Security=true;";
+        // const string CONNECTION_STRING = "Data Source=DESKTOP-45FVE4D\\SQLEXPRESS;Initial Catalog=Community;Integrated Security=true;";
         public string ConnectionString;
         public string GetConnectionString()
         {
@@ -25,9 +25,9 @@ namespace BusinessLayer.Data
 
         public DatabaseConnection()
         {
-            string CONNECTION_STRING = DatabaseConnectionSettings.CONNECTION_STRING;
-            ConnectionString = CONNECTION_STRING;
-            Connection = new SqlConnection(CONNECTION_STRING);
+            string connectionString = DatabaseConnectionSettings.CONNECTION_STRING;
+            ConnectionString = connectionString;
+            Connection = new SqlConnection(connectionString);
         }
 
         public void Connect()
@@ -75,14 +75,13 @@ namespace BusinessLayer.Data
             }
 
             command.ExecuteNonQuery();
-
         }
 
         public void ExecuteDelete(string tableName, string columnName, object value)
         {
             string query = $"DELETE FROM {tableName} WHERE {columnName} = @Value";
 
-            SqlCommand command = new SqlCommand(query , Connection);
+            SqlCommand command = new SqlCommand(query, Connection);
 
             command.Parameters.AddWithValue("@value", value);
 

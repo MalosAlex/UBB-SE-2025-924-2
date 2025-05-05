@@ -52,7 +52,12 @@ namespace BusinessLayer.Repositories
                         continue;
                     }
 
-                    User user = new User(foundId, foundUserName, foundIpAddress);
+                    User user = new User
+                    {
+                        UserId = foundId,
+                        Username = foundUserName,
+                        IpAddress = foundIpAddress
+                    };
                     foundUsers.Add(user);
                 }
             }

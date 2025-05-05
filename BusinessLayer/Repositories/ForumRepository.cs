@@ -12,16 +12,16 @@ namespace BusinessLayer.Repositories
 {
     public class ForumRepository : IForumRepository
     {
-        private IDatabaseConnection _dbConnection;
+        private IDatabaseConnection dbConnection;
 
         public static IForumRepository ForumRepositoryInstance = new ForumRepository(new DatabaseConnection());
         public static IForumRepository GetRepoInstance()
         {
             return ForumRepositoryInstance;
         }
-        private ForumRepository(IDatabaseConnection dbConnection)
+        private ForumRepository(IDatabaseConnection dbConnectionParam)
         {
-            _dbConnection = dbConnection;
+            dbConnection = dbConnectionParam;
         }
 
         private string TimeSpanFilterToString(TimeSpanFilter filter)
@@ -37,7 +37,7 @@ namespace BusinessLayer.Repositories
                 case TimeSpanFilter.Year:
                     return "YEAR";
                 default:
-                    return "";
+                    return string.Empty;
             }
         }
 
@@ -53,8 +53,8 @@ namespace BusinessLayer.Repositories
                     query = $"SELECT TOP 20 * FROM ForumPosts WHERE creation_date >= DATEADD({TimeSpanFilterToString(filter)}, -1, GETDATE()) ORDER BY score DESC";
                     break;
             }
-            _dbConnection.Connect();
-            DataSet dataSet = _dbConnection.ExecuteQuery(query, "ForumPosts");
+            dbConnection.Connect();
+            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
             List<ForumPost> posts = new();
             foreach (DataRow row in dataSet.Tables[0].Rows)
             {
@@ -71,7 +71,7 @@ namespace BusinessLayer.Repositories
 
                 posts.Add(post);
             }
-            _dbConnection.Disconnect();
+            dbConnection.Disconnect();
             return posts;
         }
 
@@ -84,16 +84,16 @@ namespace BusinessLayer.Repositories
             data.Add("creation_date", date);
             data.Add("score", 0);
             data.Add("game_id", gameId != null ? (int)gameId : DBNull.Value);
-            _dbConnection.Connect();
-            _dbConnection.ExecuteInsert("ForumPosts", data);
-            _dbConnection.Disconnect();
+            dbConnection.Connect();
+            dbConnection.ExecuteInsert("ForumPosts", data);
+            dbConnection.Disconnect();
         }
 
         public void DeletePost(uint postId)
         {
-            _dbConnection.Connect();
-            _dbConnection.ExecuteDelete("ForumPosts", "post_id", (int)postId);
-            _dbConnection.Disconnect();
+            dbConnection.Connect();
+            dbConnection.ExecuteDelete("ForumPosts", "post_id", (int)postId);
+            dbConnection.Disconnect();
         }
 
         public void CreateComment(string body, uint postId, string date, uint authorId)
@@ -104,34 +104,34 @@ namespace BusinessLayer.Repositories
             data.Add("creation_date", date);
             data.Add("author_id", (int)authorId);
             data.Add("score", 0);
-            _dbConnection.Connect();
-            _dbConnection.ExecuteInsert("ForumComments", data);
-            _dbConnection.Disconnect();
+            dbConnection.Connect();
+            dbConnection.ExecuteInsert("ForumComments", data);
+            dbConnection.Disconnect();
         }
 
         public void DeleteComment(uint commentId)
         {
-            _dbConnection.Connect();
-            _dbConnection.ExecuteDelete("ForumComments", "comment_id", (int)commentId);
-            _dbConnection.Disconnect();
+            dbConnection.Connect();
+            dbConnection.ExecuteDelete("ForumComments", "comment_id", (int)commentId);
+            dbConnection.Disconnect();
         }
 
-        private int getPostScore(uint id)
+        private int GetPostScore(uint id)
         {
             string query = $"SELECT score FROM ForumPosts WHERE post_id = {id}";
-            //_dbConnection.Connect();
-            DataSet dataSet = _dbConnection.ExecuteQuery(query, "ForumPosts");
-            //_dbConnection.Disconnect();
+            // dbConnection.Connect();
+            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
+            // dbConnection.Disconnect();
             var score = dataSet.Tables[0].Rows[0]["score"];
             return Convert.ToInt32(score);
         }
 
-        private int getCommentScore(uint id)
+        private int GetCommentScore(uint id)
         {
             string query = $"SELECT score FROM ForumComments WHERE comment_id = {id}";
-            //_dbConnection.Connect();
-            DataSet dataSet = _dbConnection.ExecuteQuery(query, "ForumComments");
-            //_dbConnection.Disconnect();
+            // dbConnection.Connect();
+            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumComments");
+            // dbConnection.Disconnect();
             var score = dataSet.Tables[0].Rows[0]["score"];
 
             return Convert.ToInt32(score);
@@ -139,37 +139,36 @@ namespace BusinessLayer.Repositories
 
         public void VoteOnPost(uint postId, int voteValue, int userId)
         {
+            int newScore = GetPostScore(postId) + voteValue;
 
-            int newScore = getPostScore(postId) + voteValue;
+            dbConnection.Connect();
 
-            _dbConnection.Connect();
-
-            DataSet likedPost = _dbConnection.ExecuteQuery(
+            DataSet likedPost = dbConnection.ExecuteQuery(
         $"SELECT * FROM UserLikedPost WHERE userId = {userId} AND post_id = {postId}",
         "UserLikedPost");
 
-            DataSet dislikedPost = _dbConnection.ExecuteQuery(
+            DataSet dislikedPost = dbConnection.ExecuteQuery(
         $"SELECT * FROM UserDislikedPost WHERE userId = {userId} AND post_id = {postId}",
         "UserDislikedPost");
 
-            Dictionary<string, object> data = new Dictionary<string, object>(); 
+            Dictionary<string, object> data = new Dictionary<string, object>();
             data.Add("userId", userId);
             data.Add("post_id", (int)postId);
 
             if (likedPost.Tables[0].Rows.Count == 0 && dislikedPost.Tables[0].Rows.Count == 0)
             {
                 // User has not voted yet, apply the vote normally and insert into the appropriate table
-                _dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
+                dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
 
                 if (voteValue > 0)
                 {
                     // User liked the post
-                    _dbConnection.ExecuteInsert("UserLikedPost", data);
+                    dbConnection.ExecuteInsert("UserLikedPost", data);
                 }
                 else
                 {
                     // User disliked the post
-                    _dbConnection.ExecuteInsert("UserDislikedPost", data);
+                    dbConnection.ExecuteInsert("UserDislikedPost", data);
                 }
             }
             else
@@ -180,15 +179,15 @@ namespace BusinessLayer.Repositories
                     if (voteValue > 0)
                     {
                         // Same vote, retract the like
-                        _dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
-                        newScore = getPostScore(postId) - voteValue; // Adjust the post score
+                        dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
+                        newScore = GetPostScore(postId) - voteValue; // Adjust the post score
                     }
                     else
                     {
                         // Opposite vote, retract the like and add a dislike
-                        _dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
-                        _dbConnection.ExecuteInsert("UserDislikedPost", data);
-                        newScore = getPostScore(postId) + 2 * voteValue; // Adjust the post score accordingly
+                        dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
+                        dbConnection.ExecuteInsert("UserDislikedPost", data);
+                        newScore = GetPostScore(postId) + (2 * voteValue); // Adjust the post score accordingly
                     }
                 }
                 else if (dislikedPost.Tables[0].Rows.Count > 0)
@@ -196,36 +195,36 @@ namespace BusinessLayer.Repositories
                     if (voteValue < 0)
                     {
                         // Same vote, retract the dislike
-                        _dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
-                        newScore = getPostScore(postId) - voteValue; // Adjust the post score
+                        dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
+                        newScore = GetPostScore(postId) - voteValue; // Adjust the post score
                     }
                     else
                     {
                         // Opposite vote, retract the dislike and add a like
-                        _dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
-                        _dbConnection.ExecuteInsert("UserLikedPost", data);
-                        newScore = getPostScore(postId) + 2 * voteValue; // Adjust the post score accordingly
+                        dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
+                        dbConnection.ExecuteInsert("UserLikedPost", data);
+                        newScore = GetPostScore(postId) + (2 * voteValue); // Adjust the post score accordingly
                     }
                 }
             }
 
             // Update the post score
-            _dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
+            dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
 
-            _dbConnection.Disconnect();
+            dbConnection.Disconnect();
         }
 
         public void VoteOnComment(uint commentId, int voteValue, int userId)
         {
-            int newScore = getCommentScore(commentId) + voteValue;
+            int newScore = GetCommentScore(commentId) + voteValue;
 
-            _dbConnection.Connect();
+            dbConnection.Connect();
 
-            DataSet likedComment = _dbConnection.ExecuteQuery(
+            DataSet likedComment = dbConnection.ExecuteQuery(
         $"SELECT * FROM UserLikedComment WHERE userId = {userId} AND comment_id = {commentId}",
         "UserLikedComment");
 
-            DataSet dislikedComment = _dbConnection.ExecuteQuery(
+            DataSet dislikedComment = dbConnection.ExecuteQuery(
         $"SELECT * FROM UserDislikedComment WHERE userId = {userId} AND comment_id = {commentId}",
         "UserDislikedComment");
 
@@ -236,17 +235,17 @@ namespace BusinessLayer.Repositories
             if (likedComment.Tables[0].Rows.Count == 0 && dislikedComment.Tables[0].Rows.Count == 0)
             {
                 // User has not voted yet, apply the vote normally and insert into the appropriate table
-                _dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
+                dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
 
                 if (voteValue > 0)
                 {
                     // User liked the comment
-                    _dbConnection.ExecuteInsert("UserLikedComment", data);
+                    dbConnection.ExecuteInsert("UserLikedComment", data);
                 }
                 else
                 {
                     // User disliked the comment
-                    _dbConnection.ExecuteInsert("UserDislikedComment", data);
+                    dbConnection.ExecuteInsert("UserDislikedComment", data);
                 }
             }
             else
@@ -257,15 +256,15 @@ namespace BusinessLayer.Repositories
                     if (voteValue > 0)
                     {
                         // Same vote, retract the like
-                        _dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
-                        newScore = getCommentScore(commentId) - voteValue; // Adjust the comment score
+                        dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
+                        newScore = GetCommentScore(commentId) - voteValue; // Adjust the comment score
                     }
                     else
                     {
                         // Opposite vote, retract the like and add a dislike
-                        _dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
-                        _dbConnection.ExecuteInsert("UserDislikedComment", data);
-                        newScore = getCommentScore(commentId) + 2 * voteValue; // Adjust the comment score accordingly
+                        dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
+                        dbConnection.ExecuteInsert("UserDislikedComment", data);
+                        newScore = GetCommentScore(commentId) + (2 * voteValue); // Adjust the comment score accordingly
                     }
                 }
                 else if (dislikedComment.Tables[0].Rows.Count > 0)
@@ -273,23 +272,23 @@ namespace BusinessLayer.Repositories
                     if (voteValue < 0)
                     {
                         // Same vote, retract the dislike
-                        _dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
-                        newScore = getCommentScore(commentId) - voteValue; // Adjust the comment score
+                        dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
+                        newScore = GetCommentScore(commentId) - voteValue; // Adjust the comment score
                     }
                     else
                     {
                         // Opposite vote, retract the dislike and add a like
-                        _dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
-                        _dbConnection.ExecuteInsert("UserLikedComment", data);
-                        newScore = getCommentScore(commentId) + 2 * voteValue; // Adjust the comment score accordingly
+                        dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
+                        dbConnection.ExecuteInsert("UserLikedComment", data);
+                        newScore = GetCommentScore(commentId) + (2 * voteValue); // Adjust the comment score accordingly
                     }
                 }
             }
 
             // Update the comment score
-            _dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
+            dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
 
-            _dbConnection.Disconnect();
+            dbConnection.Disconnect();
         }
 
 #nullable enable
@@ -298,18 +297,21 @@ namespace BusinessLayer.Repositories
             string query = $"SELECT * FROM ForumPosts WHERE 1 = 1";
 
             if (gameId != null)
+            {
                 query += $" AND game_id = {gameId}";
-
+            }
             if (positiveScoreOnly)
+            {
                 query += " AND score >= 0";
-
+            }
             if (!string.IsNullOrEmpty(filter))
+            {
                 query += $" AND title LIKE '%{filter}%'";
-
+            }
             query += $" ORDER BY creation_date OFFSET {pageNumber * pageSize} ROWS FETCH NEXT {pageSize} ROWS ONLY";
 
-            _dbConnection.Connect();
-            DataSet dataSet = _dbConnection.ExecuteQuery(query, "ForumPosts");
+            dbConnection.Connect();
+            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
             List<ForumPost> posts = new();
             foreach (DataRow row in dataSet.Tables[0].Rows)
             {
@@ -326,15 +328,15 @@ namespace BusinessLayer.Repositories
 
                 posts.Add(post);
             }
-            _dbConnection.Disconnect();
+            dbConnection.Disconnect();
             return posts;
         }
 
         public List<ForumComment> GetComments(uint postId)
         {
             string query = $"SELECT * FROM ForumComments WHERE post_id = {postId} ORDER BY creation_date";
-            _dbConnection.Connect();
-            DataSet dataSet = _dbConnection.ExecuteQuery(query, "ForumComments");
+            dbConnection.Connect();
+            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumComments");
             List<ForumComment> comments = new();
             foreach (DataRow row in dataSet.Tables[0].Rows)
             {
@@ -348,7 +350,7 @@ namespace BusinessLayer.Repositories
                 };
                 comments.Add(comment);
             }
-            _dbConnection.Disconnect();
+            dbConnection.Disconnect();
             return comments;
         }
     }

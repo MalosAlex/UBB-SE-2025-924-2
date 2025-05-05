@@ -8,7 +8,7 @@ namespace BusinessLayer.Services
 {
     public class ForumService : IForumService
     {
-        private IForumRepository _repository;
+        private IForumRepository repository;
 
         public static IForumService ForumServiceInstance = new ForumService(ForumRepository.GetRepoInstance());
         public static IForumService GetForumServiceInstance()
@@ -18,7 +18,7 @@ namespace BusinessLayer.Services
 
         private ForumService(IForumRepository repository)
         {
-            _repository = repository;
+            this.repository = repository;
         }
 
         public uint GetCurrentUserId()
@@ -28,47 +28,47 @@ namespace BusinessLayer.Services
 #nullable enable
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string? filter = null)
         {
-            return _repository.GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
+            return repository.GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
         }
 
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter)
         {
-            return _repository.GetTopPosts(filter);
+            return repository.GetTopPosts(filter);
         }
 
         public void VoteOnPost(uint postId, int voteValue)
         {
-            _repository.VoteOnPost(postId, voteValue, (int)GetCurrentUserId());
+            repository.VoteOnPost(postId, voteValue, (int)GetCurrentUserId());
         }
 
         public void VoteOnComment(uint commentId, int voteValue)
         {
-            _repository.VoteOnComment(commentId, voteValue, (int)GetCurrentUserId());
+            repository.VoteOnComment(commentId, voteValue, (int)GetCurrentUserId());
         }
 
         public List<ForumComment> GetComments(uint postId)
         {
-            return _repository.GetComments(postId);
+            return repository.GetComments(postId);
         }
 
         public void DeleteComment(uint commentId)
         {
-            _repository.DeleteComment(commentId);
+            repository.DeleteComment(commentId);
         }
 
         public void CreateComment(string body, uint postId, string date)
         {
-            _repository.CreateComment(body, postId, date, GetCurrentUserId());
+            repository.CreateComment(body, postId, date, GetCurrentUserId());
         }
 
         public void DeletePost(uint postId)
         {
-            _repository.DeletePost(postId);
+            repository.DeletePost(postId);
         }
 
         public void CreatePost(string title, string body, string date, uint? gameId)
         {
-            _repository.CreatePost(title, body, GetCurrentUserId(), date, gameId);
+            repository.CreatePost(title, body, GetCurrentUserId(), date, gameId);
         }
     }
 }

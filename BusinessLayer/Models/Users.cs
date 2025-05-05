@@ -17,7 +17,9 @@ namespace BusinessLayer.Models
             get
             {
                 if (instance == null)
+                {
                     instance = new Users();
+                }
 
                 return instance;
             }
@@ -25,7 +27,7 @@ namespace BusinessLayer.Models
 
         private Users()
         {
-            //             ID  Username IsDeveloper
+            // ID  Username IsDeveloper
             users.Add(new(1, "JaneSmith", true));
             users.Add(new(2, "Iraphahell", false));
             users.Add(new(3, "XSlayder", false));
@@ -43,7 +45,7 @@ namespace BusinessLayer.Models
         {
             try
             {
-                return users.Find(user => user.id == id);
+                return users.Find(user => user.UserId == id);
             }
             catch (Exception ex)
             {

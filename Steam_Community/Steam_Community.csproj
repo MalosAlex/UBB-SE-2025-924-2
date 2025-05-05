@@ -35,6 +35,10 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="DirectMessages\Implementation\" />
+	  <Folder Include="Forum\Forum\" />
+	  <Folder Include="FriendRequests\Models\" />
+	  <Folder Include="News\Models\" />
+	  <Folder Include="Search\" />
 	</ItemGroup>
 
 	<!--
