@@ -1,8 +1,9 @@
 ﻿using System;
 using SteamProfile.ViewModels;
 using Microsoft.UI.Xaml.Controls;
+using BusinessLayer.Models;
 
-namespace FriendRequests
+namespace SteamProfile.Views
 {
     public sealed partial class FriendRequestsPage : Page
     {
@@ -17,7 +18,7 @@ namespace FriendRequests
             // Create profile view model (it will use FriendRequestViewModel internally)
             ProfileViewModel = new SteamProfile.ViewModels.ProfileViewModel();
 
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

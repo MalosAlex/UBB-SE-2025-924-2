@@ -21,6 +21,8 @@ namespace SteamProfile.ViewModels
     public partial class ProfileViewModel : ObservableObject
     {
         private static ProfileViewModel profileViewModelInstance;
+        private UserProfile userProfile;
+        private readonly FriendRequestViewModel friendRequestViewModel;
         private readonly IUserService userService;
         private readonly IFriendsService friendsService;
         private readonly DispatcherQueue dispatcherQueue;
@@ -28,8 +30,58 @@ namespace SteamProfile.ViewModels
         private readonly IFeaturesService featuresService;
         private readonly IAchievementsService achievementsService;
 
-        [ObservableProperty]
-        private string username = string.Empty;
+        public ProfileViewModel()
+        {
+            // Get the FriendRequestViewModel from the service container
+            try
+            {
+                friendRequestViewModel = SteamProfile.App.GetService<FriendRequestViewModel>();
+            }
+            catch
+            {
+                // Fall back to sample data if service container isn't set up yet
+                friendRequestViewModel = null;
+            }
+        }
+
+        public string Username
+        {
+            get => userProfile.Username;
+            set
+            {
+                if (userProfile.Username != value)
+                {
+                    userProfile.Username = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string Email
+        {
+            get => userProfile.Email;
+            set
+            {
+                if (userProfile.Email != value)
+                {
+                    userProfile.Email = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string ProfilePhotoPath
+        {
+            get => userProfile.ProfilePicture;
+            set
+            {
+                if (userProfile.ProfilePicture != value)
+                {
+                    userProfile.ProfilePicture = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         [ObservableProperty]
         private string biography = string.Empty;

@@ -3,6 +3,7 @@ using System.Net;
 using Microsoft.UI.Dispatching;
 using BusinessLayer.Interfaces;
 using BusinessLayer.Models;
+using SteamProfile.Services;
 
 namespace Steam_Community.DirectMessages.Services
 {
@@ -11,17 +12,17 @@ namespace Steam_Community.DirectMessages.Services
     /// </summary>
     public class ChatService : IChatService
     {
-        private INetworkClient _networkClient;
-        private DispatcherQueue _uiDispatcherQueue;
-        private INetworkServer _networkServer;
+        private INetworkClient networkClient;
+        private DispatcherQueue uiDispatcherQueue;
+        private INetworkServer networkServer;
 
         public event EventHandler<MessageEventArgs> MessageReceived;
         public event EventHandler<UserStatusEventArgs> UserStatusChanged;
         public event EventHandler<ExceptionEventArgs> ExceptionOccurred;
 
-        private string _username;
-        private string _userIpAddress;
-        private string _serverInviteIpAddress;
+        private string username;
+        private string userIpAddress;
+        private string serverInviteIpAddress;
 
         /// <summary>
         /// Initializes a new instance of the ChatService class.
@@ -31,10 +32,10 @@ namespace Steam_Community.DirectMessages.Services
         /// <param name="uiDispatcherQueue">The dispatcher queue for the UI thread.</param>
         public ChatService(string username, string serverInviteIpAddress, DispatcherQueue uiDispatcherQueue)
         {
-            _username = username;
-            _userIpAddress = GetLocalIpAddress();
-            _serverInviteIpAddress = serverInviteIpAddress;
-            _uiDispatcherQueue = uiDispatcherQueue;
+            username = username;
+            userIpAddress = GetLocalIpAddress();
+            serverInviteIpAddress = serverInviteIpAddress;
+            uiDispatcherQueue = uiDispatcherQueue;
         }
 
         /// <summary>
@@ -44,36 +45,36 @@ namespace Steam_Community.DirectMessages.Services
         {
             try
             {
-                bool isHostUser = _serverInviteIpAddress == ChatConstants.HOST_IP_FINDER;
+                bool isHostUser = serverInviteIpAddress == ChatConstants.HOST_IP_FINDER;
 
                 if (isHostUser)
                 {
-                    _serverInviteIpAddress = _userIpAddress;
+                    serverInviteIpAddress = userIpAddress;
                     // Create and start the server if this user is the host
-                    _networkServer = new NetworkServer(_userIpAddress, _username);
-                    _networkServer.Start();
+                    networkServer = new NetworkServer(userIpAddress, username);
+                    networkServer.Start();
 
                     // Connect to the server as a client
-                    _networkClient = new NetworkClient(_serverInviteIpAddress, _username, _uiDispatcherQueue);
-                    _networkClient.SetAsHost();
+                    networkClient = new NetworkClient(serverInviteIpAddress, username, uiDispatcherQueue);
+                    networkClient.SetAsHost();
                 }
                 else
                 {
                     // Just connect as a client
-                    _networkClient = new NetworkClient(_serverInviteIpAddress, _username, _uiDispatcherQueue);
+                    networkClient = new NetworkClient(serverInviteIpAddress, username, uiDispatcherQueue);
                 }
 
                 // Connect to the server
-                await _networkClient.ConnectToServer();
+                await networkClient.ConnectToServer();
 
                 // Register event handlers
-                _networkClient.MessageReceived += HandleMessageReceived;
-                _networkClient.UserStatusChanged += HandleUserStatusChanged;
+                networkClient.MessageReceived += HandleMessageReceived;
+                networkClient.UserStatusChanged += HandleUserStatusChanged;
             }
             catch (Exception exception)
             {
                 // Report the exception to the UI
-                _uiDispatcherQueue.TryEnqueue(() =>
+                uiDispatcherQueue.TryEnqueue(() =>
                     ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(exception)));
             }
         }
@@ -93,16 +94,16 @@ namespace Steam_Community.DirectMessages.Services
                 }
 
                 // Check if client is connected
-                if (!_networkClient?.IsConnected() ?? true)
+                if (!networkClient?.IsConnected() ?? true)
                 {
                     throw new Exception("Client is not connected to server");
                 }
 
                 // Send the message
-                _networkClient?.SendMessageToServer(messageContent);
+                networkClient?.SendMessageToServer(messageContent);
 
                 // Check if server is still running (for host only)
-                if (_networkServer?.IsRunning() == false)
+                if (networkServer?.IsRunning() == false)
                 {
                     throw new Exception("Server timeout has been reached!");
                 }
@@ -110,7 +111,7 @@ namespace Steam_Community.DirectMessages.Services
             catch (Exception exception)
             {
                 // Report the exception to the UI
-                _uiDispatcherQueue.TryEnqueue(() =>
+                uiDispatcherQueue.TryEnqueue(() =>
                     ExceptionOccurred?.Invoke(this, new ExceptionEventArgs(exception)));
             }
         }
@@ -125,13 +126,13 @@ namespace Steam_Community.DirectMessages.Services
             Message receivedMessage = messageEventArgs.Message;
 
             // Align messages based on sender (current user's messages on right, others on left)
-            bool isCurrentUserMessage = receivedMessage.MessageSenderName == _username;
+            bool isCurrentUserMessage = receivedMessage.MessageSenderName == username;
             receivedMessage.MessageAligment = isCurrentUserMessage
                 ? ChatConstants.ALIGNMENT_RIGHT
                 : ChatConstants.ALIGNMENT_LEFT;
 
             // Notify UI of the new message
-            _uiDispatcherQueue.TryEnqueue(() =>
+            uiDispatcherQueue.TryEnqueue(() =>
                 MessageReceived?.Invoke(this, new MessageEventArgs(receivedMessage)));
         }
 
@@ -140,7 +141,7 @@ namespace Steam_Community.DirectMessages.Services
         /// </summary>
         public void DisconnectFromServer()
         {
-            _networkClient?.Disconnect();
+            networkClient?.Disconnect();
         }
 
         /// <summary>
@@ -149,7 +150,7 @@ namespace Steam_Community.DirectMessages.Services
         /// <param name="targetUsername">The username of the target user.</param>
         public void AttemptChangeMuteStatus(string targetUsername)
         {
-            string command = $"<{_username}>|{ChatConstants.MUTE_STATUS}|<{targetUsername}>";
+            string command = $"<{username}>|{ChatConstants.MUTE_STATUS}|<{targetUsername}>";
             SendMessage(command);
         }
 
@@ -159,7 +160,7 @@ namespace Steam_Community.DirectMessages.Services
         /// <param name="targetUsername">The username of the target user.</param>
         public void AttemptChangeAdminStatus(string targetUsername)
         {
-            string command = $"<{_username}>|{ChatConstants.ADMIN_STATUS}|<{targetUsername}>";
+            string command = $"<{username}>|{ChatConstants.ADMIN_STATUS}|<{targetUsername}>";
             SendMessage(command);
         }
 
@@ -169,7 +170,7 @@ namespace Steam_Community.DirectMessages.Services
         /// <param name="targetUsername">The username of the target user.</param>
         public void AttemptKickUser(string targetUsername)
         {
-            string command = $"<{_username}>|{ChatConstants.KICK_STATUS}|<{targetUsername}>";
+            string command = $"<{username}>|{ChatConstants.KICK_STATUS}|<{targetUsername}>";
             SendMessage(command);
         }
 
@@ -181,7 +182,7 @@ namespace Steam_Community.DirectMessages.Services
         private void HandleUserStatusChanged(object sender, UserStatusEventArgs userStatusEventArgs)
         {
             // Forward the status change to the UI
-            _uiDispatcherQueue.TryEnqueue(() =>
+            uiDispatcherQueue.TryEnqueue(() =>
                 UserStatusChanged?.Invoke(this,
                     new UserStatusEventArgs(userStatusEventArgs.UserStatus)));
         }

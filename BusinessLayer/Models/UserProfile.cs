@@ -7,32 +7,34 @@
         public string? ProfilePicture { get; set; }
         public string? Bio { get; set; }
         public DateTime LastModified { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
     }
     public class Friend
     {
-        private string _profilePhotoPath = string.Empty;
+        private string profilePhotoPath = string.Empty;
 
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
 
         public string ProfilePhotoPath
         {
-            get => string.IsNullOrEmpty(_profilePhotoPath) ? "ms-appx:///Assets/default_avatar.png" : _profilePhotoPath;
-            set => _profilePhotoPath = value;
+            get => string.IsNullOrEmpty(profilePhotoPath) ? "ms-appx:///Assets/default_avatar.png" : profilePhotoPath;
+            set => profilePhotoPath = value;
         }
     }
 
     public class FriendRequest
     {
-        private string _profilePhotoPath = string.Empty;
+        private string profilePhotoPath = string.Empty;
 
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
 
         public string ProfilePhotoPath
         {
-            get => string.IsNullOrEmpty(_profilePhotoPath) ? "ms-appx:///Assets/default_avatar.png" : _profilePhotoPath;
-            set => _profilePhotoPath = value;
+            get => string.IsNullOrEmpty(profilePhotoPath) ? "ms-appx:///Assets/default_avatar.png" : profilePhotoPath;
+            set => profilePhotoPath = value;
         }
 
         public string ReceiverUsername { get; set; } = string.Empty;

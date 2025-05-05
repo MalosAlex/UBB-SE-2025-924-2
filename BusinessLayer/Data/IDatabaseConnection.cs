@@ -25,5 +25,9 @@ namespace BusinessLayer.Data
         public void ExecuteDelete(string tableName, string columnName, object value);
 
         public void ExecuteUpdate(string tableName, string columnToUpdate, string columnToMatch, object updateValue, object matchValue);
+
+        public void ExecuteNonQuery(string query);
+
+        public void ExecuteDeleteWithAnd(string tableName, Dictionary<string, object> parameters);
     }
 }

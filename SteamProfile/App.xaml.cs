@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.UI.Xaml;
 using BusinessLayer.Data;
 using BusinessLayer.Repositories;
 using BusinessLayer.Services.Interfaces;
@@ -12,6 +14,48 @@ namespace SteamProfile
 {
     public partial class App : Application
     {
+        // Steam Community part
+        private static readonly Dictionary<Type, object> Services = new Dictionary<Type, object>();
+        private static void ConfigureServices()
+        {
+            // Configuration
+            string currentUsername = "JaneSmith"; // This would come from authentication
+
+            // Register database connection
+            var dbConnection = new DatabaseConnection();
+            Services[typeof(DatabaseConnection)] = dbConnection;
+
+            // Register repositories
+            var friendRequestRepository = new FriendRequestRepository(dbConnection);
+            Services[typeof(IFriendRequestRepository)] = friendRequestRepository;
+
+            var friendRepository = new FriendRepository(dbConnection);
+            Services[typeof(IFriendRepository)] = friendRepository;
+
+            // Register services
+            var friendService = new FriendService(friendRepository);
+            Services[typeof(IFriendService)] = friendService;
+
+            new FriendRequestService(friendRequestRepository, friendService);
+            var friendRequestService = new FriendRequestService(friendRequestRepository, friendService);
+            Services[typeof(IFriendRequestService)] = friendRequestService;
+
+            // Register view models
+            var friendRequestViewModel = new FriendRequestViewModel(friendRequestService, currentUsername);
+            Services[typeof(FriendRequestViewModel)] = friendRequestViewModel;
+        }
+
+        public static T GetService<T>()
+            where T : class
+        {
+            if (Services.TryGetValue(typeof(T), out var service))
+            {
+                return (T)service;
+            }
+
+            throw new InvalidOperationException($"Service of type {typeof(T).Name} is not registered");
+        }
+
         // Services
         public static readonly IAchievementsService AchievementsService;
         public static readonly FeaturesService FeaturesService;
@@ -74,6 +118,7 @@ namespace SteamProfile
             CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
 
             // Others
+            ConfigureServices();
             InitializeAchievements();
         }
 

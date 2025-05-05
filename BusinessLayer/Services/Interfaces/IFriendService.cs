@@ -10,4 +10,4 @@ namespace BusinessLayer.Services.Interfaces
         Task<bool> AddFriendAsync(string user1Username, string user2Username, string friendEmail, string friendProfilePhotoPath);
         Task<bool> RemoveFriendAsync(string user1Username, string user2Username);
     }
-} 
+}

@@ -110,7 +110,6 @@ namespace SteamProfile.ViewModels
         /// </summary>
         public event EventHandler<ExceptionEventArgs> ExceptionOccurred;
 
-
         /// <summary>
         /// Initializes a new instance of the ChatRoomViewModel class.
         /// </summary>

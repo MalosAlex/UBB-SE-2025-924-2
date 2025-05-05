@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BusinessLayer.Models;
 using BusinessLayer.Repositories;
+using BusinessLayer.Services.Interfaces;
 
 namespace BusinessLayer.Services
 {
     public class FriendRequestService : IFriendRequestService
     {
-        private readonly IFriendRequestRepository _friendRequestRepository;
-        private readonly IFriendService _friendService;
-        
+        private readonly IFriendRequestRepository friendRequestRepository;
+        private readonly IFriendService friendService;
         public FriendRequestService(IFriendRequestRepository friendRequestRepository, IFriendService friendService)
         {
-            _friendRequestRepository = friendRequestRepository ?? throw new ArgumentNullException(nameof(friendRequestRepository));
-            _friendService = friendService ?? throw new ArgumentNullException(nameof(friendService));
+            friendRequestRepository = friendRequestRepository ?? throw new ArgumentNullException(nameof(friendRequestRepository));
+            friendService = friendService ?? throw new ArgumentNullException(nameof(friendService));
         }
 
         public async Task<IEnumerable<FriendRequest>> GetFriendRequestsAsync(string username)
@@ -24,7 +24,7 @@ namespace BusinessLayer.Services
                 throw new ArgumentException("Username cannot be null or empty", nameof(username));
             }
 
-            return await _friendRequestRepository.GetFriendRequestsAsync(username);
+            return await friendRequestRepository.GetFriendRequestsAsync(username);
         }
 
         public async Task<bool> SendFriendRequestAsync(FriendRequest request)
@@ -42,7 +42,7 @@ namespace BusinessLayer.Services
             // Set the request date to now
             request.RequestDate = DateTime.Now;
 
-            return await _friendRequestRepository.AddFriendRequestAsync(request);
+            return await friendRequestRepository.AddFriendRequestAsync(request);
         }
 
         public async Task<bool> AcceptFriendRequestAsync(string senderUsername, string receiverUsername)
@@ -53,7 +53,7 @@ namespace BusinessLayer.Services
             }
 
             // Get the friend request details before deleting it
-            var requests = await _friendRequestRepository.GetFriendRequestsAsync(receiverUsername);
+            var requests = await friendRequestRepository.GetFriendRequestsAsync(receiverUsername);
             FriendRequest requestToAccept = null;
 
             foreach (var request in requests)
@@ -72,9 +72,9 @@ namespace BusinessLayer.Services
             }
 
             // First, add as friend
-            bool friendAdded = await _friendService.AddFriendAsync(
-                senderUsername, 
-                receiverUsername, 
+            bool friendAdded = await friendService.AddFriendAsync(
+                senderUsername,
+                receiverUsername,
                 requestToAccept.Email,
                 requestToAccept.ProfilePhotoPath);
 
@@ -84,7 +84,7 @@ namespace BusinessLayer.Services
             }
 
             // Then delete the friend request
-            return await _friendRequestRepository.DeleteFriendRequestAsync(senderUsername, receiverUsername);
+            return await friendRequestRepository.DeleteFriendRequestAsync(senderUsername, receiverUsername);
         }
 
         public async Task<bool> RejectFriendRequestAsync(string senderUsername, string receiverUsername)
@@ -95,7 +95,7 @@ namespace BusinessLayer.Services
             }
 
             // Simply delete the friend request
-            return await _friendRequestRepository.DeleteFriendRequestAsync(senderUsername, receiverUsername);
+            return await friendRequestRepository.DeleteFriendRequestAsync(senderUsername, receiverUsername);
         }
     }
-} 
+}

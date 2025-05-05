@@ -22,7 +22,6 @@ namespace BusinessLayer.Services
         public const int ERROR_CODE = -1;
         public const int HARDCODED_USER_ID = 1;
 
-
         public Service()
         {
             this.repository = new Repository();
@@ -31,7 +30,6 @@ namespace BusinessLayer.Services
         {
             this.repository = repository;
         }
-
 
         public List<User> GetFirst10UsersMatchedSorted(string username)
         {
@@ -42,7 +40,7 @@ namespace BusinessLayer.Services
                 foundUsers = this.SortAscending(foundUsers);
                 foreach (User user in foundUsers)
                 {
-                    user.FriendshipStatus = GetFriendshipStatus(currentUserId: HARDCODED_USER_ID, otherUserId: user.Id);
+                    user.FriendshipStatus = GetFriendshipStatus(currentUserId: HARDCODED_USER_ID, otherUserId: user.UserId);
                 }
                 return foundUsers.Take(Service.MAXIMUM_NUMBER_OF_DISPLAYED_USERS).ToList();
             }
@@ -57,14 +55,13 @@ namespace BusinessLayer.Services
         {
             try
             {
-
-                String newIpAddress = Steam_Community.DirectMessages.Services.ChatService.GetLocalIpAddress();
+                string newIpAddress = BusinessLayer.Services.ChatService.GetLocalIpAddress();
                 this.repository.UpdateUserIpAddress(newIpAddress, userId);
                 return newIpAddress;
             }
             catch (Exception ex)
             {
-                return Steam_Community.DirectMessages.Models.ChatConstants.GET_IP_REPLACER;
+                return BusinessLayer.Models.ChatConstants.GET_IP_REPLACER;
             }
         }
 
@@ -143,13 +140,13 @@ namespace BusinessLayer.Services
 
         public List<User> SortAscending(List<User> usersList)
         {
-            usersList.Sort((User firstUser, User secondUser) => string.Compare(firstUser.UserName, secondUser.UserName));
+            usersList.Sort((User firstUser, User secondUser) => string.Compare(firstUser.Username, secondUser.Username));
             return usersList;
         }
 
         public List<User> SortDescending(List<User> usersList)
         {
-            usersList.Sort((User firstUser, User secondUser) => string.Compare(secondUser.UserName, firstUser.UserName));
+            usersList.Sort((User firstUser, User secondUser) => string.Compare(secondUser.Username, firstUser.Username));
             return usersList;
         }
 
@@ -190,8 +187,6 @@ namespace BusinessLayer.Services
                 return FriendshipStatus.NotFriends;
             }
         }
-
-
 
         public void SendFriendRequest(int senderUserId, int receiverUserId)
         {

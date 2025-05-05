@@ -70,7 +70,9 @@ namespace SteamProfile.ViewModels
         private void PostComment()
         {
             if (string.IsNullOrWhiteSpace(RawText))
+            {
                 return;
+            }
 
             bool success = service.SetCommentMethodOnEditMode(IsInEditMode, CommentId, PostId, RawText);
 

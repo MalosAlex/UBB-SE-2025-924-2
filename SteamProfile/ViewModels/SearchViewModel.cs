@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Models;
+using BusinessLayer.Services;
 
 namespace SteamProfile.ViewModels
 {
@@ -50,8 +51,8 @@ namespace SteamProfile.ViewModels
         public SearchViewModel(IService service)
         {
             this.service = service;
-            this.currentUser = new User(1, "JaneSmith", Steam_Community.DirectMessages.Models.ChatConstants.GET_IP_REPLACER);
-            this.currentUser.IpAddress = service.UpdateCurrentUserIpAddress(currentUser.Id);
+            this.currentUser = new User(1, "JaneSmith", BusinessLayer.Models.ChatConstants.GET_IP_REPLACER);
+            this.currentUser.IpAddress = service.UpdateCurrentUserIpAddress(currentUser.UserId);
 
             SearchCommand = new RelayCommand(Search);
             SortAscendingCommand = new RelayCommand(SortAscending);
@@ -66,7 +67,9 @@ namespace SteamProfile.ViewModels
             var foundUsers = service.GetFirst10UsersMatchedSorted(SearchText);
             DisplayedUsers.Clear();
             foreach (var user in foundUsers)
+            {
                 DisplayedUsers.Add(user);
+            }
 
             NoUsersFoundMessage = DisplayedUsers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -76,7 +79,10 @@ namespace SteamProfile.ViewModels
             var sorted = service.SortAscending(DisplayedUsers.ToList());
             DisplayedUsers.Clear();
             foreach (var user in sorted)
+            {
                 DisplayedUsers.Add(user);
+            }
+
             NoUsersFoundMessage = DisplayedUsers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -85,21 +91,26 @@ namespace SteamProfile.ViewModels
             var sorted = service.SortDescending(DisplayedUsers.ToList());
             DisplayedUsers.Clear();
             foreach (var user in sorted)
+            {
                 DisplayedUsers.Add(user);
+            }
+
             NoUsersFoundMessage = DisplayedUsers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void FillInvites()
         {
-            var senders = service.GetUsersWhoSentMessageRequest(CurrentUser.Id);
+            var senders = service.GetUsersWhoSentMessageRequest(CurrentUser.UserId);
             ChatInvitesFromUsers.Clear();
             foreach (var user in senders)
+            {
                 ChatInvitesFromUsers.Add(user);
+            }
         }
 
         public void HandleMessage(User user, Button button)
         {
-            var result = service.MessageRequest(CurrentUser.Id, user.Id);
+            var result = service.MessageRequest(CurrentUser.UserId, user.UserId);
 
             switch (result)
             {
@@ -115,8 +126,8 @@ namespace SteamProfile.ViewModels
             {
                 ChatRoomOpened?.Invoke(this, new ChatRoomOpenedEventArgs
                 {
-                    Username = CurrentUser.UserName,
-                    IpAddress = Steam_Community.DirectMessages.Models.ChatConstants.GET_IP_REPLACER
+                    Username = CurrentUser.Username,
+                    IpAddress = BusinessLayer.Models.ChatConstants.GET_IP_REPLACER
                 });
                 isHosting = true; // set to false
             }
@@ -126,17 +137,17 @@ namespace SteamProfile.ViewModels
         {
             ChatRoomOpened?.Invoke(this, new ChatRoomOpenedEventArgs
             {
-                Username = CurrentUser.UserName,
+                Username = CurrentUser.Username,
                 IpAddress = user.IpAddress
             });
 
-            service.HandleMessageAcceptOrDecline(user.Id, CurrentUser.Id);
+            service.HandleMessageAcceptOrDecline(user.UserId, CurrentUser.UserId);
             ChatInvitesFromUsers.Remove(user);
         }
 
         public void DeclineInvite(User user)
         {
-            service.HandleMessageAcceptOrDecline(user.Id, CurrentUser.Id);
+            service.HandleMessageAcceptOrDecline(user.UserId, CurrentUser.UserId);
             ChatInvitesFromUsers.Remove(user);
         }
 
@@ -157,12 +168,12 @@ namespace SteamProfile.ViewModels
                     break;
             }
 
-            service.ToggleFriendRequest(user.FriendshipStatus, CurrentUser.Id, user.Id);
+            service.ToggleFriendRequest(user.FriendshipStatus, CurrentUser.UserId, user.UserId);
         }
 
         public void OnClosing()
         {
-            service.OnCloseWindow(CurrentUser.Id);
+            service.OnCloseWindow(CurrentUser.UserId);
         }
 
         public void StoppedHosting()

@@ -6,25 +6,25 @@ namespace SteamProfile.ViewModels.Commands
     // Simple implementation of ICommand for our relay commands
     public class RelayCommand<T> : ICommand
     {
-        private readonly Action<T> _execute;
-        private readonly Predicate<T> _canExecute;
+        private readonly Action<T> execute;
+        private readonly Predicate<T> canExecute;
 
         public RelayCommand(Action<T> execute, Predicate<T> canExecute = null)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || parameter != null && _canExecute((T)parameter);
+            return canExecute == null || (parameter != null && canExecute((T)parameter));
         }
 
         public void Execute(object parameter)
         {
             if (parameter != null)
             {
-                _execute((T)parameter);
+                execute((T)parameter);
             }
         }
 
@@ -39,23 +39,23 @@ namespace SteamProfile.ViewModels.Commands
     // Non-generic version for commands that don't need parameters
     public class RelayCommand : ICommand
     {
-        private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
+        private readonly Action execute;
+        private readonly Func<bool> canExecute;
 
         public RelayCommand(Action execute, Func<bool> canExecute = null)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            this.canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || _canExecute();
+            return canExecute == null || canExecute();
         }
 
         public void Execute(object parameter)
         {
-            _execute();
+            execute();
         }
 
         public event EventHandler CanExecuteChanged;
@@ -65,4 +65,4 @@ namespace SteamProfile.ViewModels.Commands
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
-} 
+}

@@ -16,18 +16,18 @@ namespace SteamProfile.Services
     /// </summary>
     public class NetworkClient : INetworkClient
     {
-        private IPEndPoint _serverEndPoint;
-        private Socket _clientSocket;
-        private DispatcherQueue _uiDispatcherQueue;
-        private Regex _infoChangeCommandRegex;
+        private IPEndPoint serverEndPoint;
+        private Socket clientSocket;
+        private DispatcherQueue uiDispatcherQueue;
+        private Regex infoChangeCommandRegex;
 
-        private UserStatus _userStatus;
+        private UserStatus userStatus;
 
         public event EventHandler<MessageEventArgs> MessageReceived;
         public event EventHandler<UserStatusEventArgs> UserStatusChanged;
 
-        private string _username;
-        private readonly string _infoChangeCommandPattern = @"^<INFO>\|.*\|<INFO>$";
+        private string username;
+        private readonly string infoChangeCommandPattern = @"^<INFO>\|.*\|<INFO>$";
 
         /// <summary>
         /// Initializes a new instance of the NetworkClient class.
@@ -38,16 +38,15 @@ namespace SteamProfile.Services
         /// <exception cref="Exception">Thrown when the IP address is invalid.</exception>
         public NetworkClient(string hostIpAddress, string username, DispatcherQueue uiDispatcherQueue)
         {
-            _username = username;
-            _uiDispatcherQueue = uiDispatcherQueue;
-            _userStatus = new UserStatus();
-            _infoChangeCommandRegex = new Regex(_infoChangeCommandPattern);
-
+            username = username;
+            uiDispatcherQueue = uiDispatcherQueue;
+            userStatus = new UserStatus();
+            infoChangeCommandRegex = new Regex(infoChangeCommandPattern);
 
             try
             {
-                _serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIpAddress), ChatConstants.PORT_NUMBER);
-                _clientSocket = new Socket(_serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIpAddress), ChatConstants.PORT_NUMBER);
+                clientSocket = new Socket(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (Exception exception)
             {
@@ -65,20 +64,20 @@ namespace SteamProfile.Services
             try
             {
                 // Connect to the server
-                await _clientSocket.ConnectAsync(_serverEndPoint);
+                await clientSocket.ConnectAsync(serverEndPoint);
 
                 // Send the username to the server
-                byte[] userNameBytes = Encoding.UTF8.GetBytes(_username);
-                _ = await _clientSocket.SendAsync(userNameBytes, SocketFlags.None);
+                byte[] userNameBytes = Encoding.UTF8.GetBytes(username);
+                _ = await clientSocket.SendAsync(userNameBytes, SocketFlags.None);
 
                 // Start receiving messages in the background
                 _ = Task.Run(() => ReceiveMessages());
 
-                _userStatus.IsConnected = true;
+                userStatus.IsConnected = true;
 
                 // Notify UI of status change
-                _uiDispatcherQueue.TryEnqueue(() =>
-                    UserStatusChanged?.Invoke(this, new UserStatusEventArgs(_userStatus)));
+                uiDispatcherQueue.TryEnqueue(() =>
+                    UserStatusChanged?.Invoke(this, new UserStatusEventArgs(userStatus)));
             }
             catch (Exception exception)
             {
@@ -97,7 +96,7 @@ namespace SteamProfile.Services
             try
             {
                 byte[] messageBytes = Encoding.UTF8.GetBytes(messageContent);
-                _ = await _clientSocket.SendAsync(messageBytes, SocketFlags.None);
+                _ = await clientSocket.SendAsync(messageBytes, SocketFlags.None);
             }
             catch (Exception exception)
             {
@@ -117,7 +116,7 @@ namespace SteamProfile.Services
                 {
                     // Receive message from server
                     byte[] messageBuffer = new byte[ChatConstants.MESSAGE_MAXIMUM_SIZE];
-                    int messageLength = await _clientSocket.ReceiveAsync(messageBuffer, SocketFlags.None);
+                    int messageLength = await clientSocket.ReceiveAsync(messageBuffer, SocketFlags.None);
 
                     // Check for disconnection
                     if (messageLength == ChatConstants.DISCONNECT_CODE)
@@ -129,7 +128,7 @@ namespace SteamProfile.Services
                     Message message = Message.Parser.ParseFrom(messageBuffer, ChatConstants.STARTING_INDEX, messageLength);
 
                     // Check if this is a status command
-                    if (_infoChangeCommandRegex.IsMatch(message.MessageContent))
+                    if (infoChangeCommandRegex.IsMatch(message.MessageContent))
                     {
                         int statusIndex = 1;
                         char commandSeparator = '|';
@@ -140,7 +139,7 @@ namespace SteamProfile.Services
                     }
 
                     // Notify UI of the new message
-                    _uiDispatcherQueue.TryEnqueue(() =>
+                    uiDispatcherQueue.TryEnqueue(() =>
                         MessageReceived?.Invoke(this, new MessageEventArgs(message)));
                 }
             }
@@ -160,7 +159,7 @@ namespace SteamProfile.Services
         /// <returns>True if connected, false otherwise.</returns>
         public bool IsConnected()
         {
-            return _userStatus.IsConnected;
+            return userStatus.IsConnected;
         }
 
         /// <summary>
@@ -172,10 +171,10 @@ namespace SteamProfile.Services
             switch (newStatus)
             {
                 case ChatConstants.ADMIN_STATUS:
-                    _userStatus.IsAdmin = !_userStatus.IsAdmin;
+                    userStatus.IsAdmin = !userStatus.IsAdmin;
                     break;
                 case ChatConstants.MUTE_STATUS:
-                    _userStatus.IsMuted = !_userStatus.IsMuted;
+                    userStatus.IsMuted = !userStatus.IsMuted;
                     break;
                 case ChatConstants.KICK_STATUS:
                     CloseConnection();
@@ -186,8 +185,8 @@ namespace SteamProfile.Services
             }
 
             // Notify UI of status change
-            _uiDispatcherQueue.TryEnqueue(() =>
-                UserStatusChanged?.Invoke(this, new UserStatusEventArgs(_userStatus)));
+            uiDispatcherQueue.TryEnqueue(() =>
+                UserStatusChanged?.Invoke(this, new UserStatusEventArgs(userStatus)));
         }
 
         /// <summary>
@@ -195,7 +194,7 @@ namespace SteamProfile.Services
         /// </summary>
         public void SetAsHost()
         {
-            _userStatus.IsHost = true;
+            userStatus.IsHost = true;
         }
 
         /// <summary>
@@ -206,7 +205,7 @@ namespace SteamProfile.Services
             try
             {
                 // Send empty message to indicate disconnection
-                _ = await _clientSocket.SendAsync(new byte[ChatConstants.DISCONNECT_CODE], SocketFlags.None);
+                _ = await clientSocket.SendAsync(new byte[ChatConstants.DISCONNECT_CODE], SocketFlags.None);
                 CloseConnection();
             }
             catch (Exception)
@@ -220,18 +219,18 @@ namespace SteamProfile.Services
         /// </summary>
         private void CloseConnection()
         {
-            _userStatus.IsConnected = false;
+            userStatus.IsConnected = false;
 
             try
             {
-                _clientSocket.Shutdown(SocketShutdown.Both);
+                clientSocket.Shutdown(SocketShutdown.Both);
             }
             catch (Exception)
             {
                 // Socket might already be closed
             }
 
-            _clientSocket.Close();
+            clientSocket.Close();
         }
     }
 }

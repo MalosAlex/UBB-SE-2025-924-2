@@ -2,36 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using BusinessLayer.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Forum_Lib;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using BusinessLayer.Services;
 
 namespace SteamProfile.Views
 {
     public sealed partial class PostsControl : UserControl
     {
-        private ObservableCollection<PostDisplay> _posts;
-        private uint _currentPage = 0;
-        private uint _pageSize = 10;
-        private bool _isLoadingMore = false;
-        private bool _hasMorePosts = true;
-        private bool _positiveScoreOnly = false;
-        private uint? _gameId = null;
-        private string _filter = null;
-        private TimeSpanFilter _timeSpanFilter = TimeSpanFilter.AllTime;
-        private bool _isTopPostsMode = false;
-        
+        private ObservableCollection<PostDisplay> posts;
+        private uint currentPage = 0;
+        private uint pageSize = 10;
+        private bool isLoadingMore = false;
+        private bool hasMorePosts = true;
+        private bool positiveScoreOnly = false;
+        private uint? gameId = null;
+        private string filter = null;
+        private TimeSpanFilter timeSpanFilter = TimeSpanFilter.AllTime;
+        private bool isTopPostsMode = false;
         // Event for when a post is selected
         public event EventHandler<ForumPost> PostSelected;
-        
         public PostsControl()
         {
             this.InitializeComponent();
-            _posts = new ObservableCollection<PostDisplay>();
-            PostsListView.ItemsSource = _posts;
-            
+            posts = new ObservableCollection<PostDisplay>();
+            PostsListView.ItemsSource = posts;
             // Add handler for when container is generated to set delete button visibility
             PostsListView.ContainerContentChanging += PostsListView_ContainerContentChanging;
         }
@@ -42,32 +40,27 @@ namespace SteamProfile.Views
             try
             {
                 // Reset state
-                _currentPage = 0;
-                _isTopPostsMode = true;
-                _timeSpanFilter = filter;
-                _hasMorePosts = true;
-                
+                currentPage = 0;
+                isTopPostsMode = true;
+                timeSpanFilter = filter;
+                hasMorePosts = true;
                 ShowLoading(true);
-                
                 // Clear existing posts
-                _posts.Clear();
-                
+                posts.Clear();
                 // Get posts from repository
                 List<ForumPost> forumPosts = ForumService.GetForumServiceInstance().GetTopPosts(filter);
-                
                 // Update the UI on the UI thread
-                this.DispatcherQueue.TryEnqueue(() => {
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
                     foreach (var post in forumPosts)
                     {
-                        _posts.Add(PostDisplay.FromPost(post));
+                        posts.Add(PostDisplay.FromPost(post));
                     }
-                    
                     // If we got fewer posts than the page size, there are no more posts to load
-                    if (forumPosts.Count < _pageSize)
+                    if (forumPosts.Count < pageSize)
                     {
-                        _hasMorePosts = false;
+                        hasMorePosts = false;
                     }
-                    
                     // Show the no posts message if no posts were found
                     UpdateVisibility();
                     ShowLoading(false);
@@ -80,45 +73,39 @@ namespace SteamProfile.Views
                 // Could show error message here
             }
         }
-        
         // Load paged posts with optional filters
         public void LoadPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string filter = null)
         {
             try
             {
                 // Save filter parameters for loading more later
-                _currentPage = pageNumber;
-                _pageSize = pageSize;
-                _positiveScoreOnly = positiveScoreOnly;
-                _gameId = gameId;
-                _filter = filter;
-                _isTopPostsMode = false;
-                _hasMorePosts = true;
-                
+                currentPage = pageNumber;
+                pageSize = pageSize;
+                positiveScoreOnly = positiveScoreOnly;
+                gameId = gameId;
+                filter = filter;
+                isTopPostsMode = false;
+                hasMorePosts = true;
                 ShowLoading(true);
-                
                 // Clear existing posts if loading first page
                 if (pageNumber == 0)
                 {
-                    _posts.Clear();
+                    posts.Clear();
                 }
-                
                 // Get posts from repository
                 List<ForumPost> forumPosts = ForumService.GetForumServiceInstance().GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
-                
                 // Update the UI on the UI thread
-                this.DispatcherQueue.TryEnqueue(() => {
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
                     foreach (var post in forumPosts)
                     {
-                        _posts.Add(PostDisplay.FromPost(post));
+                        posts.Add(PostDisplay.FromPost(post));
                     }
-                    
                     // If we got fewer posts than the page size, there are no more posts to load
                     if (forumPosts.Count < pageSize)
                     {
-                        _hasMorePosts = false;
+                        hasMorePosts = false;
                     }
-                    
                     // Show the no posts message if no posts were found
                     UpdateVisibility();
                     ShowLoading(false);
@@ -131,65 +118,57 @@ namespace SteamProfile.Views
                 // Could show error message here
             }
         }
-        
         // Load more posts when user scrolls to the bottom
         private void LoadMorePosts()
         {
-            if (_isLoadingMore || !_hasMorePosts)
+            if (isLoadingMore || !hasMorePosts)
             {
                 return; // Already loading or no more posts to load
             }
-            
             try
             {
-                _isLoadingMore = true;
+                isLoadingMore = true;
                 ShowLoadMoreIndicator(true);
-                
                 // Increment page number
-                _currentPage++;
-                
+                currentPage++;
                 // Get more posts based on the current mode
                 List<ForumPost> morePosts;
-                
-                if (_isTopPostsMode)
+                if (isTopPostsMode)
                 {
                     // In top posts mode, we can't really load "more" top posts
                     // This is just for demonstration, in a real app you might
                     // implement a different strategy for "more" top posts
                     morePosts = new List<ForumPost>();
-                    _hasMorePosts = false;
+                    hasMorePosts = false;
                 }
                 else
                 {
                     // Get next page of posts
-                    morePosts = ForumService.GetForumServiceInstance().GetPagedPosts(_currentPage, _pageSize, _positiveScoreOnly, _gameId, _filter);
-                    
+                    morePosts = ForumService.GetForumServiceInstance().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                     // If we got fewer posts than the page size, there are no more posts to load
-                    if (morePosts.Count < _pageSize)
+                    if (morePosts.Count < pageSize)
                     {
-                        _hasMorePosts = false;
+                        hasMorePosts = false;
                     }
                 }
-                
                 // Update the UI on the UI thread
-                this.DispatcherQueue.TryEnqueue(() => {
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
                     foreach (var post in morePosts)
                     {
-                        _posts.Add(PostDisplay.FromPost(post));
+                        posts.Add(PostDisplay.FromPost(post));
                     }
-                    
-                    _isLoadingMore = false;
+                    isLoadingMore = false;
                     ShowLoadMoreIndicator(false);
                 });
             }
             catch (Exception ex)
             {
-                _isLoadingMore = false;
+                isLoadingMore = false;
                 ShowLoadMoreIndicator(false);
                 // Could show error message here
             }
         }
-        
         // ScrollViewer event handler to detect when the user has scrolled to the bottom
         private void PostsScrollViewer_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
         {
@@ -199,7 +178,6 @@ namespace SteamProfile.Views
                 LoadMorePosts();
             }
         }
-        
         // Handle post selection
         private void PostsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -208,7 +186,6 @@ namespace SteamProfile.Views
                 PostSelected?.Invoke(this, postDisplay.Post);
             }
         }
-        
         // Handle upvote button click
         private void UpvoteButton_Click(object sender, RoutedEventArgs e)
         {
@@ -216,12 +193,10 @@ namespace SteamProfile.Views
             {
                 // Call the service with a positive vote value (1)
                 ForumService.GetForumServiceInstance().VoteOnPost(postId, 1);
-                
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
         }
-        
         // Handle downvote button click
         private void DownvoteButton_Click(object sender, RoutedEventArgs e)
         {
@@ -229,12 +204,10 @@ namespace SteamProfile.Views
             {
                 // Call the service with a negative vote value (-1)
                 ForumService.GetForumServiceInstance().VoteOnPost(postId, -1);
-                
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
         }
-        
         // Handle delete button click
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
@@ -245,7 +218,6 @@ namespace SteamProfile.Views
                     // Skip the confirmation dialog for now due to XamlRoot issues
                     // Just delete the post directly
                     ForumService.GetForumServiceInstance().DeletePost(postId);
-                    
                     // Remove the post from the UI
                     RemovePostFromUI(postId);
                 }
@@ -255,64 +227,55 @@ namespace SteamProfile.Views
                 }
             }
         }
-        
         // Helper method to refresh a specific post
         private void RefreshPost(uint postId)
         {
             // Find the post in the collection
-            for (int i = 0; i < _posts.Count; i++)
+            for (int i = 0; i < posts.Count; i++)
             {
-                if (_posts[i].Id == postId)
+                if (posts[i].Id == postId)
                 {
                     // In a real application, we would fetch the updated post from the service
                     // Instead of updating the score ourselves, let's get the current score from the service
-                    
                     try
                     {
                         // Get the actual updated score from the database
                         // First get a reference to the original ForumPost object
-                        ForumPost originalPost = _posts[i].Post;
-                        
+                        ForumPost originalPost = this.posts[i].Post;
                         // Create a new instance with the latest score from the service
                         // This could be a dedicated GetPostById method in a real application
                         List<ForumPost> posts;
-                        
-                        if (_isTopPostsMode)
+                        if (isTopPostsMode)
                         {
-                            posts = ForumService.GetForumServiceInstance().GetTopPosts(_timeSpanFilter);
+                            posts = ForumService.GetForumServiceInstance().GetTopPosts(timeSpanFilter);
                         }
                         else
                         {
-                            posts = ForumService.GetForumServiceInstance().GetPagedPosts(_currentPage, _pageSize, _positiveScoreOnly, _gameId, _filter);
+                            posts = ForumService.GetForumServiceInstance().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                         }
-                        
                         // Find the post with matching ID to get updated score
                         ForumPost updatedPost = posts.FirstOrDefault(p => p.Id == postId);
-                        
                         if (updatedPost != null)
                         {
                             // Create a new PostDisplay with the updated post
                             PostDisplay updatedPostDisplay = PostDisplay.FromPost(updatedPost);
-                            
                             // Replace the old post with the updated one
-                            _posts.RemoveAt(i);
-                            _posts.Insert(i, updatedPostDisplay);
+                            posts.RemoveAt(i);
+                            this.posts.Insert(i, updatedPostDisplay);
                         }
                     }
                     catch (Exception)
                     {
                         // If there's an error getting the updated post, just leave as is
                     }
-                    
                     break;
                 }
             }
         }
-        
         // Helper method to update visibility of controls
         private void UpdateVisibility()
         {
-            if (_posts.Count == 0)
+            if (posts.Count == 0)
             {
                 PostsListView.Visibility = Visibility.Collapsed;
                 NoPostsMessage.Visibility = Visibility.Visible;
@@ -323,19 +286,16 @@ namespace SteamProfile.Views
                 NoPostsMessage.Visibility = Visibility.Collapsed;
             }
         }
-        
         // Helper method to show/hide loading indicator
         private void ShowLoading(bool isLoading)
         {
             LoadingIndicator.IsActive = isLoading;
-            
             if (isLoading)
             {
                 PostsListView.Visibility = Visibility.Collapsed;
                 NoPostsMessage.Visibility = Visibility.Collapsed;
             }
         }
-        
         // Helper method to show/hide load more indicator
         private void ShowLoadMoreIndicator(bool isLoading)
         {
@@ -350,23 +310,20 @@ namespace SteamProfile.Views
                 LoadMoreIndicator.Visibility = Visibility.Collapsed;
             }
         }
-        
         // Helper method to remove a post from the UI
         private void RemovePostFromUI(uint postId)
         {
-            for (int i = 0; i < _posts.Count; i++)
+            for (int i = 0; i < posts.Count; i++)
             {
-                if (_posts[i].Id == postId)
+                if (posts[i].Id == postId)
                 {
-                    _posts.RemoveAt(i);
+                    posts.RemoveAt(i);
                     break;
                 }
             }
-            
             // Update visibility in case we removed the last post
             UpdateVisibility();
         }
-        
         // Show brief delete confirmation
         private void ShowDeleteConfirmation()
         {
@@ -382,7 +339,6 @@ namespace SteamProfile.Views
                 // Find the delete button in the container
                 var container = args.ItemContainer;
                 var deleteButton = FindChildByName(container, "DeleteButton") as Button;
-                
                 if (deleteButton != null)
                 {
                     // Set visibility based on whether this is the current user's post
@@ -402,20 +358,17 @@ namespace SteamProfile.Views
 
             // Get number of children
             int childCount = VisualTreeHelper.GetChildrenCount(parent);
-            
             // Search children
             for (int i = 0; i < childCount; i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(parent, i);
                 DependencyObject result = FindChildByName(child, name);
-                
                 if (result != null)
                 {
                     return result;
                 }
             }
-            
             return null;
         }
     }
-} 
+}

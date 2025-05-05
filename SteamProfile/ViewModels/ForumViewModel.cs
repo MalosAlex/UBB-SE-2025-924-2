@@ -10,6 +10,8 @@ using System.Windows.Input;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Services;
 using BusinessLayer.Models;
+using BusinessLayer.Services.Interfaces;
+using SteamProfile.Views;
 
 namespace SteamProfile.ViewModels
 {
@@ -158,7 +160,10 @@ namespace SteamProfile.ViewModels
 
         private async Task AddNewCommentAsync()
         {
-            if (SelectedPost == null) return;
+            if (SelectedPost == null)
+            {
+                return;
+            }
 
             // Instantiate the dialog, passing the selected post's ID
             var addCommentDialog = new AddCommentDialog(SelectedPost.Id);
@@ -174,7 +179,6 @@ namespace SteamProfile.ViewModels
             }
         }
 
-
         // INotifyPropertyChanged implementation
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -185,7 +189,11 @@ namespace SteamProfile.ViewModels
 
         protected bool SetProperty<Property>(ref Property storage, Property value, [CallerMemberName] string propertyName = null)
         {
-            if (EqualityComparer<Property>.Default.Equals(storage, value)) return false;
+            if (EqualityComparer<Property>.Default.Equals(storage, value))
+            {
+                return false;
+            }
+
             storage = value;
             OnPropertyChanged(propertyName);
             return true;

@@ -8,7 +8,7 @@ using Windows.System;
 using BusinessLayer.Services;
 using BusinessLayer.Models;
 
-namespace News
+namespace SteamProfile.Views
 {
     public sealed partial class PostEditorControl : UserControl
     {
@@ -16,7 +16,7 @@ namespace News
 
         public event RoutedEventHandler? PostUploaded;
         private NewsService service;
-        private Post? m_postBeingEdited = null;
+        private Post? postBeingEdited = null;
         private bool isEditMode = false;
 
         public PostEditorControl()
@@ -52,7 +52,7 @@ namespace News
         public void SetPostToEdit(Post post)
         {
             isEditMode = true;
-            m_postBeingEdited = post;
+            postBeingEdited = post;
 
             string htmlContent = post.Content;
 
@@ -66,7 +66,7 @@ namespace News
         public void ResetEditor()
         {
             isEditMode = false;
-            m_postBeingEdited = null;
+            postBeingEdited = null;
             RawHtmlEditor.Text = EMPTY_STRING;
         }
 
@@ -74,16 +74,16 @@ namespace News
         {
             if (isEditMode)
             {
-                if (RawHtmlEditor.Text == "")
+                if (RawHtmlEditor.Text == string.Empty)
                 {
                     return;
                 }
                 string html = service.FormatAsPost(RawHtmlEditor.Text);
-                service.UpdatePost(m_postBeingEdited.Id, html);
+                service.UpdatePost(postBeingEdited.Id, html);
             }
             else
             {
-                if (RawHtmlEditor.Text != "")
+                if (RawHtmlEditor.Text != string.Empty)
                 {
                     string html = service.FormatAsPost(RawHtmlEditor.Text);
                     service.SavePost(html);
@@ -104,11 +104,11 @@ namespace News
             {
                 System.Diagnostics.Debug.WriteLine($"WebView2 initialization error: {ex.Message}");
             }
-            Username.Text = service.activeUser.username;
+            Username.Text = service.ActiveUser.Username;
             CurrentDate.Text = DateTime.Now.ToString("MMM d, yyyy");
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(service.activeUser.profilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(service.ActiveUser.ProfilePicture).AsRandomAccessStream());
             ProfilePicture.ImageSource = image;
         }
     }

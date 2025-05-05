@@ -9,10 +9,10 @@ namespace SteamProfile.Implementation
         public event EventHandler<ClientStatusEventArgs> ClientStatusChangedEvent;
         public event EventHandler<ExceptionEventArgs> ExceptionEvent;
         public void ConnectUserToServer();
-        public void SendMessage(String message);
+        public void SendMessage(string message);
         public void DisconnectClient();
-        public void TryChangeMuteStatus(String targetedUser);
-        public void TryChangeAdminStatus(String targetedUser);
-        public void TryKick(String targetedUser);
+        public void TryChangeMuteStatus(string targetedUser);
+        public void TryChangeAdminStatus(string targetedUser);
+        public void TryKick(string targetedUser);
     }
 }

@@ -32,7 +32,7 @@ namespace BusinessLayer.Models {
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Steam_Community.DirectMessages.Models.Message), global::Steam_Community.DirectMessages.Models.Message.Parser, new[]{ "MessageContent", "MessageDateTime", "MessageSenderName", "MessageAligment", "MessageSenderStatus" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::BusinessLayer.Models.Message), global::BusinessLayer.Models.Message.Parser, new[]{ "MessageContent", "MessageDateTime", "MessageSenderName", "MessageAligment", "MessageSenderStatus" }, null, null, null, null)
           }));
     }
     #endregion
@@ -54,7 +54,7 @@ namespace BusinessLayer.Models {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Steam_Community.DirectMessages.Models.MessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::BusinessLayer.Models.MessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
