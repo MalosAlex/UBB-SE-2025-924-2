@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -32,6 +32,9 @@ namespace SteamProfile.ViewModels
 
         public ProfileViewModel()
         {
+            // Initialize userProfile to prevent null reference exceptions
+            userProfile = new UserProfile();
+
             // Get the FriendRequestViewModel from the service container
             try
             {
@@ -46,9 +49,14 @@ namespace SteamProfile.ViewModels
 
         public string Username
         {
-            get => userProfile.Username;
+            get => userProfile?.Username ?? string.Empty;
             set
             {
+                if (userProfile == null)
+                {
+                    userProfile = new UserProfile();
+                }
+
                 if (userProfile.Username != value)
                 {
                     userProfile.Username = value;
@@ -59,9 +67,14 @@ namespace SteamProfile.ViewModels
 
         public string Email
         {
-            get => userProfile.Email;
+            get => userProfile?.Email ?? string.Empty;
             set
             {
+                if (userProfile == null)
+                {
+                    userProfile = new UserProfile();
+                }
+
                 if (userProfile.Email != value)
                 {
                     userProfile.Email = value;
@@ -72,9 +85,14 @@ namespace SteamProfile.ViewModels
 
         public string ProfilePhotoPath
         {
-            get => userProfile.ProfilePicture;
+            get => userProfile?.ProfilePicture ?? string.Empty;
             set
             {
+                if (userProfile == null)
+                {
+                    userProfile = new UserProfile();
+                }
+
                 if (userProfile.ProfilePicture != value)
                 {
                     userProfile.ProfilePicture = value;
@@ -246,6 +264,9 @@ namespace SteamProfile.ViewModels
             FeaturesService featuresService,
             IAchievementsService achievementsService)
         {
+            // Initialize userProfile to prevent null reference exceptions
+            userProfile = new UserProfile();
+
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.friendsService = friendsService ?? throw new ArgumentNullException(nameof(friendsService));
             this.dispatcherQueue = dispatcherQueue ?? throw new ArgumentNullException(nameof(dispatcherQueue));
@@ -408,7 +429,7 @@ namespace SteamProfile.ViewModels
                             NumberOfReviewsReceived = GetTopAchievement(currentUser.UserId, "Number of Reviews Received");
                             DeveloperAchievement = GetTopAchievement(currentUser.UserId, "Developer");
                             YearsOfActivity = GetTopAchievement(currentUser.UserId, "Years of Activity");
-                            NumberOfPostsGetTopAchievement = GetTopAchievement(currentUser.UserId, "Number of Posts");
+                            NumberOfPostsGetTopAchievement = GetTopAchievement(currentUser.UserId, "Number of Posts");
 
                             Debug.WriteLine($"Loaded achievements for user {currentUser.UserId}:");
                             Debug.WriteLine($"Friendships: {FriendshipsAchievement?.Achievement?.AchievementName}, Unlocked: {FriendshipsAchievement?.IsUnlocked}");
