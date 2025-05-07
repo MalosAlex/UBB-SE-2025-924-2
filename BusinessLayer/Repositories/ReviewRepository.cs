@@ -14,7 +14,7 @@ namespace BusinessLayer.Repositories
 
         public ReviewRepository()
         {
-            reviewDatabaseConnection = new DatabaseConnection();
+            reviewDatabaseConnection = new BusinessLayer.Data.DatabaseConnection();
         }
 
         // Fetch all reviews for a given game
