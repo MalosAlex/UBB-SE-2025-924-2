@@ -11,7 +11,7 @@ namespace BusinessLayer.Data
 {
     public class DatabaseConnection : IDatabaseConnection
     {
-        //const string CONNECTION_STRING = "Server=GHASTERLAPTOP;Database=Community;User Id=sa;Password=1808;TrustServerCertificate=True";
+        // const string CONNECTION_STRING = "Server=GHASTERLAPTOP;Database=Community;User Id=sa;Password=1808;TrustServerCertificate=True";
         public string ConnectionString;
         private SqlConnection CreateConnection()
         {
@@ -25,7 +25,7 @@ namespace BusinessLayer.Data
         public SqlConnection Connection;
         public SqlConnection GetConnection()
         {
-            return Connection;
+            return new SqlConnection(ConnectionString);
         }
 
         public DatabaseConnection()
