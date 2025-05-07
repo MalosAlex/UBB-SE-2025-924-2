@@ -315,6 +315,76 @@
                       Orientation="Horizontal" 
                       HorizontalAlignment="Right"
                       Margin="0,20,20,20">
+                <!-- Review button -->
+                <Button Style="{StaticResource TransparentButton}"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.NavigateToReviewsCommand}"
+                        Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
+                    <Border Background="#E6D5B8" 
+                            Padding="15,5" 
+                            CornerRadius="5">
+                        <TextBlock Text="Review" 
+                                 FontSize="14"/>
+                    </Border>
+                </Button>
+
+                <!-- Forum button -->
+                <Button Style="{StaticResource TransparentButton}"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.NavigateToForumCommand}"
+                        Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
+                    <Border Background="#E6D5B8" 
+                            Padding="15,5" 
+                            CornerRadius="5">
+                        <TextBlock Text="Forum" 
+                                 FontSize="14"/>
+                    </Border>
+                </Button>
+
+                <!-- News button -->
+                <Button Style="{StaticResource TransparentButton}"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.NavigateToNewsCommand}"
+                        Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
+                    <Border Background="#E6D5B8" 
+                            Padding="15,5" 
+                            CornerRadius="5">
+                        <TextBlock Text="News" 
+                                 FontSize="14"/>
+                    </Border>
+                </Button>
+
+                <!-- Shop button -->
+                <Button Style="{StaticResource TransparentButton}"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.NavigateToShopCommand}"
+                        Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
+                    <Border Background="#E6D5B8" 
+                            Padding="15,5" 
+                            CornerRadius="5">
+                        <TextBlock Text="Shop" 
+                                 FontSize="14"/>
+                    </Border>
+                </Button>
+
+                <!-- Community button -->
+                <Button Style="{StaticResource TransparentButton}"
+                        Margin="0,0,10,0"
+                        Padding="0"
+                        Command="{x:Bind ViewModel.NavigateToCommunityCommand}"
+                        Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
+                    <Border Background="#E6D5B8" 
+                            Padding="15,5" 
+                            CornerRadius="5">
+                        <TextBlock Text="Chat Room" 
+                                 FontSize="14"/>
+                    </Border>
+                </Button>
+
                 <!-- Money display -->
                 <Button Style="{StaticResource TransparentButton}"
                         Margin="0,0,10,0"

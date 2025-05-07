@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -777,6 +777,114 @@ namespace SteamProfile.ViewModels
             catch (Exception exception)
             {
                 Debug.WriteLine($"Error refreshing equipped features: {exception.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the Chat Room window.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToChatRoom()
+        {
+            try
+            {
+                NavigationService.Instance.Navigate(typeof(Views.ChatRoomWindow));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to chat: {ex.Message}");
+                this.ErrorMessage = "Failed to open chat room.";
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the Shop page.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToShop()
+        {
+            try
+            {
+                NavigationService.Instance.Navigate(typeof(Views.ShopPage));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to shop: {ex.Message}");
+                this.ErrorMessage = "Failed to open shop.";
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the News page.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToNews()
+        {
+            try
+            {
+                NavigationService.Instance.Navigate(typeof(Views.NewsPage));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to news: {ex.Message}");
+                this.ErrorMessage = "Failed to open news.";
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the Forum page.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToForum()
+        {
+            try
+            {
+                NavigationService.Instance.Navigate(typeof(Views.ForumPage));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to forum: {ex.Message}");
+                this.ErrorMessage = "Failed to open forum.";
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the Forum Control page.
+        /// </summary>
+
+        /// <summary>
+        /// Navigates to the Reviews page.
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToReviews()
+        {
+            try
+            {
+                NavigationService.Instance.Navigate(typeof(Views.ReviewsPage));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to reviews: {ex.Message}");
+                this.ErrorMessage = "Failed to open reviews.";
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the Community window (ChatRoomWindow).
+        /// </summary>
+        [RelayCommand]
+        private void NavigateToCommunity()
+        {
+            try
+            {
+                var currentUser = userService.GetCurrentUser();
+                var chatWindow = new Implementation.ChatRoomWindow(currentUser.Username);
+                chatWindow.Activate();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error navigating to community: {ex.Message}");
+                this.ErrorMessage = "Failed to open community.";
             }
         }
     }
