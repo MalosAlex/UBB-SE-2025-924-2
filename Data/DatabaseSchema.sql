@@ -163,12 +163,12 @@ CREATE TABLE OwnedGames_Collection (
     PRIMARY KEY (collection_id, game_id),
     CONSTRAINT FK_OGC_Collections FOREIGN KEY (collection_id)
         REFERENCES Collections(collection_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
     CONSTRAINT FK_OGC_OwnedGames  FOREIGN KEY (game_id)
         REFERENCES OwnedGames(game_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION
 );
 GO
 
