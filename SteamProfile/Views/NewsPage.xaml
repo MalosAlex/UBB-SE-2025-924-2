@@ -12,7 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
+        
         <!-- Top bar -->
         <Grid Grid.Row="0" Padding="16,8" Background="#FFC2D9">
             <Grid.ColumnDefinitions>
@@ -20,8 +20,16 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0"
+            
+            <!-- Go Back Button -->
+            <Button Grid.Column="0" 
+                    Click="GoBack" 
+                    Content="Back to profile" 
+                    Background="#0078D7" 
+                    Foreground="White"
+                    Margin="0,0,20,0"/>
+            
+            <Button Grid.Column="1"
                     Content="Create Post"
                     Background="#D94C8A"
                     Foreground="White"

@@ -21,6 +21,9 @@
     <ScrollViewer>
         <StackPanel Padding="20" Spacing="15">
 
+            <!-- Go Back Button -->
+            <Button Click="GoBack" Content="Back to profile" Background="#0078D7" Foreground="White"/>
+
             <!-- Game Info -->
             <StackPanel Orientation="Horizontal" Spacing="15">
                 <Image Source="/Assets/default_avatar.png" Width="120" Height="160" />
@@ -42,9 +45,11 @@
                     </TextBlock>
                 </StackPanel>
             </StackPanel>
-
+            
+            
             <!-- Write Review Button -->
             <Button Content="Write a Review" Click="OnWriteReviewClicked" />
+            
 
             <!-- Write Review Panel -->
             <StackPanel x:Name="ReviewPanel"
