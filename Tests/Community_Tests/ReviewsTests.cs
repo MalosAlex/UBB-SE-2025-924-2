@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SteamCommunity.ReviewsTests
+namespace Tests.Community_Tests
 {
     [TestClass]
     public class DatabaseConnectionTests

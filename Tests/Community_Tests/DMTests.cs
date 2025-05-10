@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.UI.Dispatching;
 using Moq;
 using Steam_Community.DirectMessages.Interfaces;
@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Steam_Community.Tests
+namespace Tests.Community_Tests
 {
     [TestClass]
     public class DMTests
