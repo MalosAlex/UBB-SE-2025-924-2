@@ -168,5 +168,9 @@ namespace SteamProfile.Views
                 await errorDialog.ShowAsync();
             }
         }
+        private void GoBack(object sender, RoutedEventArgs eventArgs)
+        {
+            Frame.GoBack();
+        }
     }
 }
