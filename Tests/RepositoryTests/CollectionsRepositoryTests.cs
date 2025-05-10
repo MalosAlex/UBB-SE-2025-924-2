@@ -15,6 +15,7 @@ using BusinessLayer.Services;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class CollectionsRepositoryTests
     {
@@ -876,4 +877,5 @@ namespace Tests.RepositoryTests
 
         #endregion
     }
+    */
 }

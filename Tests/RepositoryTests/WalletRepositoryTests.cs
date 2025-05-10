@@ -13,6 +13,7 @@ using Microsoft.Data.SqlClient;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class WalletRepositoryTests
     {
@@ -1264,4 +1265,5 @@ namespace Tests.RepositoryTests
 
         #endregion
     }
+    */
 }

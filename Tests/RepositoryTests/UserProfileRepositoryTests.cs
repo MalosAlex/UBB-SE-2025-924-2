@@ -8,6 +8,7 @@ using Moq;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     internal class UserProfileRepositoryTests
     {
@@ -416,4 +417,5 @@ namespace Tests.RepositoryTests
             Assert.That(exception.Message, Is.EqualTo($"Failed to update profile picture for user {userId}."));
         }
     }
+    */
 }

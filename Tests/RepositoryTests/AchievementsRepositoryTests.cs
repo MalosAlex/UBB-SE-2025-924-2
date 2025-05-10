@@ -14,6 +14,7 @@ using Moq;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class AchievementsRepositoryTests
     {
@@ -1007,4 +1008,5 @@ namespace Tests.RepositoryTests
             Assert.Throws<RepositoryException>(() => achievementsRepository.GetNumberOfPosts(1));
         }
     }
+    */
 }

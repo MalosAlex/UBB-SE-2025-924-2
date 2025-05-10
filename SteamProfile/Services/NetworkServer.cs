@@ -120,7 +120,6 @@ namespace SteamProfile.Services
                 }
                 catch (Exception)
                 {
-                    // Ignore exceptions during connection acceptance
                 }
             }
         }
@@ -473,9 +472,9 @@ namespace SteamProfile.Services
             {
                 string statusChangeMessage;
 
+                // Toggle mute status
                 if (targetedStatus == ChatConstants.MUTE_STATUS)
                 {
-                    // Toggle mute status
                     bool isNowMuted = statusTracker?.AddOrUpdate(targetUsername, false, (key, oldValue) => !oldValue) ?? false;
                     statusChangeMessage = isNowMuted
                         ? $"{targetUsername} has been muted"
@@ -485,9 +484,9 @@ namespace SteamProfile.Services
                         CreateMessage(ChatConstants.INFO_CHANGE_MUTE_STATUS_COMMAND, targetUsername),
                         targetSocket);
                 }
+                // Toggle admin status
                 else if (targetedStatus == ChatConstants.ADMIN_STATUS)
                 {
-                    // Toggle admin status
                     bool isNowAdmin = statusTracker?.AddOrUpdate(targetUsername, false, (key, oldValue) => !oldValue) ?? false;
                     statusChangeMessage = isNowAdmin
                         ? $"{targetUsername} is now an admin"
@@ -497,7 +496,7 @@ namespace SteamProfile.Services
                         CreateMessage(ChatConstants.INFO_CHANGE_ADMIN_STATUS_COMMAND, targetUsername),
                         targetSocket);
                 }
-                else // KICK
+                else
                 {
                     statusChangeMessage = $"{targetUsername} has been kicked";
                     SendMessageToClient(

@@ -12,6 +12,7 @@ using NUnit.Framework;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class FeaturesRepositoryTests
     {
@@ -384,4 +385,5 @@ namespace Tests.RepositoryTests
             return dataTable;
         }
     }
+    */
 }

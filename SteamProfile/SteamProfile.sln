@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\Tests\Tests.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLayer", "..\BusinessLayer\BusinessLayer.csproj", "{099646CD-6B72-4623-9112-DDAB9DC403D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamWebApi", "..\SteamWebApi\SteamWebApi.csproj", "{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -61,6 +63,18 @@ Global
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x64.Build.0 = Release|Any CPU
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x86.ActiveCfg = Release|Any CPU
 		{099646CD-6B72-4623-9112-DDAB9DC403D9}.Release|x86.Build.0 = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|x64.Build.0 = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Debug|x86.Build.0 = Debug|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|ARM64.Build.0 = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|x64.ActiveCfg = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|x64.Build.0 = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|x86.ActiveCfg = Release|Any CPU
+		{B045B741-B975-41D1-AFF4-6ABA5A04AEE2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
