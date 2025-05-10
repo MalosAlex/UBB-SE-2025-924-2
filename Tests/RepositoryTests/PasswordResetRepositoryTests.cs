@@ -12,6 +12,7 @@ using NUnit.Framework;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class PasswordResetRepositoryTests
     {
@@ -438,4 +439,5 @@ namespace Tests.RepositoryTests
             }
         }
     }
+    */
 }

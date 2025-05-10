@@ -80,7 +80,7 @@
     <Content Remove="Assets\SplashScreen.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="BCrypt.Net&#xD;&#xA;-Next" Version="4.0.3" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
     <PackageReference Include="Google.Protobuf" Version="3.30.2" />

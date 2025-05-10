@@ -299,9 +299,9 @@ namespace SteamProfile.Implementation
             {
                 // Dispose of a previous allocated timeout (if it exists)
                 this.serverTimeout?.Dispose();
+                // Recheck the condition after the countdown
                 this.serverTimeout = new System.Threading.Timer((_) =>
                 {
-                    // Recheck the condition after the countdown
                     if (socketsAndAddresses.Count < Server.MINIMUM_CONNECTIONS)
                     {
                         this.ShutDownServer();

@@ -9,7 +9,6 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
-builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICollectionsService, CollectionsService>();
 builder.Services.AddScoped<IFeaturesService, FeaturesService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();

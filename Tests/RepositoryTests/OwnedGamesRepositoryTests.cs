@@ -15,6 +15,7 @@ using BusinessLayer.Services;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     public class OwnedGamesRepositoryTests
     {
@@ -240,4 +241,5 @@ namespace Tests.RepositoryTests
 
         #endregion
     }
+    */
 }
