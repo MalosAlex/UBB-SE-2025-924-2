@@ -496,7 +496,7 @@ namespace SteamProfile.Services
                         CreateMessage(ChatConstants.INFO_CHANGE_ADMIN_STATUS_COMMAND, targetUsername),
                         targetSocket);
                 }
-                else // KICK
+                else
                 {
                     statusChangeMessage = $"{targetUsername} has been kicked";
                     SendMessageToClient(
