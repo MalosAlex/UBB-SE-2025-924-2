@@ -6,7 +6,7 @@ namespace BusinessLayer.Models
     public class CommentDisplay
     {
         // Currently logged-in user ID for comparison
-        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
+        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
         // Original comment data
         public ForumComment Comment { get; private set; }
         // User information
@@ -15,7 +15,7 @@ namespace BusinessLayer.Models
         public uint Id => Comment.Id;
         public string Body => Comment.Body;
         public int Score => Comment.Score;
-        public string TimeStamp => Comment.TimeStamp;
+        public string TimeStamp => Comment.TimeStamp.ToString();
         public uint AuthorId => Comment.AuthorId;
         // User properties
         public string Username => Author.Username;

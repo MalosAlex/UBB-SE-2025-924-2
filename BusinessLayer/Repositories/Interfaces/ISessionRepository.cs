@@ -8,7 +8,7 @@ namespace BusinessLayer.Repositories.Interfaces
         void DeleteUserSessions(int userId);
         void DeleteSession(Guid sessionId);
         SessionDetails GetSessionById(Guid sessionId);
-        UserWithSessionDetails GetUserFromSession(Guid sessionId);
+        UserWithSessionDetails? GetUserFromSession(Guid sessionId);
         List<Guid> GetExpiredSessions();
     }
 }

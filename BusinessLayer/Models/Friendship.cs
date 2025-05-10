@@ -16,6 +16,10 @@ namespace BusinessLayer.Models
         public string FriendUsername { get; set; }
         public string FriendProfilePicture { get; set; }
 
+        public Friendship()
+        {
+        }
+
         public Friendship(int friendshipId, int userId, int friendId, string friendUsername = "", string friendProfilePicture = "")
         {
             FriendshipId = friendshipId;

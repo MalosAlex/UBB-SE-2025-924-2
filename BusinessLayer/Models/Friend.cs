@@ -19,5 +19,4 @@ namespace BusinessLayer.Models
             set => profilePhotoPath = value;
         }
     }
-
 }

@@ -12,7 +12,7 @@ namespace BusinessLayer.Models
         public string Title { get; set; }
         public string Body { get; set; }
         public int Score { get; set; }
-        public string TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; }
         public int AuthorId { get; set; }
         public uint? GameId { get; set; }
     }

@@ -243,7 +243,7 @@ namespace SteamProfile.ViewModels
             IFriendsService friendsService,
             DispatcherQueue dispatcherQueue,
             UserProfilesRepository userProfileRepository,
-            CollectionsRepository gameCollectionsRepository,
+            ICollectionsRepository gameCollectionsRepository,
             FeaturesService featuresService,
             IAchievementsService achievementsService)
         {

@@ -9,9 +9,6 @@ namespace BusinessLayer.Repositories.Interfaces
 {
     public interface IForumRepository
     {
-        // at the moment, implementations of IForumRepository must contain a static field
-        // that holds the initialised repo
-        public static abstract IForumRepository GetRepoInstance();
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter);
         public void CreatePost(string title, string body, uint authorId, string date, uint? gameId);
         public void DeletePost(uint postId);

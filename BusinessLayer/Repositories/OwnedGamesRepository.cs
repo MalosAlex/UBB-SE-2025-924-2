@@ -7,129 +7,45 @@ using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Exceptions;
+using BusinessLayer.DataContext;
 
 namespace BusinessLayer.Repositories
 {
     public class OwnedGamesRepository : IOwnedGamesRepository
     {
-        // SQL Parameter Names
-        private const string ParameterUserId = "@user_id";
-        private const string ParameterGameIdCamel = "@gameId";
-        private const string ParameterUserIdCamel = "@userId";
-        private const string ParameterGameIdUnderscore = "@game_id";
+        private readonly ApplicationDbContext context;
 
-        // Error messages
-        private const string Error_GetOwnedGamesDataBase = "Database error while retrieving owned games.";
-        private const string Error_GetOwnedGamesUnexpected = "An unexpected error occurred while retrieving owned games.";
-        private const string Error_GetOwnedGameByIdDataBase = "Database error while retrieving owned game by ID.";
-        private const string Error_GetOwnedGameByIdUnexpected = "An unexpected error occurred while retrieving owned game by ID.";
-        private const string Error_RemoveOwnedGameDataBase = "Database error while removing owned game.";
-        private const string Error_RemoveOwnedGameUnexpected = "An unexpected error occurred while removing owned game.";
-
-        // Column Names
-        private const string ColumnUserId = "user_id";
-        private const string ColumnTitle = "title";
-        private const string ColumnDescription = "description";
-        private const string ColumnCoverPicture = "cover_picture";
-        private const string ColumnGameId = "game_id";
-
-        private readonly IDataLink dataLink;
-
-        public OwnedGamesRepository(IDataLink dataLink)
+        public OwnedGamesRepository(ApplicationDbContext newContext)
         {
-            this.dataLink = dataLink ?? throw new ArgumentNullException(nameof(dataLink));
+            this.context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         public List<OwnedGame> GetAllOwnedGames(int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-            SELECT game_id, user_id, title, description, cover_picture
-            FROM OwnedGames
-            WHERE user_id = @user_id
-            ORDER BY title;";
-
-                var sqlParameters = new SqlParameter[]
-                {
-            new SqlParameter("@user_id", userId)
-                };
-
-                var ownedGamesDataTable = dataLink.ExecuteReaderSql(sqlCommand, sqlParameters);
-                var ownedGamesList = MapDataTableToOwnedGames(ownedGamesDataTable);
-
-                return ownedGamesList;
-            }
-            catch (DatabaseOperationException dbException)
-            {
-                throw new RepositoryException(Error_GetOwnedGamesDataBase, dbException);
-            }
-            catch (Exception generalException)
-            {
-                throw new RepositoryException(Error_GetOwnedGamesUnexpected, generalException);
-            }
+            return context.OwnedGames
+                .Where(og => og.UserId == userId)
+                .OrderBy(og => og.GameTitle)
+                .ToList();
         }
 
         public OwnedGame GetOwnedGameById(int gameId, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-            SELECT game_id, user_id, title, description, cover_picture
-            FROM OwnedGames
-            WHERE game_id = @game_id AND user_id = @user_id;";
-
-                var sqlParameters = new SqlParameter[]
-                {
-            new SqlParameter("@game_id", gameId),
-            new SqlParameter("@user_id", userId)
-                };
-
-                var ownedGameDataTable = dataLink.ExecuteReaderSql(sqlCommand, sqlParameters);
-
-                if (ownedGameDataTable.Rows.Count == 0)
-                {
-                    return null;
-                }
-
-                return MapDataRowToOwnedGame(ownedGameDataTable.Rows[0]);
-            }
-            catch (DatabaseOperationException dbException)
-            {
-                throw new RepositoryException(Error_GetOwnedGameByIdDataBase, dbException);
-            }
-            catch (Exception ex)
-            {
-                throw new RepositoryException(Error_GetOwnedGameByIdUnexpected, ex);
-            }
+            return context.OwnedGames.SingleOrDefault(og => og.GameId == gameId && og.UserId == userId);
         }
 
         public void RemoveOwnedGame(int gameId, int userId)
         {
-            try
+            var owned = context.OwnedGames.SingleOrDefault(og => og.GameId == gameId && og.UserId == userId);
+            if (owned != null)
             {
-                const string sqlCommand = @"
-            DELETE FROM OwnedGames
-            WHERE game_id = @game_id AND user_id = @user_id;";
-
-                var sqlParameters = new SqlParameter[]
-                {
-            new SqlParameter("@game_id", gameId),
-            new SqlParameter("@user_id", userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, sqlParameters);
-            }
-            catch (DatabaseOperationException dbException)
-            {
-                throw new RepositoryException(Error_RemoveOwnedGameDataBase, dbException);
-            }
-            catch (Exception ex)
-            {
-                throw new RepositoryException(Error_RemoveOwnedGameUnexpected, ex);
+                context.OwnedGames.Remove(owned);
+                context.SaveChanges();
             }
         }
 
+        /* This for testing purposes only */
+        // TODO: Rework
+        /*
         private static List<OwnedGame> MapDataTableToOwnedGames(DataTable dataTable)
         {
             var ownedGamesList = dataTable.AsEnumerable().Select(row =>
@@ -158,5 +74,6 @@ namespace BusinessLayer.Repositories
             ownedGame.GameId = Convert.ToInt32(dataRow[ColumnGameId]);
             return ownedGame;
         }
+        */
     }
 }

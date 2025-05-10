@@ -9,17 +9,19 @@ using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Data;
 using BusinessLayer.Models;
+using BusinessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer.Repositories
 {
     public class NewsRepository : INewsRepository
     {
-        private INewsDatabase databaseConnection;
+        private readonly ApplicationDbContext context;
         public const int PAGE_SIZE = 9;
 
-        public NewsRepository(INewsDatabase? db = null) // Constructor has parameter for injection
+        public NewsRepository(ApplicationDbContext newContext) // Constructor has parameter for injection
         {
-            databaseConnection = db ?? new NewsDatabase();
+            context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         /// <summary>
@@ -30,24 +32,13 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the query execution failed</exception>
         public int UpdatePostLikeCount(int postId)
         {
-            try
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"UPDATE NewsPosts SET nrLikes = nrLikes + 1 WHERE id = {postId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot update post's like count: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            post.NrLikes++;
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -58,24 +49,14 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the query execution failed</exception>
         public int UpdatePostDislikeCount(int postId)
         {
-            try
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"UPDATE NewsPosts SET nrDislikes = nrDislikes + 1 WHERE id = {postId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot update post's dislike count: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+
+            post.NrDislikes++;
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -88,24 +69,14 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the execution failed</exception>
         public int AddRatingToPost(int postId, int userId, int ratingType)
         {
-            try
+            var rating = new PostRatingType
             {
-                databaseConnection.Connect();
-
-                string query = $"INSERT INTO Ratings VALUES({postId}, {userId}, {ratingType})";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot insert rating: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+                PostId = postId,
+                AuthorId = userId,
+                RatingType = ratingType == 1 ? true : false
+            };
+            context.NewsPostRatingTypes.Add(rating);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -117,24 +88,14 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the execution failed</exception>
         public int RemoveRatingFromPost(int postId, int userId)
         {
-            try
+            var rating = context.NewsPostRatingTypes.Find(postId, userId);
+            if (rating == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"DELETE FROM Ratings WHERE postId={postId} AND authorId={userId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot remove post rating: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+
+            context.NewsPostRatingTypes.Remove(rating);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -148,24 +109,18 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the execution failed</exception>
         public int AddCommentToPost(int postId, string commentContent, int userId, DateTime commentDate)
         {
-            try
+            var comment = new Comment
             {
-                databaseConnection.Connect();
+                PostId = postId,
+                AuthorId = userId,
+                Content = commentContent,
+                CommentDate = commentDate,
+                NrLikes = 0,
+                NrDislikes = 0
+            };
 
-                string query = $"INSERT INTO NewsComments VALUES({userId}, {postId}, N'{commentContent}', '{commentDate}')";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot insert new comment to post: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            context.NewsComments.Add(comment);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -177,24 +132,14 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or execution failed</exception>
         public int UpdateComment(int commentId, string commentContent)
         {
-            try
+            var comment = context.NewsComments.Find(commentId);
+            if (comment == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"UPDATE NewsComments SET content=N'{commentContent}' WHERE id={commentId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot update comment: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+
+            comment.Content = commentContent;
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -205,24 +150,14 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the execution failed</exception>
         public int DeleteCommentFromDatabase(int commentId)
         {
-            try
+            var comment = context.NewsComments.Find(commentId);
+            if (comment == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"DELETE FROM NewsComments WHERE id={commentId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot delete comment from database: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+
+            context.NewsComments.Remove(comment);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -233,28 +168,10 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if anything failed</exception>
         public List<Comment> LoadFollowingComments(int postId)
         {
-            try
-            {
-                databaseConnection.Connect();
-
-                List<Comment> followingComments = new List<Comment>();
-
-                string readQuery = $"""
-                SELECT * FROM NewsComments WHERE postId={postId}
-                """;
-
-                followingComments = databaseConnection.FetchCommentsData(readQuery);
-
-                return followingComments;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: The rest of the comments could not be loaded: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            return context.NewsComments
+                .Where(c => c.PostId == postId)
+                .OrderByDescending(c => c.CommentDate)
+                .ToList();
         }
 
         /// <summary>
@@ -267,24 +184,17 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or the execution failed</exception>
         public int AddPostToDatabase(int userId, string postContent, DateTime postDate)
         {
-            try
+            var post = new Post
             {
-                databaseConnection.Connect();
-
-                string query = $"INSERT INTO NewsPosts VALUES({userId}, N'{postContent}', '{postDate}', 0, 0, 0)";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot add post to database: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+                AuthorId = userId,
+                Content = postContent,
+                UploadDate = postDate,
+                NrLikes = 0,
+                NrDislikes = 0,
+                NrComments = 0
+            };
+            context.NewsPosts.Add(post);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -296,24 +206,13 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or execution failed</exception>
         public int UpdatePost(int postId, string postContent)
         {
-            try
+           var post = context.NewsPosts.Find(postId);
+            if (post == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"UPDATE NewsPosts SET content=N'{postContent}' WHERE id={postId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot update post: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            post.Content = postContent;
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -324,24 +223,13 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if the connection or execution failed</exception>
         public int DeletePostFromDatabase(int postId)
         {
-            try
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
             {
-                databaseConnection.Connect();
-
-                string query = $"DELETE FROM NewsPosts WHERE id={postId}";
-
-                int executionResult = databaseConnection.ExecuteQuery(query);
-
-                return executionResult;
+                return 0;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: Cannot delete post from database: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            context.NewsPosts.Remove(post);
+            return context.SaveChanges();
         }
 
         /// <summary>
@@ -355,50 +243,20 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if anything failed</exception>
         public List<Post> LoadFollowingPosts(int pageNumber, int userId, string searchedText)
         {
-            try
+            var query = context.NewsPosts
+                .Where(p => EF.Functions.Like(p.Content, $"%{searchedText}%"))
+                .OrderByDescending(p => p.UploadDate)
+                .Skip((pageNumber - 1) * PAGE_SIZE)
+                .Take(PAGE_SIZE)
+                .ToList();
+
+            // load user's rating
+            foreach (var post in query)
             {
-                databaseConnection.Connect();
-
-                List<Post> followingPosts = new List<Post>();
-
-                int offset = (pageNumber - 1) * PAGE_SIZE;
-
-                string readQuery = $"""
-                    SELECT 
-                        id,
-                        authorId,
-                        content,
-                        uploadDate,
-                        nrLikes,
-                        nrDislikes,
-                        nrComments
-                    FROM (
-                        SELECT 
-                            *,
-                            ROW_NUMBER() OVER (ORDER BY uploadDate DESC) AS RowNum
-                        FROM NewsPosts WHERE content LIKE @search
-                    ) AS _
-                    WHERE RowNum > {offset} AND RowNum <= {offset + PAGE_SIZE}
-                    """;
-
-                followingPosts = databaseConnection.FetchPostsData(readQuery, searchedText);
-
-                foreach (var post in followingPosts)
-                {
-                    string scalarQuery = $"SELECT ratingType FROM Ratings WHERE postId={post.Id} AND authorId={userId}";
-                    post.ActiveUserRating = databaseConnection.ExecuteScalar(scalarQuery);
-                }
-
-                return followingPosts;
+                var rating = context.NewsPostRatingTypes.Find(post.Id, userId);
+                post.ActiveUserRating = rating != null ? rating.RatingType : null;
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error: The rest of the posts could not be loaded: " + ex.Message);
-            }
-            finally
-            {
-                databaseConnection.Disconnect();
-            }
+            return query;
         }
     }
 }

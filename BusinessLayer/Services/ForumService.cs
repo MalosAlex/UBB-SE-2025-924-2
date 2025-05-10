@@ -14,13 +14,13 @@ namespace BusinessLayer.Services
     {
         private IForumRepository repository;
 
-        public static IForumService ForumServiceInstance = new ForumService(ForumRepository.GetRepoInstance());
-        public static IForumService GetForumServiceInstance()
+        public static IForumService GetForumServiceInstance { get; private set; }
+        public void Initialize(IForumService instance)
         {
-            return ForumServiceInstance;
+            GetForumServiceInstance = instance;
         }
 
-        private ForumService(IForumRepository repository)
+        public ForumService(IForumRepository repository)
         {
             this.repository = repository;
         }

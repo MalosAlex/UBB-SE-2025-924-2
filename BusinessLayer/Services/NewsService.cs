@@ -16,7 +16,7 @@ namespace BusinessLayer.Services
     public class NewsService : INewsService
     {
         private INewsRepository repository;
-        public readonly User ActiveUser;    // Active user logged in
+        private readonly IUserService userService;
         private const int POSITIVE_RATING = 1;
         private const int NEGATIVE_RATING = 0;
         private const int DEFAULT_ROWS_AFFECTED_VALUE = 0;
@@ -26,11 +26,13 @@ namespace BusinessLayer.Services
         private const string EMPTY_STRING = "";
         public const int PAGE_SIZE = 9;
 
-        public NewsService(INewsRepository? repo = null)
+        public NewsService(INewsRepository newRepository, IUserService newUserService)
         {
-            repository = repo ?? new NewsRepository();
-            ActiveUser = Users.Instance.GetUserById(1); // Load a temporary use for showcase
+            repository = newRepository;
+            userService = newUserService;
         }
+
+        public User ActiveUser => userService.GetCurrentUser();
 
         /// <summary>
         /// Format given text to valid html to be ready to post

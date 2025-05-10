@@ -14,7 +14,7 @@ namespace BusinessLayer.Models
         public uint Id => Post.Id;
         public string Title => Post.Title;
         public int Score => Post.Score;
-        public string TimeStamp => Post.TimeStamp;
+        public string TimeStamp => Post.TimeStamp.ToString();
         public uint AuthorId => (uint)Post.AuthorId;
         public uint? GameId => Post.GameId;
         // User properties

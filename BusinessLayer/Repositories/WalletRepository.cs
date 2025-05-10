@@ -5,162 +5,56 @@ using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Repositories.Interfaces;
+using BusinessLayer.DataContext;
 
 namespace BusinessLayer.Repositories
 {
     public class WalletRepository : IWalletRepository
     {
-        private readonly IDataLink dataLink;
+        private readonly ApplicationDbContext context;
 
-        // Define parameter names as constants
-        private static class ParameterNames
+        public WalletRepository(ApplicationDbContext newContext)
         {
-            public const string WalletId = "@wallet_id";
-            public const string UserId = "@user_id";
-            public const string Amount = "@amount";
-            public const string Price = "@price";
-            public const string NumberOfPoints = "@numberOfPoints";
-            public const string OfferId = "@offerId";
-        }
-
-        // Define column names as constants
-        private static class ColumnNames
-        {
-            public const string WalletId = "wallet_id";
-            public const string UserId = "user_id";
-            public const string Points = "points";
-            public const string MoneyForGames = "money_for_games";
-            public const string NumberOfPoints = "numberOfPoints";
-            public const string Value = "value";
-        }
-
-        // Define error message templates
-        private static class ErrorMessages
-        {
-            public const string NoWalletFound = "No wallet found for user ID {0}.";
-            public const string FailedToRetrieveWallet = "Failed to retrieve wallet with ID {0} from the database.";
-            public const string FailedToRetrieveWalletId = "Failed to retrieve wallet ID for user ID {0} from the database.";
-        }
-
-        public WalletRepository(IDataLink datalink)
-        {
-            this.dataLink = datalink ?? throw new ArgumentNullException(nameof(datalink));
+            this.context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         public Wallet GetWallet(int walletId)
         {
-            try
+            var wallet = context.Wallets.Find(walletId);
+            if (wallet == null)
             {
-                const string sqlCommand = @"
-                    SELECT * 
-                    FROM Wallet 
-                    WHERE wallet_id = @wallet_id";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.WalletId, walletId)
-                };
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-
-                if (dataTable.Rows.Count == 0)
-                {
-                    throw new RepositoryException($"Wallet with ID {walletId} not found.");
-                }
-
-                return MapDataRowToWallet(dataTable.Rows[0]);
+                throw new RepositoryException($"Wallet with ID {walletId} not found.");
             }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException(
-                    string.Format(ErrorMessages.FailedToRetrieveWallet, walletId),
-                    exception);
-            }
+            return wallet;
         }
 
         public int GetWalletIdByUserId(int userId)
         {
-            try
+            var wallet = context.Wallets
+                .Where(w => w.UserId == userId)
+                .Select(w => w.WalletId)
+                .FirstOrDefault();
+            if (wallet == 0)
             {
-                const string sqlCommand = @"
-                    SELECT wallet_id 
-                    FROM Wallet 
-                    WHERE user_id = @user_id";
-
-                var parameters = new SqlParameter[]
-                {
-                     new SqlParameter(ParameterNames.UserId, userId)
-                };
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-
-                if (dataTable.Rows.Count > 0)
-                {
-                    return Convert.ToInt32(dataTable.Rows[0][ColumnNames.WalletId]);
-                }
-                throw new RepositoryException(string.Format(ErrorMessages.NoWalletFound, userId));
+                throw new RepositoryException($"Wallet for user with ID {userId} not found.");
             }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException(
-                    string.Format(ErrorMessages.FailedToRetrieveWalletId, userId),
-                    exception);
-            }
-        }
-
-        private Wallet MapDataRowToWallet(DataRow dataRow)
-        {
-            return new Wallet
-            {
-                WalletId = Convert.ToInt32(dataRow[ColumnNames.WalletId]),
-                UserId = Convert.ToInt32(dataRow[ColumnNames.UserId]),
-                Balance = Convert.ToDecimal(dataRow[ColumnNames.MoneyForGames]),
-                Points = Convert.ToInt32(dataRow[ColumnNames.Points]),
-            };
+            return wallet;
         }
 
         public void AddMoneyToWallet(decimal moneyToAdd, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Wallet
-                    SET money_for_games = money_for_games + @amount
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Amount, moneyToAdd),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to add money to wallet for user {userId}.", exception);
-            }
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
+                ?? throw new RepositoryException($"No wallet for user {userId}");
+            wallet.Balance += moneyToAdd;
+            context.SaveChanges();
         }
 
         public void AddPointsToWallet(int pointsToAdd, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Wallet
-                    SET points = points + @amount
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Amount, pointsToAdd),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to add points to wallet for user {userId}.", exception);
-            }
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
+                ?? throw new RepositoryException($"No wallet for user {userId}");
+            wallet.Points += pointsToAdd;
+            context.SaveChanges();
         }
 
         public decimal GetMoneyFromWallet(int walletId)
@@ -175,205 +69,69 @@ namespace BusinessLayer.Repositories
 
         public void PurchasePoints(PointsOffer offer, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    -- Add points to the wallet
-                    UPDATE Wallet
-                    SET points = points + @numberOfPoints
-                    WHERE user_id = @user_id;
-
-                    -- Deduct money from the wallet
-                    UPDATE Wallet
-                    SET money_for_games = money_for_games - @price
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Price, offer.Price),
-                    new SqlParameter(ParameterNames.NumberOfPoints, offer.Points),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to purchase points for user {userId}.", exception);
-            }
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
+                ?? throw new RepositoryException($"No wallet for user {userId}");
+            wallet.Points += offer.Points;
+            wallet.Balance -= offer.Price;
+            context.SaveChanges();
         }
 
         public void BuyWithMoney(decimal amount, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Wallet
-                    SET money_for_games = money_for_games - @amount
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Amount, amount),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to purchase with money for user {userId}.", exception);
-            }
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
+                ?? throw new RepositoryException($"No wallet for user {userId}");
+            wallet.Balance -= amount;
+            context.SaveChanges();
         }
 
         public void BuyWithPoints(int amount, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Wallet
-                    SET points = points - @amount
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Amount, amount),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to purchase with points for user {userId}.", exception);
-            }
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
+                ?? throw new RepositoryException($"No wallet for user {userId}");
+            wallet.Points -= amount;
+            context.SaveChanges();
         }
 
         public void AddNewWallet(int userId)
         {
-            try
+            var wallet = new Wallet
             {
-                const string sqlCommand = @"
-                    INSERT INTO Wallet (user_id, points, money_for_games)
-                    VALUES (@user_id, 0, 0);
-                    
-                    -- Update user_id to match wallet_id for the newly created wallet
-                    UPDATE Wallet
-                    SET user_id = wallet_id
-                    WHERE wallet_id = (SELECT MAX(wallet_id) FROM Wallet)";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
-            }
+                UserId = userId,
+                Points = 0,
+                Balance = 0m
+            };
+            context.Wallets.Add(wallet);
+            context.SaveChanges();
         }
 
         public void RemoveWallet(int userId)
         {
-            try
+            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId);
+            if (wallet != null)
             {
-                const string sqlCommand = @"
-                    DELETE FROM Wallet 
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
+                context.Wallets.Remove(wallet);
+                context.SaveChanges();
             }
         }
 
         public PointsOffer[] GetAllPointsOffers()
         {
-            try
-            {
-                const string sqlCommand = "SELECT numberOfPoints, value FROM PointsOffers";
-
-                DataTable result = dataLink.ExecuteReaderSql(sqlCommand);
-                PointsOffer[] offers = new PointsOffer[result.Rows.Count];
-
-                for (int i = 0; i < result.Rows.Count; i++)
-                {
-                    DataRow row = result.Rows[i];
-                    offers[i] = new PointsOffer(
-                        Convert.ToInt32(row[ColumnNames.Value]),
-                        Convert.ToInt32(row[ColumnNames.NumberOfPoints]));
-                }
-
-                return offers;
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException("Failed to get points offers.", exception);
-            }
+            return context.PointsOffers.ToArray();
         }
 
         public PointsOffer GetPointsOfferById(int offerId)
         {
-            try
+            var offer = context.PointsOffers.Find(offerId);
+            if (offer == null)
             {
-                const string sqlCommand = @"
-                    SELECT numberOfPoints, value 
-                    FROM PointsOffers 
-                    WHERE offerId = @offerId";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.OfferId, offerId)
-                };
-
-                DataTable result = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-
-                if (result.Rows.Count > 0)
-                {
-                    DataRow row = result.Rows[0];
-                    return new PointsOffer(
-                        Convert.ToInt32(row[ColumnNames.Value]),
-                        Convert.ToInt32(row[ColumnNames.NumberOfPoints]));
-                }
-
                 throw new RepositoryException($"Points offer with ID {offerId} not found.");
             }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to get points offer with ID {offerId}.", exception);
-            }
+            return offer;
         }
 
         public void WinPoints(int amount, int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Wallet
-                    SET points = points + @amount
-                    WHERE user_id = @user_id";
-
-                SqlParameter[] parameters = new SqlParameter[]
-                {
-                    new SqlParameter(ParameterNames.Amount, amount),
-                    new SqlParameter(ParameterNames.UserId, userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to add winning points to wallet for user {userId}.", exception);
-            }
+            AddPointsToWallet(amount, userId);
         }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.UI;
 using BusinessLayer.Services;
 using BusinessLayer.Models;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.Views
 {
@@ -31,7 +32,7 @@ namespace SteamProfile.Views
         {
             this.InitializeComponent();
 
-            service = new NewsService();
+            service = service = (NewsService)App.GetService<INewsService>();
 
             this.Loaded += PostControl_Loaded;
         }

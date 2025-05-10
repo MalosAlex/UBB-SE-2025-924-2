@@ -48,7 +48,7 @@ namespace SteamProfile.Views
                 // Clear existing posts
                 posts.Clear();
                 // Get posts from repository
-                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance().GetTopPosts(filter);
+                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance.GetTopPosts(filter);
                 // Update the UI on the UI thread
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
@@ -93,7 +93,7 @@ namespace SteamProfile.Views
                     posts.Clear();
                 }
                 // Get posts from repository
-                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance().GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
+                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance.GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
                 // Update the UI on the UI thread
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
@@ -144,7 +144,7 @@ namespace SteamProfile.Views
                 else
                 {
                     // Get next page of posts
-                    morePosts = ForumService.GetForumServiceInstance().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
+                    morePosts = ForumService.GetForumServiceInstance.GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                     // If we got fewer posts than the page size, there are no more posts to load
                     if (morePosts.Count < pageSize)
                     {
@@ -192,7 +192,7 @@ namespace SteamProfile.Views
             if (sender is Button button && button.Tag is uint postId)
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance().VoteOnPost(postId, 1);
+                ForumService.GetForumServiceInstance.VoteOnPost(postId, 1);
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
@@ -203,7 +203,7 @@ namespace SteamProfile.Views
             if (sender is Button button && button.Tag is uint postId)
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance().VoteOnPost(postId, -1);
+                ForumService.GetForumServiceInstance.VoteOnPost(postId, -1);
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
@@ -217,7 +217,7 @@ namespace SteamProfile.Views
                 {
                     // Skip the confirmation dialog for now due to XamlRoot issues
                     // Just delete the post directly
-                    ForumService.GetForumServiceInstance().DeletePost(postId);
+                    ForumService.GetForumServiceInstance.DeletePost(postId);
                     // Remove the post from the UI
                     RemovePostFromUI(postId);
                 }
@@ -247,11 +247,11 @@ namespace SteamProfile.Views
                         List<ForumPost> posts;
                         if (isTopPostsMode)
                         {
-                            posts = ForumService.GetForumServiceInstance().GetTopPosts(timeSpanFilter);
+                            posts = ForumService.GetForumServiceInstance.GetTopPosts(timeSpanFilter);
                         }
                         else
                         {
-                            posts = ForumService.GetForumServiceInstance().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
+                            posts = ForumService.GetForumServiceInstance.GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                         }
                         // Find the post with matching ID to get updated score
                         ForumPost updatedPost = posts.FirstOrDefault(p => p.Id == postId);

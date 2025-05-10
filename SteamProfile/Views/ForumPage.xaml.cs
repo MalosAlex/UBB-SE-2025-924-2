@@ -20,7 +20,7 @@ namespace SteamProfile.Views
             this.InitializeComponent();
 
             // Instantiate the service using the static instance getter
-            IForumService forumService = ForumService.GetForumServiceInstance();
+            IForumService forumService = ForumService.GetForumServiceInstance;
             ViewModel = new ForumViewModel(forumService);
             this.DataContext = ViewModel;
 

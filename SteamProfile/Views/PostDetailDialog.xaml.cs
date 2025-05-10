@@ -12,7 +12,7 @@ namespace SteamProfile.Views
     public sealed partial class PostDetailDialog : ContentDialog
     {
         // Hard-coded current user ID for demo
-        private readonly uint currentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId(); // Using JaneSmith as the current user
+        private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId(); // Using JaneSmith as the current user
         // The forum post to display
         private ForumPost post;
         private PostDisplay postDisplay;
@@ -34,7 +34,7 @@ namespace SteamProfile.Views
             // Set user information
             User author = User.GetUserById(post.AuthorId);
             UsernameTextBlock.Text = author.Username;
-            PostDateTextBlock.Text = $"Posted on {post.TimeStamp}";
+            PostDateTextBlock.Text = $"Posted on {post.TimeStamp.ToString()}";
             ProfileImage.Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(author.ProfilePicturePath));
             // Show delete button if this is the current user's post
             DeleteButton.Visibility = (post.AuthorId == currentUserId) ? Visibility.Visible : Visibility.Collapsed;
@@ -51,7 +51,7 @@ namespace SteamProfile.Views
             try
             {
                 // Get comments for this post
-                List<ForumComment> postComments = ForumService.GetForumServiceInstance().GetComments(post.Id);
+                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments(post.Id);
                 // Clear existing comments
                 CommentsPanel.Children.Clear();
                 commentControls.Clear();
@@ -93,7 +93,7 @@ namespace SteamProfile.Views
             try
             {
                 // Delete the comment
-                ForumService.GetForumServiceInstance().DeleteComment(commentId);
+                ForumService.GetForumServiceInstance.DeleteComment(commentId);
                 // Reload comments
                 LoadComments();
                 // Indicate changes were made
@@ -115,7 +115,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance().VoteOnPost(post.Id, 1);
+                ForumService.GetForumServiceInstance.VoteOnPost(post.Id, 1);
                 // Update score display
                 post.Score += 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -133,7 +133,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance().VoteOnPost(post.Id, -1);
+                ForumService.GetForumServiceInstance.VoteOnPost(post.Id, -1);
                 // Update score display
                 post.Score -= 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -204,7 +204,7 @@ namespace SteamProfile.Views
             try
             {
                 // Delete the post
-                ForumService.GetForumServiceInstance().DeletePost(post.Id);
+                ForumService.GetForumServiceInstance.DeletePost(post.Id);
                 // Notify that the post was deleted
                 PostDeleted?.Invoke(this, EventArgs.Empty);
                 // Close the dialog

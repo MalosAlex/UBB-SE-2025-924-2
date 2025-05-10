@@ -5,418 +5,122 @@ using BusinessLayer.Utils;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Exceptions;
+using BusinessLayer.DataContext;
 
 namespace BusinessLayer.Repositories
 {
     public sealed class UsersRepository : IUsersRepository
     {
-        private readonly IDataLink dataLink;
+        private readonly ApplicationDbContext context;
 
-        public UsersRepository(IDataLink datalink)
+        private readonly string email_exists = "EMAIL_EXISTS";
+        private readonly string username_exists = "USERNAME_EXISTS";
+
+        public UsersRepository(ApplicationDbContext newContext)
         {
-            this.dataLink = datalink ?? throw new ArgumentNullException(nameof(datalink));
+            this.context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         public List<User> GetAllUsers()
         {
-            try
-            {
-                const string sqlCommand = @"
-                    SELECT
-                        user_id,
-                        username,
-                        email,
-                        developer,
-                        created_at,
-                        last_login
-                    FROM Users
-                    ORDER BY username;";
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand);
-                return MapDataTableToUsers(dataTable);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException("Failed to retrieve users from the database.", exception);
-            }
+            return context.Users.OrderBy(u => u.Username).ToList();
         }
 
         public User? GetUserById(int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    SELECT
-                        user_id,
-                        username,
-                        email,
-                        developer,
-                        created_at,
-                        last_login
-                    FROM Users
-                    WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to retrieve user with ID {userId} from the database.", exception);
-            }
+            return context.Users.Find(userId);
         }
 
         public User UpdateUser(User user)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Users
-                    SET
-                        email = @email,
-                        username = @username,
-                        developer = @developer
-                    WHERE user_id = @user_id;
-                    
-                    SELECT
-                        user_id,
-                        username,
-                        email,
-                        developer,
-                        created_at,
-                        last_login
-                    FROM Users
-                    WHERE user_id = @user_id;";
+            var existing = context.Users.Find(user.UserId)
+                ?? throw new RepositoryException($"User with ID {user.UserId} not found.");
 
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", user.UserId),
-                    new SqlParameter("@email", user.Email),
-                    new SqlParameter("@username", user.Username),
-                    new SqlParameter("@developer", user.IsDeveloper)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                if (dataTable.Rows.Count == 0)
-                {
-                    throw new RepositoryException($"User with ID {user.UserId} not found.");
-                }
-
-                return MapDataRowToUser(dataTable.Rows[0]);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to update user with ID {user.UserId}.", exception);
-            }
+            existing.Email = user.Email;
+            existing.Username = user.Username;
+            existing.IsDeveloper = user.IsDeveloper;
+            context.SaveChanges();
+            return existing;
         }
 
         public User CreateUser(User user)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    INSERT INTO Users (username, email, hashed_password, developer)
-                    VALUES (@username, @email, @hashed_password, @developer);
-                    
-                    SELECT
-                        user_id,
-                        username,
-                        email,
-                        hashed_password,
-                        developer,
-                        created_at,
-                        last_login
-                    FROM Users
-                    WHERE user_id = SCOPE_IDENTITY();";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@email", user.Email),
-                    new SqlParameter("@username", user.Username),
-                    new SqlParameter("@hashed_password", user.Password),
-                    new SqlParameter("@developer", user.IsDeveloper)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                if (dataTable.Rows.Count == 0)
-                {
-                    throw new RepositoryException("Failed to create user.");
-                }
-                return MapDataRowToUser(dataTable.Rows[0]);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                Console.WriteLine($"Error creating user: {exception.Message}");
-                throw new RepositoryException("Failed to create user.", exception);
-            }
+            context.Users.Add(user);
+            context.SaveChanges();
+            return user;
         }
 
         public void DeleteUser(int userId)
         {
-            try
+            var user = context.Users.Find(userId);
+            if (user != null)
             {
-                // First delete friendships for the user, then delete the user
-                const string sqlCommand = @"
-                    -- First delete friendships
-                    DELETE FROM Friendships WHERE user_id1 = @user_id OR user_id2 = @user_id;
-                    
-                    -- Then delete the user
-                    DELETE FROM Users WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException ex)
-            {
-                throw new RepositoryException($"Failed to delete user with ID {userId}.", ex);
+                context.Users.Remove(user);
+                context.SaveChanges();
             }
         }
 
         public User? VerifyCredentials(string emailOrUsername)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    SELECT 
-                        user_id, 
-                        username, 
-                        email, 
-                        hashed_password, 
-                        developer, 
-                        created_at, 
-                        last_login
-                    FROM Users
-                    WHERE username = @EmailOrUsername OR email = @EmailOrUsername;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@EmailOrUsername", emailOrUsername),
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-
-                if (dataTable.Rows.Count > 0)
-                {
-                    var user = MapDataRowToUserWithPassword(dataTable.Rows[0]);
-                    return user;
-                }
-
-                return null;
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException("Failed to verify user credentials.", exception);
-            }
+            return context.Users.SingleOrDefault(u => u.Username == emailOrUsername || u.Email == emailOrUsername);
         }
 
         public User? GetUserByEmail(string email)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    SELECT 
-                        user_id, 
-                        username, 
-                        email, 
-                        hashed_password, 
-                        developer, 
-                        created_at, 
-                        last_login
-                    FROM Users
-                    WHERE email = @email;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@email", email)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to retrieve user with email {email}.", exception);
-            }
+            return context.Users.SingleOrDefault(u => u.Email == email);
         }
 
         public User? GetUserByUsername(string username)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    SELECT 
-                        user_id, 
-                        username, 
-                        email, 
-                        hashed_password, 
-                        developer, 
-                        created_at, 
-                        last_login
-                    FROM Users
-                    WHERE username = @username;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@username", username)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                return dataTable.Rows.Count > 0 ? MapDataRowToUser(dataTable.Rows[0]) : null;
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to retrieve user with username {username}.", exception);
-            }
+            return context.Users.SingleOrDefault(u => u.Username == username);
         }
 
         public string CheckUserExists(string email, string username)
         {
-            try
+            if (context.Users.Any(u => u.Email == email))
             {
-                const string sqlCommand = @"
-                    SELECT
-                        CASE
-                            WHEN EXISTS (SELECT 1 FROM Users WHERE Email = @email) THEN 'EMAIL_EXISTS'
-                            WHEN EXISTS (SELECT 1 FROM Users WHERE Username = @username) THEN 'USERNAME_EXISTS'
-                            ELSE NULL
-                        END AS ErrorType;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@email", email),
-                    new SqlParameter("@username", username)
-                };
-
-                var dataTable = dataLink.ExecuteReaderSql(sqlCommand, parameters);
-                if (dataTable.Rows.Count > 0)
-                {
-                    var errorType = dataTable.Rows[0]["ErrorType"];
-                    return errorType == DBNull.Value ? null : errorType.ToString();
-                }
-                return null;
+                return email_exists;
             }
-            catch (DatabaseOperationException exception)
+            if (context.Users.Any(u => u.Username == username))
             {
-                throw new RepositoryException("Failed to check if user exists.", exception);
+                return username_exists;
             }
+            return null;
         }
 
         public void ChangeEmail(int userId, string newEmail)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Users
-                    SET email = @newEmail
-                    WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId),
-                    new SqlParameter("@newEmail", newEmail)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to change email for user ID {userId}.", exception);
-            }
+            var user = context.Users.Find(userId)
+                ?? throw new RepositoryException($"User with ID {userId} not found.");
+            user.Email = newEmail;
+            context.SaveChanges();
         }
 
         public void ChangePassword(int userId, string newPassword)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Users 
-                    SET hashed_password = @newHashedPassword 
-                    WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId),
-                    new SqlParameter("@newHashedPassword", PasswordHasher.HashPassword(newPassword))
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to change password for user ID {userId}.", exception);
-            }
+            var user = context.Users.Find(userId)
+                ?? throw new RepositoryException($"User with ID {userId} not found.");
+            user.Password = PasswordHasher.HashPassword(newPassword);
+            context.SaveChanges();
         }
 
         public void ChangeUsername(int userId, string newUsername)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Users 
-                    SET username = @newUsername 
-                    WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId),
-                    new SqlParameter("@newUsername", newUsername)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to change username for user ID {userId}.", exception);
-            }
+            var user = context.Users.Find(userId)
+                ?? throw new RepositoryException($"User with ID {userId} not found.");
+            user.Username = newUsername;
+            context.SaveChanges();
         }
 
         public void UpdateLastLogin(int userId)
         {
-            try
-            {
-                const string sqlCommand = @"
-                    UPDATE Users
-                    SET last_login = GETDATE()
-                    WHERE user_id = @user_id;
-                    
-                    SELECT
-                        user_id,
-                        username,
-                        email,
-                        developer,
-                        created_at,
-                        last_login
-                    FROM Users
-                    WHERE user_id = @user_id;";
-
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@user_id", userId)
-                };
-
-                dataLink.ExecuteNonQuerySql(sqlCommand, parameters);
-            }
-            catch (DatabaseOperationException exception)
-            {
-                throw new RepositoryException($"Failed to update last login for user ID {userId}.", exception);
-            }
+            var user = context.Users.Find(userId)
+                ?? throw new RepositoryException($"User with ID {userId} not found.");
+            user.LastLogin = DateTime.UtcNow;
+            context.SaveChanges();
         }
 
-        private List<User> MapDataTableToUsers(DataTable dataTable)
-        {
-            return dataTable.AsEnumerable()
-                .Select(MapDataRowToUser)
-                .ToList();
-        }
-
+        // Left these here for test purposes ??
         public User? MapDataRowToUser(DataRow row)
         {
             if (row["user_id"] == DBNull.Value || row["email"] == DBNull.Value || row["username"] == DBNull.Value)

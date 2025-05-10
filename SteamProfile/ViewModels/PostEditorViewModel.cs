@@ -6,12 +6,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using BusinessLayer.Services;
 using BusinessLayer.Models;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.ViewModels
 {
     public partial class PostEditorViewModel : ObservableObject
     {
-        private readonly NewsService service = new();
+        private readonly NewsService service;
 
         private Post? postBeingEdited;
         private bool isEditMode = false;
@@ -41,6 +42,7 @@ namespace SteamProfile.ViewModels
 
         public PostEditorViewModel()
         {
+            service = (NewsService)App.GetService<INewsService>();
             LoadUserInfo();
         }
 
