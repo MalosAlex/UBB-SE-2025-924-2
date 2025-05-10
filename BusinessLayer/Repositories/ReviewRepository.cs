@@ -5,143 +5,134 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using BusinessLayer.Models;
 using BusinessLayer.Data;
+using BusinessLayer.DataContext;
 
 namespace BusinessLayer.Repositories
 {
     public class ReviewRepository : IReviewRepository
     {
-        private readonly DatabaseConnection reviewDatabaseConnection;
+        private readonly ApplicationDbContext context;
 
-        public ReviewRepository()
+        public ReviewRepository(ApplicationDbContext newContext)
         {
-            reviewDatabaseConnection = new BusinessLayer.Data.DatabaseConnection();
+            context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         // Fetch all reviews for a given game
         public List<Review> FetchAllReviewsByGameId(int gameId)
         {
-            var listOfReviewsForGame = new List<Review>();
-            string sqlQueryToGetReviewsForGame = @"
-                                              SELECT r.*, u.Name AS Username, 
-                                              u.ProfilePicture AS ProfilePictureBlob
-                                                FROM Reviews r
-                                                INNER JOIN ReviewsUsers u ON r.UserId = u.UserId
-                                                WHERE r.GameId = @GameId
-                                               ORDER BY r.CreatedAt DESC";
-
-            using (SqlConnection connection = reviewDatabaseConnection.GetConnection())
-            using (SqlCommand sqlCommandToFetchReviews = new SqlCommand(sqlQueryToGetReviewsForGame, connection))
-            {
-                sqlCommandToFetchReviews.Parameters.AddWithValue("@GameId", gameId);
-                connection.Open();
-
-                using (SqlDataReader sqlDataReaderForReviewRows = sqlCommandToFetchReviews.ExecuteReader())
-                {
-                    while (sqlDataReaderForReviewRows.Read())
-                    {
-                        listOfReviewsForGame.Add(MapSqlReaderRowToReviewObject(sqlDataReaderForReviewRows));
-                    }
-                }
-            }
-
-            return listOfReviewsForGame;
+            return context.Reviews
+                .Where(r => r.GameIdentifier == gameId)
+                .OrderByDescending(r => r.DateAndTimeWhenReviewWasCreated)
+                .ToList();
         }
 
         // Insert a new review into the database
         public bool InsertNewReviewIntoDatabase(Review reviewToInsert)
         {
-            string sqlQueryToInsertReview = @"
-                INSERT INTO Reviews 
-                (Title, Content, IsRecommended, Rating, HelpfulVotes, FunnyVotes, HoursPlayed, CreatedAt, UserId, GameId)
-                VALUES 
-                (@Title, @Content, @IsRecommended, @Rating, 0, 0, @HoursPlayed, @CreatedAt, @UserId, @GameId)";
+            // Check if the user exists in ReviewsUsers
+            bool userExists = context.ReviewsUsers.Any(ru => ru.UserId == reviewToInsert.UserIdentifier);
 
-            return ExecuteSqlNonQueryWithParameterBinding(sqlQueryToInsertReview, sqlCommand =>
+            if (!userExists)
             {
-                BindReviewObjectToSqlCommandParameters(sqlCommand, reviewToInsert, isUpdateOperation: false);
-            });
+                // Get user information from Users table to populate ReviewsUser
+                var user = context.Users.FirstOrDefault(u => u.UserId == reviewToInsert.UserIdentifier);
+
+                if (user != null)
+                {
+                    // Get user profile for profile picture
+                    var userProfile = context.UserProfiles.FirstOrDefault(up => up.UserId == user.UserId);
+
+                    // Create new ReviewsUser record
+                    var reviewUser = new ReviewsUser
+                    {
+                        UserId = user.UserId,
+                        Name = user.Username,
+                        ProfilePicture = null // Or implement logic to read profile picture if needed
+                    };
+
+                    context.ReviewsUsers.Add(reviewUser);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    // User doesn't even exist in Users table
+                    return false;
+                }
+            }
+
+            // Now add the review (user is guaranteed to exist in ReviewsUsers)
+            context.Reviews.Add(reviewToInsert);
+            return context.SaveChanges() > 0;
         }
 
         // Update an existing review based on its ID
         public bool UpdateExistingReviewInDatabase(Review reviewToUpdate)
         {
-            string sqlQueryToUpdateReview = @"
-                UPDATE Reviews
-                SET Title = @Title,
-                    Content = @Content,
-                    IsRecommended = @IsRecommended,
-                    Rating = @Rating,
-                    HoursPlayed = @HoursPlayed,
-                    CreatedAt = @CreatedAt
-                WHERE ReviewId = @ReviewId";
-
-            return ExecuteSqlNonQueryWithParameterBinding(sqlQueryToUpdateReview, sqlCommand =>
+            var existing = context.Reviews.FirstOrDefault(r => r.ReviewIdentifier == reviewToUpdate.ReviewIdentifier);
+            if (existing == null)
             {
-                BindReviewObjectToSqlCommandParameters(sqlCommand, reviewToUpdate, isUpdateOperation: true);
-            });
+                return false;
+            }
+            existing.ReviewTitleText = reviewToUpdate.ReviewTitleText;
+            existing.ReviewContentText = reviewToUpdate.ReviewContentText;
+            existing.IsRecommended = reviewToUpdate.IsRecommended;
+            existing.NumericRatingGivenByUser = reviewToUpdate.NumericRatingGivenByUser;
+            existing.TotalHoursPlayedByReviewer = reviewToUpdate.TotalHoursPlayedByReviewer;
+            existing.DateAndTimeWhenReviewWasCreated = reviewToUpdate.DateAndTimeWhenReviewWasCreated;
+
+            return context.SaveChanges() > 0;
         }
 
         // Delete a review by its ID
         public bool DeleteReviewFromDatabaseById(int reviewIdToDelete)
         {
-            string sqlQueryToDeleteReview = "DELETE FROM Reviews WHERE ReviewId = @ReviewId";
-
-            return ExecuteSqlNonQueryWithParameterBinding(sqlQueryToDeleteReview, sqlCommand =>
+            var toRemove = context.Reviews.Find(reviewIdToDelete);
+            if (toRemove == null)
             {
-                sqlCommand.Parameters.AddWithValue("@ReviewId", reviewIdToDelete);
-            });
+                return false;
+            }
+            context.Reviews.Remove(toRemove);
+            return context.SaveChanges() > 0;
         }
 
         // Toggle Helpful or Funny votes for a review
         public bool ToggleVoteForReview(int reviewIdToVoteOn, string voteTypeAsStringEitherHelpfulOrFunny, bool shouldIncrementVoteCount)
         {
-            string voteColumnNameToUpdate = voteTypeAsStringEitherHelpfulOrFunny == "Helpful" ? "HelpfulVotes" : "FunnyVotes";
-            string voteOperationSymbol = shouldIncrementVoteCount ? "+" : "-";
-
-            string sqlQueryToUpdateVoteCount = $@"
-                UPDATE Reviews
-                SET {voteColumnNameToUpdate} = {voteColumnNameToUpdate} {voteOperationSymbol} 1
-                WHERE ReviewId = @ReviewId";
-
-            return ExecuteSqlNonQueryWithParameterBinding(sqlQueryToUpdateVoteCount, sqlCommand =>
+            var review = context.Reviews.Find(reviewIdToVoteOn);
+            if (review == null)
             {
-                sqlCommand.Parameters.AddWithValue("@ReviewId", reviewIdToVoteOn);
-            });
-        }
-        // Retrieve review statistics for a specific game
-        public (int TotalReviews, int TotalPositiveRecommendations, double AverageRatingValue) RetrieveReviewStatisticsForGame(int gameIdToFetchStatsFor)
-        {
-            string sqlQueryToGetReviewStatistics = @"
-                SELECT 
-                    COUNT(*) AS TotalReviews,
-                    SUM(CASE WHEN IsRecommended = 1 THEN 1 ELSE 0 END) AS PositiveReviews,
-                    AVG(Rating) AS AvgRating
-                FROM Reviews
-                WHERE GameId = @GameId";
-
-            int totalReviewsCount = 0, totalPositiveRecommendationsCount = 0;
-            double averageRatingForGame = 0.0;
-
-            using (SqlConnection connectionForStatisticsQuery = reviewDatabaseConnection.GetConnection())
-            using (SqlCommand sqlCommandForStatisticsQuery = new SqlCommand(sqlQueryToGetReviewStatistics, connectionForStatisticsQuery))
+                return false;
+            }
+            if (voteTypeAsStringEitherHelpfulOrFunny == "Helpful")
             {
-                sqlCommandForStatisticsQuery.Parameters.AddWithValue("@GameId", gameIdToFetchStatsFor);
-                connectionForStatisticsQuery.Open();
-
-                using (SqlDataReader readerForStatistics = sqlCommandForStatisticsQuery.ExecuteReader())
-                {
-                    if (readerForStatistics.Read())
-                    {
-                        totalReviewsCount = Convert.ToInt32(readerForStatistics["TotalReviews"]);
-                        totalPositiveRecommendationsCount = readerForStatistics.IsDBNull(readerForStatistics.GetOrdinal("PositiveReviews")) ? 0 : Convert.ToInt32(readerForStatistics["PositiveReviews"]);
-                        averageRatingForGame = readerForStatistics["AvgRating"] != DBNull.Value
-                            ? Convert.ToDouble(readerForStatistics["AvgRating"])
-                            : 0.0;
-                    }
-                }
+                review.TotalHelpfulVotesReceived += shouldIncrementVoteCount ? 1 : -1;
+            }
+            else
+            {
+                review.TotalFunnyVotesReceived += shouldIncrementVoteCount ? 1 : -1;
             }
 
-            return (totalReviewsCount, totalPositiveRecommendationsCount, averageRatingForGame);
+            context.SaveChanges();
+            return true;
+        }
+        // Retrieve review statistics for a specific game
+        public (int TotalReviews, int TotalPositiveRecommendations, double AverageRatingValue) RetrieveReviewStatisticsForGame(int gameId)
+        {
+            var stats = context.Reviews
+                .Where(r => r.GameIdentifier == gameId)
+                .GroupBy(r => 1)
+                .Select(g => new
+                {
+                    TotalReviews = g.Count(),
+                    TotalPositiveRecommendations = g.Count(r => r.IsRecommended),
+                    AverageRatingValue = g.Average(r => r.NumericRatingGivenByUser)
+                })
+                .FirstOrDefault();
+
+            return stats == null
+                ? (0, 0, 0.0)
+                : (stats.TotalReviews, stats.TotalPositiveRecommendations, stats.AverageRatingValue);
         }
 
         // Helper: Reusable review mapping from SqlDataReader
@@ -173,6 +164,7 @@ namespace BusinessLayer.Repositories
             }
         }
 
+        /* TODO: Rework or delete this entirely
         // Bind parameters from Review object into SQL Command
         private void BindReviewObjectToSqlCommandParameters(SqlCommand sqlCommandToBindParametersTo, Review reviewDataToBind, bool isUpdateOperation)
         {
@@ -204,5 +196,6 @@ namespace BusinessLayer.Repositories
                 return rowsAffected > 0;
             }
         }
+        */
     }
 }

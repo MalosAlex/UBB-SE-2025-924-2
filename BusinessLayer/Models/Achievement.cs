@@ -17,6 +17,8 @@ namespace BusinessLayer.Models
         public int Points { get; set; }
         public string? Icon { get; set; }
 
+        public ICollection<UserAchievement> UserAchievements { get; set; }
+
         public bool IsValidIcon()
         {
             if (string.IsNullOrWhiteSpace(Icon))

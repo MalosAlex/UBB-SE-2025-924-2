@@ -27,6 +27,12 @@ namespace BusinessLayer.Models
         [StringLength(CoverPictureMaximumLength, ErrorMessage = CoverPictureLengthError)]
         public string? CoverPicture { get; set; }
 
+        public List<CollectionGame> CollectionGames { get; } = new();
+
+        public OwnedGame()
+        {
+        }
+
         public OwnedGame(int userId, string gameTitile, string description, string? coverPicture = null)
         {
             UserId = userId;

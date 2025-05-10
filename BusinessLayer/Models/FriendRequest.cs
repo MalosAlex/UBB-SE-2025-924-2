@@ -10,6 +10,8 @@ namespace BusinessLayer.Models
     {
         private string profilePhotoPath = string.Empty;
 
+        public int RequestId { get; set; }
+
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
 

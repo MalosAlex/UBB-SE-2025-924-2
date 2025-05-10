@@ -61,7 +61,7 @@ namespace SteamProfile.ViewModels
 
         public ReviewViewModel()
         {
-            reviewService = new ReviewService();
+            reviewService = (ReviewService)App.GetService<IReviewService>();
         }
 
         public void LoadReviewsForGame(int gameIdentifier)

@@ -6,12 +6,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Imaging;
 using BusinessLayer.Services;
 using BusinessLayer.Models;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.ViewModels
 {
     public partial class CommentViewModel : ObservableObject
     {
-        private readonly NewsService service = new();
+        private readonly NewsService service;
         private readonly Users users = Users.Instance;
 
         public event EventHandler? CommentUpdated;
@@ -46,6 +47,7 @@ namespace SteamProfile.ViewModels
 
         public CommentViewModel()
         {
+            service = (NewsService)App.GetService<INewsService>();
             EditCommand = new RelayCommand(ExecuteEdit);
             DeleteCommand = new RelayCommand(ExecuteDelete);
         }

@@ -1,13 +1,13 @@
-﻿using BusinessLayer.Repositories;
+﻿using BusinessLayer.Repositories.Interfaces;
 
 namespace BusinessLayer.Services
 {
     public class AuthenticationService
     {
-        private readonly UsersRepository usersRepository;
-        public AuthenticationService(UsersRepository usersRepository)
+        private readonly IUsersRepository usersRepository;
+        public AuthenticationService(IUsersRepository newUsersRepository)
         {
-            this.usersRepository = usersRepository ?? throw new ArgumentNullException(nameof(usersRepository));
+            this.usersRepository = newUsersRepository ?? throw new ArgumentNullException(nameof(usersRepository));
         }
     }
 }

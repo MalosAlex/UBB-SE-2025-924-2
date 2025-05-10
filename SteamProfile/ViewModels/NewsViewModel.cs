@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using BusinessLayer.Models;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.ViewModels
 {
@@ -26,7 +27,7 @@ namespace SteamProfile.ViewModels
 
     public partial class NewsViewModel : ObservableObject
     {
-        private readonly NewsService service = new();
+        private readonly NewsService service;
         private const int DIVISOR = 3;
 
         public ObservableCollection<PostWithPosition> PositionedPosts { get; } = new();
@@ -46,6 +47,8 @@ namespace SteamProfile.ViewModels
 
         public NewsViewModel()
         {
+            service = (NewsService)App.GetService<INewsService>();
+
             LoadMoreCommand = new RelayCommand(() => LoadPosts(false));
             ShowCreatePostPanelCommand = new RelayCommand(() => EditorOverlayVisibility = Visibility.Visible);
 

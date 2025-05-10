@@ -3,12 +3,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.ViewModels
 {
     public partial class CommentInputViewModel : ObservableObject
     {
-        private readonly NewsService service = new();
+        private readonly NewsService service;
 
         [ObservableProperty]
         private string rawText = string.Empty;
@@ -36,6 +37,7 @@ namespace SteamProfile.ViewModels
 
         public CommentInputViewModel()
         {
+            service = (NewsService)App.GetService<INewsService>();
             ToggleRawCommand = new RelayCommand(ShowRaw);
             TogglePreviewCommand = new RelayCommand(ShowPreview);
             PostCommand = new RelayCommand(PostComment);

@@ -3,76 +3,39 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using BusinessLayer.Data;
+using BusinessLayer.DataContext;
 using BusinessLayer.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer.Repositories
 {
     public class FriendRequestRepository : IFriendRequestRepository
     {
-        private readonly DatabaseConnection dbConnection;
+        private readonly ApplicationDbContext context;
 
-        public FriendRequestRepository(DatabaseConnection dbConnection)
+        public FriendRequestRepository(ApplicationDbContext newContext)
         {
-            dbConnection = dbConnection ?? throw new ArgumentNullException(nameof(dbConnection));
+            context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         public async Task<IEnumerable<FriendRequest>> GetFriendRequestsAsync(string username)
         {
-            var result = new List<FriendRequest>();
-            // Define the SQL query to retrieve friend requests
-            string query = @"
-                SELECT SenderUsername, SenderEmail, SenderProfilePhotoPath, RequestDate
-                FROM FriendRequests
-                WHERE ReceiverUsername = @ReceiverUsername";
-
-            // Create SQL parameters
-            var parameters = new SqlParameter[]
-            {
-                new SqlParameter("@ReceiverUsername", SqlDbType.NVarChar) { Value = username }
-            };
-
-            // Execute the query and process the results
-            var dataTable = await dbConnection.ExecuteReaderAsync(query, CommandType.Text, parameters);
-            foreach (DataRow row in dataTable.Rows)
-            {
-                result.Add(new FriendRequest
-                {
-                    Username = row["SenderUsername"].ToString(),
-                    Email = row["SenderEmail"].ToString(),
-                    ProfilePhotoPath = row["SenderProfilePhotoPath"].ToString(),
-                    RequestDate = Convert.ToDateTime(row["RequestDate"]),
-                    ReceiverUsername = username
-                });
-            }
-
-            return result;
+            return await context.FriendRequests
+                .AsNoTracking()
+                .Where(fr => fr.ReceiverUsername == username)
+                .ToListAsync();
         }
 
         public async Task<bool> AddFriendRequestAsync(FriendRequest request)
         {
             try
             {
-                // Define the SQL query to insert a friend request
-                string query = @"
-                    INSERT INTO FriendRequests (SenderUsername, SenderEmail, SenderProfilePhotoPath, ReceiverUsername, RequestDate)
-                    VALUES (@SenderUsername, @SenderEmail, @SenderProfilePhotoPath, @ReceiverUsername, @RequestDate)";
-
-                // Create SQL parameters
-                var parameters = new SqlParameter[]
-                {
-                    new SqlParameter("@SenderUsername", SqlDbType.NVarChar) { Value = request.Username },
-                    new SqlParameter("@SenderEmail", SqlDbType.NVarChar) { Value = request.Email },
-                    new SqlParameter("@SenderProfilePhotoPath", SqlDbType.NVarChar) { Value = request.ProfilePhotoPath },
-                    new SqlParameter("@ReceiverUsername", SqlDbType.NVarChar) { Value = request.ReceiverUsername },
-                    new SqlParameter("@RequestDate", SqlDbType.DateTime) { Value = request.RequestDate }
-                };
-
-                // Execute the query
-                await dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
+                context.FriendRequests.Add(request);
+                await context.SaveChangesAsync();
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
@@ -82,20 +45,16 @@ namespace BusinessLayer.Repositories
         {
             try
             {
-                // Define the SQL query to delete a friend request
-                string query = @"
-                    DELETE FROM FriendRequests
-                    WHERE SenderUsername = @SenderUsername AND ReceiverUsername = @ReceiverUsername";
+                var entity = await context.FriendRequests
+                    .FirstOrDefaultAsync(fr => fr.Username == senderUsername && fr.ReceiverUsername == receiverUsername);
 
-                // Create SQL parameters
-                var parameters = new SqlParameter[]
+                if (entity == null)
                 {
-                    new SqlParameter("@SenderUsername", SqlDbType.NVarChar) { Value = senderUsername },
-                    new SqlParameter("@ReceiverUsername", SqlDbType.NVarChar) { Value = receiverUsername }
-                };
+                    return false;
+                }
 
-                // Execute the query
-                await dbConnection.ExecuteNonQueryAsync(query, CommandType.Text, parameters);
+                context.FriendRequests.Remove(entity);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception)

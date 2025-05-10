@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ namespace BusinessLayer.Utils
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
-
         // Verify a password against the hash
         public static bool VerifyPassword(string password, string hashedPassword)
         {
@@ -22,7 +22,6 @@ namespace BusinessLayer.Utils
             {
                 return false;
             }
-
             return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
         }
     }

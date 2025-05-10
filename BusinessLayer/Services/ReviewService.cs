@@ -10,16 +10,19 @@ namespace BusinessLayer.Services
     {
         private readonly IReviewRepository reviewRepository;
 
-        public ReviewService()
+        public ReviewService(IReviewRepository newReviewRepository)
         {
-            reviewRepository = new ReviewRepository();
+            reviewRepository = newReviewRepository ?? throw new ArgumentNullException(nameof(newReviewRepository));
         }
 
+        // TODO: Rework this so tests will work
         // Used in unit tests (mocked)
-        public ReviewService(IReviewRepository reviewRepository)
+        /*
+        public ReviewService(IReviewRepository? reviewRepository)
         {
             reviewRepository = reviewRepository;
         }
+        */
 
         public bool SubmitReview(Review reviewToSubmit)
         {

@@ -17,9 +17,4 @@ namespace BusinessLayer.Models
         public int NrComments { get; set; }
         public bool? ActiveUserRating { get; set; }
     }
-    public static class PostRatingType
-    {
-        public const bool LIKE = true;
-        public const bool DISLIKE = false;
-    }
 }

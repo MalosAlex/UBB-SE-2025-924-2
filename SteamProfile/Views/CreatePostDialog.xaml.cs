@@ -9,7 +9,7 @@ namespace SteamProfile.Views
     public sealed partial class CreatePostDialog : ContentDialog
     {
         // Hard-coded current user ID for demo
-        private readonly uint currentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
+        private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
         private User currentUser;
         // Result indicating if a post was created
         public bool PostCreated { get; private set; }
@@ -54,7 +54,7 @@ namespace SteamProfile.Views
                 }
                 // Create the post
                 string currentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                ForumService.GetForumServiceInstance().CreatePost(title, body, currentDate, gameId);
+                ForumService.GetForumServiceInstance.CreatePost(title, body, currentDate, gameId);
                 // Indicate that a post was created
                 PostCreated = true;
             }

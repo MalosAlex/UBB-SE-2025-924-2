@@ -5,13 +5,14 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Services;
+using SteamProfile.ViewModels;
 
 namespace SteamProfile.Views
 {
     public sealed partial class CommentControl : UserControl
     {
         // The currently logged-in user ID
-        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
+        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
         // The comment being displayed
         private CommentDisplay comment;
 
@@ -58,7 +59,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service to upvote the comment
-                ForumService.GetForumServiceInstance().VoteOnComment(comment.Id, 1);
+                ForumService.GetForumServiceInstance.VoteOnComment(comment.Id, 1);
                 // Update the score locally
                 comment.Comment.Score += 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();
@@ -77,7 +78,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service to downvote the comment
-                ForumService.GetForumServiceInstance().VoteOnComment(comment.Id, -1);
+                ForumService.GetForumServiceInstance.VoteOnComment(comment.Id, -1);
                 // Update the score locally
                 comment.Comment.Score -= 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();
@@ -91,9 +92,23 @@ namespace SteamProfile.Views
             }
         }
 
-        internal void SetCommentData(Comment comment)
+        internal void SetCommentData(Comment commentModel)
         {
-            throw new NotImplementedException();
+            // Map the Comment entity to CommentDisplay
+            var user = App.UserService.GetUserByIdentifier(commentModel.AuthorId);
+            var profile = App.UserProfileRepository.GetUserProfileByUserId(commentModel.AuthorId);
+
+            var display = new ForumComment
+            {
+                Id = (uint)commentModel.CommentId,
+                AuthorId = (uint)commentModel.AuthorId,
+                Body = commentModel.Content,
+                Score = commentModel.NrLikes,
+                TimeStamp = commentModel.CommentDate
+            };
+
+            // Delegate to existing SetComment
+            SetComment(CommentDisplay.FromComment(display));
         }
     }
 }

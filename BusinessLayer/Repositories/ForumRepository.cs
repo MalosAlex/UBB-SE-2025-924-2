@@ -9,21 +9,18 @@ using System.Threading.Tasks;
 using BusinessLayer.Models;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Data;
+using BusinessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLayer.Repositories
 {
     public class ForumRepository : IForumRepository
     {
-        private IDatabaseConnection dbConnection;
+        private readonly ApplicationDbContext context;
 
-        public static IForumRepository ForumRepositoryInstance = new ForumRepository(new DatabaseConnection());
-        public static IForumRepository GetRepoInstance()
+        public ForumRepository(ApplicationDbContext newContext)
         {
-            return ForumRepositoryInstance;
-        }
-        private ForumRepository(IDatabaseConnection dbConnectionParam)
-        {
-            dbConnection = dbConnectionParam;
+            context = newContext ?? throw new ArgumentNullException(nameof(newContext));
         }
 
         private string TimeSpanFilterToString(TimeSpanFilter filter)
@@ -45,315 +42,226 @@ namespace BusinessLayer.Repositories
 
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter)
         {
-            string query;
-            switch (filter)
+            var posts = context.ForumPosts.AsNoTracking();
+            if (filter != TimeSpanFilter.AllTime)
             {
-                case TimeSpanFilter.AllTime:
-                    query = "SELECT TOP 20 * FROM ForumPosts ORDER BY score DESC";
-                    break;
-                default:
-                    query = $"SELECT TOP 20 * FROM ForumPosts WHERE creation_date >= DATEADD({TimeSpanFilterToString(filter)}, -1, GETDATE()) ORDER BY score DESC";
-                    break;
-            }
-            dbConnection.Connect();
-            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
-            List<ForumPost> posts = new();
-            foreach (DataRow row in dataSet.Tables[0].Rows)
-            {
-                ForumPost post = new()
+                var span = filter switch
                 {
-                    Id = Convert.ToUInt32(row["post_id"]),
-                    Title = Convert.ToString(row["title"]),
-                    Body = Convert.ToString(row["body"]),
-                    Score = Convert.ToInt32(row["score"]),
-                    TimeStamp = Convert.ToString(row["creation_date"]),
-                    AuthorId = (int)Convert.ToUInt32(row["author_id"]),
-                    GameId = row.IsNull("game_id") ? null : Convert.ToUInt32(row["game_id"]),
+                    TimeSpanFilter.Day => TimeSpan.FromDays(1),
+                    TimeSpanFilter.Week => TimeSpan.FromDays(7),
+                    TimeSpanFilter.Month => TimeSpan.FromDays(30),
+                    TimeSpanFilter.Year => TimeSpan.FromDays(365),
+                    _ => TimeSpan.MaxValue
                 };
-
-                posts.Add(post);
+                var cutoff = DateTime.Now.Subtract(span);
+                posts = posts.Where(p => p.TimeStamp >= cutoff);
             }
-            dbConnection.Disconnect();
-            return posts;
+
+            return posts.OrderByDescending(p => p.Score)
+                .Take(20)
+                .ToList();
         }
 
         public void CreatePost(string title, string body, uint authorId, string date, uint? gameId)
         {
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("title", title);
-            data.Add("body", body);
-            data.Add("author_id", (int)authorId);
-            data.Add("creation_date", date);
-            data.Add("score", 0);
-            data.Add("game_id", gameId != null ? (int)gameId : DBNull.Value);
-            dbConnection.Connect();
-            dbConnection.ExecuteInsert("ForumPosts", data);
-            dbConnection.Disconnect();
+            var post = new ForumPost
+            {
+                Title = title,
+                Body = body,
+                Score = 0,
+                TimeStamp = DateTime.Parse(date),
+                AuthorId = (int)authorId,
+                GameId = gameId
+            };
+            context.ForumPosts.Add(post);
+            context.SaveChanges();
         }
 
         public void DeletePost(uint postId)
         {
-            dbConnection.Connect();
-            dbConnection.ExecuteDelete("ForumPosts", "post_id", (int)postId);
-            dbConnection.Disconnect();
+            var post = new ForumPost { Id = postId };
+            if (post != null)
+            {
+                context.ForumPosts.Remove(post);
+                context.SaveChanges();
+            }
         }
 
         public void CreateComment(string body, uint postId, string date, uint authorId)
         {
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("body", body);
-            data.Add("post_id", (int)postId);
-            data.Add("creation_date", date);
-            data.Add("author_id", (int)authorId);
-            data.Add("score", 0);
-            dbConnection.Connect();
-            dbConnection.ExecuteInsert("ForumComments", data);
-            dbConnection.Disconnect();
+            var comment = new ForumComment
+            {
+                Body = body,
+                Score = 0,
+                TimeStamp = DateTime.Parse(date),
+                AuthorId = authorId,
+                PostId = postId
+            };
+
+            context.ForumComments.Add(comment);
+            context.SaveChanges();
         }
 
         public void DeleteComment(uint commentId)
         {
-            dbConnection.Connect();
-            dbConnection.ExecuteDelete("ForumComments", "comment_id", (int)commentId);
-            dbConnection.Disconnect();
+            var comment = new ForumComment { Id = commentId };
+            if (comment != null)
+            {
+                context.ForumComments.Remove(comment);
+                context.SaveChanges();
+            }
         }
 
-        private int GetPostScore(uint id)
+        private int GetScore<T>(DbSet<T> dbSet, object key)
+            where T : class
         {
-            string query = $"SELECT score FROM ForumPosts WHERE post_id = {id}";
-            // dbConnection.Connect();
-            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
-            // dbConnection.Disconnect();
-            var score = dataSet.Tables[0].Rows[0]["score"];
-            return Convert.ToInt32(score);
-        }
-
-        private int GetCommentScore(uint id)
-        {
-            string query = $"SELECT score FROM ForumComments WHERE comment_id = {id}";
-            // dbConnection.Connect();
-            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumComments");
-            // dbConnection.Disconnect();
-            var score = dataSet.Tables[0].Rows[0]["score"];
-
-            return Convert.ToInt32(score);
+            var entity = dbSet.Find(key) as dynamic;
+            return entity != null ? (int)entity.Score : 0;
         }
 
         public void VoteOnPost(uint postId, int voteValue, int userId)
         {
-            int newScore = GetPostScore(postId) + voteValue;
-
-            dbConnection.Connect();
-
-            DataSet likedPost = dbConnection.ExecuteQuery(
-        $"SELECT * FROM UserLikedPost WHERE userId = {userId} AND post_id = {postId}",
-        "UserLikedPost");
-
-            DataSet dislikedPost = dbConnection.ExecuteQuery(
-        $"SELECT * FROM UserDislikedPost WHERE userId = {userId} AND post_id = {postId}",
-        "UserDislikedPost");
-
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("userId", userId);
-            data.Add("post_id", (int)postId);
-
-            if (likedPost.Tables[0].Rows.Count == 0 && dislikedPost.Tables[0].Rows.Count == 0)
+            var post = context.ForumPosts.Find((int)postId);
+            if (post == null)
             {
-                // User has not voted yet, apply the vote normally and insert into the appropriate table
-                dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
+                return;
+            }
+            // Determine existing votes
+            var liked = context.UserLikedPosts.Find(userId, (int)postId);
+            var disliked = context.UserDislikedPosts.Find(userId, (int)postId);
 
+            if (liked == null && disliked == null)
+            {
+                // first vote
+                post.Score += voteValue;
                 if (voteValue > 0)
                 {
-                    // User liked the post
-                    dbConnection.ExecuteInsert("UserLikedPost", data);
+                    context.UserLikedPosts.Add(new UserLikedPost { UserId = userId, PostId = postId });
                 }
                 else
                 {
-                    // User disliked the post
-                    dbConnection.ExecuteInsert("UserDislikedPost", data);
+                    context.UserDislikedPosts.Add(new UserDislikedPost { UserId = userId, PostId = postId });
                 }
             }
-            else
+            else if (liked != null)
             {
-                // User has already voted, check if it's the same or opposite vote
-                if (likedPost.Tables[0].Rows.Count > 0)
+                if (voteValue > 0)
                 {
-                    if (voteValue > 0)
-                    {
-                        // Same vote, retract the like
-                        dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
-                        newScore = GetPostScore(postId) - voteValue; // Adjust the post score
-                    }
-                    else
-                    {
-                        // Opposite vote, retract the like and add a dislike
-                        dbConnection.ExecuteDelete("UserLikedPost", "userId", (int)userId);
-                        dbConnection.ExecuteInsert("UserDislikedPost", data);
-                        newScore = GetPostScore(postId) + (2 * voteValue); // Adjust the post score accordingly
-                    }
+                    // retract like
+                    post.Score -= voteValue;
+                    context.UserLikedPosts.Remove(liked);
                 }
-                else if (dislikedPost.Tables[0].Rows.Count > 0)
+                else
                 {
-                    if (voteValue < 0)
-                    {
-                        // Same vote, retract the dislike
-                        dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
-                        newScore = GetPostScore(postId) - voteValue; // Adjust the post score
-                    }
-                    else
-                    {
-                        // Opposite vote, retract the dislike and add a like
-                        dbConnection.ExecuteDelete("UserDislikedPost", "userId", (int)userId);
-                        dbConnection.ExecuteInsert("UserLikedPost", data);
-                        newScore = GetPostScore(postId) + (2 * voteValue); // Adjust the post score accordingly
-                    }
+                    // switch to dislike
+                    post.Score -= 2 * voteValue; // subtract like and add dislike
+                    context.UserLikedPosts.Remove(liked);
+                    context.UserDislikedPosts.Add(new UserDislikedPost { UserId = userId, PostId = postId });
                 }
             }
-
-            // Update the post score
-            dbConnection.ExecuteUpdate("ForumPosts", "score", "post_id", newScore, (int)postId);
-
-            dbConnection.Disconnect();
+            else if (disliked != null)
+            {
+                if (voteValue < 0)
+                {
+                    // retract dislike
+                    post.Score -= voteValue;
+                    context.UserDislikedPosts.Remove(disliked);
+                }
+                else
+                {
+                    // switch to like
+                    post.Score += 2 * voteValue; // remove dislike then add like
+                    context.UserDislikedPosts.Remove(disliked);
+                    context.UserLikedPosts.Add(new UserLikedPost { UserId = userId, PostId = postId });
+                }
+            }
+            context.SaveChanges();
         }
 
         public void VoteOnComment(uint commentId, int voteValue, int userId)
         {
-            int newScore = GetCommentScore(commentId) + voteValue;
-
-            dbConnection.Connect();
-
-            DataSet likedComment = dbConnection.ExecuteQuery(
-        $"SELECT * FROM UserLikedComment WHERE userId = {userId} AND comment_id = {commentId}",
-        "UserLikedComment");
-
-            DataSet dislikedComment = dbConnection.ExecuteQuery(
-        $"SELECT * FROM UserDislikedComment WHERE userId = {userId} AND comment_id = {commentId}",
-        "UserDislikedComment");
-
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("userId", userId);
-            data.Add("comment_id", (int)commentId);
-
-            if (likedComment.Tables[0].Rows.Count == 0 && dislikedComment.Tables[0].Rows.Count == 0)
+            var comment = context.ForumComments.Find((int)commentId);
+            if (comment == null)
             {
-                // User has not voted yet, apply the vote normally and insert into the appropriate table
-                dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
+                return;
+            }
 
+            var liked = context.UserLikedComments.Find(userId, (int)commentId);
+            var disliked = context.UserDislikedComments.Find(userId, (int)commentId);
+
+            if (liked == null && disliked == null)
+            {
+                comment.Score += voteValue;
                 if (voteValue > 0)
                 {
-                    // User liked the comment
-                    dbConnection.ExecuteInsert("UserLikedComment", data);
+                    context.UserLikedComments.Add(new UserLikedComment { UserId = userId, CommentId = commentId });
                 }
                 else
                 {
-                    // User disliked the comment
-                    dbConnection.ExecuteInsert("UserDislikedComment", data);
+                    context.UserDislikedComments.Add(new UserDislikedComment { UserId = userId, CommentId = commentId });
                 }
             }
-            else
+            else if (liked != null)
             {
-                // User has already voted, check if it's the same or opposite vote
-                if (likedComment.Tables[0].Rows.Count > 0)
+                if (voteValue > 0)
                 {
-                    if (voteValue > 0)
-                    {
-                        // Same vote, retract the like
-                        dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
-                        newScore = GetCommentScore(commentId) - voteValue; // Adjust the comment score
-                    }
-                    else
-                    {
-                        // Opposite vote, retract the like and add a dislike
-                        dbConnection.ExecuteDelete("UserLikedComment", "userId", (int)userId);
-                        dbConnection.ExecuteInsert("UserDislikedComment", data);
-                        newScore = GetCommentScore(commentId) + (2 * voteValue); // Adjust the comment score accordingly
-                    }
+                    comment.Score -= voteValue;
+                    context.UserLikedComments.Remove(liked);
                 }
-                else if (dislikedComment.Tables[0].Rows.Count > 0)
+                else
                 {
-                    if (voteValue < 0)
-                    {
-                        // Same vote, retract the dislike
-                        dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
-                        newScore = GetCommentScore(commentId) - voteValue; // Adjust the comment score
-                    }
-                    else
-                    {
-                        // Opposite vote, retract the dislike and add a like
-                        dbConnection.ExecuteDelete("UserDislikedComment", "userId", (int)userId);
-                        dbConnection.ExecuteInsert("UserLikedComment", data);
-                        newScore = GetCommentScore(commentId) + (2 * voteValue); // Adjust the comment score accordingly
-                    }
+                    comment.Score -= 2 * voteValue;
+                    context.UserLikedComments.Remove(liked);
+                    context.UserDislikedComments.Add(new UserDislikedComment { UserId = userId, CommentId = commentId });
+                }
+            }
+            else if (disliked != null)
+            {
+                if (voteValue < 0)
+                {
+                    comment.Score -= voteValue;
+                    context.UserDislikedComments.Remove(disliked);
+                }
+                else
+                {
+                    comment.Score += 2 * voteValue;
+                    context.UserDislikedComments.Remove(disliked);
+                    context.UserLikedComments.Add(new UserLikedComment { UserId = userId, CommentId = commentId });
                 }
             }
 
-            // Update the comment score
-            dbConnection.ExecuteUpdate("ForumComments", "score", "comment_id", newScore, (int)commentId);
-
-            dbConnection.Disconnect();
+            context.SaveChanges();
         }
 
 #nullable enable
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string? filter = null)
         {
-            string query = $"SELECT * FROM ForumPosts WHERE 1 = 1";
-
-            if (gameId != null)
+            var query = context.ForumPosts.AsQueryable();
+            if (gameId.HasValue)
             {
-                query += $" AND game_id = {gameId}";
+                query = query.Where(p => p.GameId == gameId.Value);
             }
             if (positiveScoreOnly)
             {
-                query += " AND score >= 0";
+                query = query.Where(p => p.Score >= 0);
             }
             if (!string.IsNullOrEmpty(filter))
             {
-                query += $" AND title LIKE '%{filter}%'";
+                query = query.Where(p => p.Title.Contains(filter) || p.Body.Contains(filter));
             }
-            query += $" ORDER BY creation_date OFFSET {pageNumber * pageSize} ROWS FETCH NEXT {pageSize} ROWS ONLY";
-
-            dbConnection.Connect();
-            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumPosts");
-            List<ForumPost> posts = new();
-            foreach (DataRow row in dataSet.Tables[0].Rows)
-            {
-                ForumPost post = new()
-                {
-                    Id = Convert.ToUInt32(row["post_id"]),
-                    Title = Convert.ToString(row["title"]),
-                    Body = Convert.ToString(row["body"]),
-                    Score = Convert.ToInt32(row["score"]),
-                    TimeStamp = Convert.ToString(row["creation_date"]),
-                    AuthorId = (int)Convert.ToUInt32(row["author_id"]),
-                    GameId = row.IsNull("game_id") ? null : Convert.ToUInt32(row["game_id"]),
-                };
-
-                posts.Add(post);
-            }
-            dbConnection.Disconnect();
-            return posts;
+            return query
+                .OrderByDescending(p => p.TimeStamp)
+                .Skip((int)((pageNumber - 1) * pageSize))
+                .Take((int)pageSize)
+                .ToList();
         }
 
         public List<ForumComment> GetComments(uint postId)
         {
-            string query = $"SELECT * FROM ForumComments WHERE post_id = {postId} ORDER BY creation_date";
-            dbConnection.Connect();
-            DataSet dataSet = dbConnection.ExecuteQuery(query, "ForumComments");
-            List<ForumComment> comments = new();
-            foreach (DataRow row in dataSet.Tables[0].Rows)
-            {
-                ForumComment comment = new()
-                {
-                    Id = Convert.ToUInt32(row["comment_id"]),
-                    Body = Convert.ToString(row["body"]),
-                    Score = Convert.ToInt32(row["score"]),
-                    TimeStamp = Convert.ToString(row["creation_date"]),
-                    AuthorId = Convert.ToUInt32(row["author_id"])
-                };
-                comments.Add(comment);
-            }
-            dbConnection.Disconnect();
-            return comments;
+            return context.ForumComments
+                .Where(c => c.PostId == postId)
+                .OrderByDescending(c => c.TimeStamp)
+                .ToList();
         }
     }
 }
