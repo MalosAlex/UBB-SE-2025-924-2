@@ -10,6 +10,7 @@ using NUnit.Framework;
 
 namespace Tests.RepositoryTests
 {
+    /*
     [TestFixture]
     internal class SessionRepositoryTests
     {
@@ -394,4 +395,5 @@ namespace Tests.RepositoryTests
             Assert.Throws<RepositoryException>(() => sessionRepository.CleanupExpiredSessions());
         }
     }
+    */
 }

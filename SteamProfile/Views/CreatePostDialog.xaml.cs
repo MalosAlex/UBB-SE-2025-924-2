@@ -29,9 +29,9 @@ namespace SteamProfile.Views
             var deferral = args.GetDeferral();
             // Validate inputs
             bool isValid = ValidateInputs();
+            // Prevent dialog from closing
             if (!isValid)
             {
-                // Prevent dialog from closing
                 args.Cancel = true;
                 deferral.Complete();
                 return;
@@ -43,7 +43,8 @@ namespace SteamProfile.Views
                 string body = BodyTextBox.Text.Trim();
                 // Get game ID (if selected)
                 uint? gameId = null;
-                if (GameComboBox.SelectedIndex > 0) // First option is "No game"
+                // First option is "No game"
+                if (GameComboBox.SelectedIndex > 0)
                 {
                     if (GameComboBox.SelectedItem is ComboBoxItem selectedItem &&
                         selectedItem.Tag is string tagValue &&
