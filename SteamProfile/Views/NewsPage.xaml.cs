@@ -70,5 +70,9 @@ namespace SteamProfile.Views
                 News_PostsGrid.Children.Add(preview);
             }
         }
+        private void GoBack(object sender, RoutedEventArgs eventArgs)
+        {
+            Frame.GoBack();
+        }
     }
 }
