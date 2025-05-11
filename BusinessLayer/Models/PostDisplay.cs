@@ -11,12 +11,12 @@ namespace BusinessLayer.Models
         // User information
         public User Author { get; private set; }
         // Properties for easy binding
-        public uint Id => Post.Id;
+        public int Id => Post.Id;
         public string Title => Post.Title;
         public int Score => Post.Score;
         public string TimeStamp => Post.TimeStamp.ToString();
         public uint AuthorId => (uint)Post.AuthorId;
-        public uint? GameId => Post.GameId;
+        public int? GameId => Post.GameId;
         // User properties
         public string Username => Author.Username;
         public string ProfilePicturePath => Author.ProfilePicturePath;

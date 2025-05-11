@@ -62,7 +62,7 @@ namespace BusinessLayer.Repositories
                 .ToList();
         }
 
-        public void CreatePost(string title, string body, uint authorId, string date, uint? gameId)
+        public void CreatePost(string title, string body, uint authorId, string date, int? gameId)
         {
             var post = new ForumPost
             {
@@ -77,7 +77,7 @@ namespace BusinessLayer.Repositories
             context.SaveChanges();
         }
 
-        public void DeletePost(uint postId)
+        public void DeletePost(int postId)
         {
             var post = new ForumPost { Id = postId };
             if (post != null)
@@ -234,7 +234,7 @@ namespace BusinessLayer.Repositories
         }
 
 #nullable enable
-        public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string? filter = null)
+        public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
         {
             var query = context.ForumPosts.AsQueryable();
             if (gameId.HasValue)

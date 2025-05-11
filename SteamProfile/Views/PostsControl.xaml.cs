@@ -19,7 +19,7 @@ namespace SteamProfile.Views
         private bool isLoadingMore = false;
         private bool hasMorePosts = true;
         private bool positiveScoreOnly = false;
-        private uint? gameId = null;
+        private int? gameId = null;
         private string filter = null;
         private TimeSpanFilter timeSpanFilter = TimeSpanFilter.AllTime;
         private bool isTopPostsMode = false;
@@ -74,7 +74,7 @@ namespace SteamProfile.Views
             }
         }
         // Load paged posts with optional filters
-        public void LoadPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string filter = null)
+        public void LoadPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string filter = null)
         {
             try
             {
@@ -211,7 +211,7 @@ namespace SteamProfile.Views
         // Handle delete button click
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is uint postId)
+            if (sender is Button button && button.Tag is int postId)
             {
                 try
                 {
@@ -219,7 +219,7 @@ namespace SteamProfile.Views
                     // Just delete the post directly
                     ForumService.GetForumServiceInstance.DeletePost(postId);
                     // Remove the post from the UI
-                    RemovePostFromUI(postId);
+                    RemovePostFromUI((uint)postId);
                 }
                 catch (Exception ex)
                 {

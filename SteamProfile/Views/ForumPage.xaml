@@ -20,7 +20,7 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Stretch">
             <!-- ComboBox for Sorting -->
-            <ComboBox x:Name="SortComboBox" SelectedIndex="0" Width="150" Margin="0,0,10,0" SelectionChanged="SortComboBox_SelectionChanged">
+            <ComboBox x:Name="SortComboBox" SelectedIndex="1" Width="150" Margin="0,0,10,0" SelectionChanged="SortComboBox_SelectionChanged">
                 <ComboBoxItem Content="Recent"/>
                 <ComboBoxItem Content="Top Today"/>
                 <ComboBoxItem Content="Top This Week"/>
@@ -36,7 +36,7 @@
 
             <!-- Create Post Button - Bound to ViewModel Command -->
             <Button Content="Create Post" Width="100" Height="30"
-                    Margin="10,0,0,0" Command="{Binding CreatePostCommand}"/>
+                    Margin="10,0,0,0" Command="{Binding RequestCreatePostCommand}"/>
 
             <!-- Spacer -->
             <Border Width="10"/>

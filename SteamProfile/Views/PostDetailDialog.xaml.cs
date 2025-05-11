@@ -51,7 +51,7 @@ namespace SteamProfile.Views
             try
             {
                 // Get comments for this post
-                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments(post.Id);
+                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments((uint)post.Id);
                 // Clear existing comments
                 CommentsPanel.Children.Clear();
                 commentControls.Clear();
@@ -115,7 +115,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance.VoteOnPost(post.Id, 1);
+                ForumService.GetForumServiceInstance.VoteOnPost((uint)post.Id, 1);
                 // Update score display
                 post.Score += 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -133,7 +133,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance.VoteOnPost(post.Id, -1);
+                ForumService.GetForumServiceInstance.VoteOnPost((uint)post.Id, -1);
                 // Update score display
                 post.Score -= 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -154,7 +154,7 @@ namespace SteamProfile.Views
                 this.Hide();
 
                 // Create and show the add comment dialog
-                AddCommentDialog dialog = new AddCommentDialog(post.Id);
+                AddCommentDialog dialog = new AddCommentDialog((uint)post.Id);
 
                 // Ensure the XamlRoot is set properly
                 if (Application.Current is App app && app.MainWindow != null && app.MainWindow.Content != null)

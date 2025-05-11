@@ -8,12 +8,12 @@ namespace BusinessLayer.Models
 {
     public class ForumPost
     {
-        public uint Id { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
         public int Score { get; set; }
         public DateTime TimeStamp { get; set; }
         public int AuthorId { get; set; }
-        public uint? GameId { get; set; }
+        public int? GameId { get; set; }
     }
 }
