@@ -38,7 +38,7 @@
         <!-- Comment Content -->
         <StackPanel Grid.Column="2">
             <TextBlock x:Name="UsernameTextBlock" FontWeight="SemiBold" FontSize="12"/>
-            <TextBlock x:Name="BodyTextBlock" TextWrapping="Wrap"/>
+            <WebView2 x:Name="BodyWebView" Height="80" Margin="0,4,0,4"/>
             <TextBlock x:Name="TimeStampTextBlock" Opacity="0.7" FontSize="10" Margin="0,3,0,0"/>
         </StackPanel>
 

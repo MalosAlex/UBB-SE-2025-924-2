@@ -73,10 +73,7 @@
                 </Grid>
 
                 <!-- Post Content -->
-                <TextBlock x:Name="PostBodyTextBlock" 
-                        Text="Post content goes here..." 
-                        TextWrapping="Wrap" 
-                        Margin="0,0,0,20"/>
+                <WebView2 x:Name="PostContentWebView" Height="300" Margin="0,0,0,20"/>
 
                 <!-- Comments Section Header -->
                 <Grid Margin="0,0,0,10">

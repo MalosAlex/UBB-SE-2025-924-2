@@ -13,7 +13,6 @@ namespace SteamProfile.Views
     public sealed partial class PostPreviewControl : UserControl
     {
         public event RoutedEventHandler? PostClicked;
-        private Users users = Users.Instance;
 
         public Post PostData { get; private set; }
 
@@ -26,7 +25,19 @@ namespace SteamProfile.Views
 
         public void SetPostData(Post post)
         {
-            User? user = users.GetUserById(post.AuthorId);
+            User? user = App.UserService.GetUserByIdentifier(post.AuthorId);
+            if (user == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WARNING] User not found for ID: {post.AuthorId}");
+                Username.Text = "Unknown";
+                UploadDate.Text = post.UploadDate.ToString("MMM d, yyyy");
+                LikesCount.Text = post.NrLikes.ToString();
+                DislikesCount.Text = post.NrDislikes.ToString();
+                CommentsCount.Text = post.NrComments.ToString();
+                ProfilePicture.ImageSource = null;
+                return;
+            }
+
             PostData = post;
             Username.Text = user.Username;
             UploadDate.Text = post.UploadDate.ToString("MMM d, yyyy");
@@ -40,6 +51,7 @@ namespace SteamProfile.Views
 
             UpdateWebViewContent();
         }
+
 
         private void PostPreviewControl_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
@@ -61,7 +73,7 @@ namespace SteamProfile.Views
 
         private void UpdateWebViewContent()
         {
-            if (ContentWebView.CoreWebView2 != null)
+            if (ContentWebView.CoreWebView2 != null && PostData != null && PostData.Content != null)
             {
                 ContentWebView.CoreWebView2.NavigateToString(PostData.Content);
             }

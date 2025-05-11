@@ -246,6 +246,7 @@ namespace BusinessLayer.Repositories
             var query = context.NewsPosts
                 .Where(p => EF.Functions.Like(p.Content, $"%{searchedText}%"))
                 .OrderByDescending(p => p.UploadDate)
+                .ThenByDescending(p => p.Id)
                 .Skip((pageNumber - 1) * PAGE_SIZE)
                 .Take(PAGE_SIZE)
                 .ToList();

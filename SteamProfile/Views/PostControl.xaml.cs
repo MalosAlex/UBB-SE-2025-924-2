@@ -25,7 +25,7 @@ namespace SteamProfile.Views
 
         public Post PostData { get; private set; }
 
-        private Users users = Users.Instance;
+        private readonly IUserService userService = App.UserService;
         private NewsService service;
 
         public PostControl()
@@ -50,17 +50,24 @@ namespace SteamProfile.Views
 
         public void SetPostData(Post post)
         {
-            User? user = users.GetUserById(post.AuthorId);
+            User? user = userService.GetUserByIdentifier(post.AuthorId);
             PostData = post;
-            Username.Text = user.Username;
+            if (user != null)
+            {
+                Username.Text = user.Username;
+                var image = new BitmapImage();
+                image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
+                ProfilePicture.ImageSource = image;
+            }
+            else
+            {
+                Username.Text = "Unknown user";
+                ProfilePicture.ImageSource = null;
+            }
             UploadDate.Text = post.UploadDate.ToString("MMM d, yyyy");
             LikesCount.Text = post.NrLikes.ToString();
             DislikesCount.Text = post.NrDislikes.ToString();
             CommentsCount.Text = post.NrComments.ToString();
-
-            var image = new BitmapImage();
-            image.SetSource(new MemoryStream(user.ProfilePicture).AsRandomAccessStream());
-            ProfilePicture.ImageSource = image;
 
             bool isDeveloper = service.ActiveUser.IsDeveloper;
             EditButton.Visibility = isDeveloper ? Visibility.Visible : Visibility.Collapsed;
