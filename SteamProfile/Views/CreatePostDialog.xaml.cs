@@ -29,9 +29,9 @@ namespace SteamProfile.Views
             var deferral = args.GetDeferral();
             // Validate inputs
             bool isValid = ValidateInputs();
+            // Prevent dialog from closing
             if (!isValid)
             {
-                // Prevent dialog from closing
                 args.Cancel = true;
                 deferral.Complete();
                 return;
