@@ -15,11 +15,11 @@ namespace BusinessLayer.Services.Interfaces
         public uint GetCurrentUserId();
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter);
-        public void VoteOnPost(uint postId, int voteValue);
-        public void VoteOnComment(uint commentId, int voteValue);
-        public List<ForumComment> GetComments(uint postId);
-        public void DeleteComment(uint commentId);
-        public void CreateComment(string body, uint postId, string date);
+        public void VoteOnPost(int postId, int voteValue);
+        public void VoteOnComment(int commentId, int voteValue);
+        public List<ForumComment> GetComments(int postId);
+        public void DeleteComment(int commentId);
+        public void CreateComment(string body, int postId, string date);
         public void DeletePost(int postId);
         public void CreatePost(string title, string body, string date, int? gameId);
     }

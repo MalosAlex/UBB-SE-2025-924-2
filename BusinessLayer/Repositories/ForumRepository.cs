@@ -62,7 +62,7 @@ namespace BusinessLayer.Repositories
                 .ToList();
         }
 
-        public void CreatePost(string title, string body, uint authorId, string date, int? gameId)
+        public void CreatePost(string title, string body, int authorId, string date, int? gameId)
         {
             var post = new ForumPost
             {
@@ -87,7 +87,7 @@ namespace BusinessLayer.Repositories
             }
         }
 
-        public void CreateComment(string body, uint postId, string date, uint authorId)
+        public void CreateComment(string body, int postId, string date, int authorId)
         {
             var comment = new ForumComment
             {
@@ -102,7 +102,7 @@ namespace BusinessLayer.Repositories
             context.SaveChanges();
         }
 
-        public void DeleteComment(uint commentId)
+        public void DeleteComment(int commentId)
         {
             var comment = new ForumComment { Id = commentId };
             if (comment != null)
@@ -119,7 +119,7 @@ namespace BusinessLayer.Repositories
             return entity != null ? (int)entity.Score : 0;
         }
 
-        public void VoteOnPost(uint postId, int voteValue, int userId)
+        public void VoteOnPost(int postId, int voteValue, int userId)
         {
             var post = context.ForumPosts.Find((int)postId);
             if (post == null)
@@ -178,7 +178,7 @@ namespace BusinessLayer.Repositories
             context.SaveChanges();
         }
 
-        public void VoteOnComment(uint commentId, int voteValue, int userId)
+        public void VoteOnComment(int commentId, int voteValue, int userId)
         {
             var comment = context.ForumComments.Find((int)commentId);
             if (comment == null)
@@ -256,7 +256,7 @@ namespace BusinessLayer.Repositories
                 .ToList();
         }
 
-        public List<ForumComment> GetComments(uint postId)
+        public List<ForumComment> GetComments(int postId)
         {
             return context.ForumComments
                 .Where(c => c.PostId == postId)

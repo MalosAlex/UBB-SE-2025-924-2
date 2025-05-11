@@ -9,6 +9,6 @@ namespace BusinessLayer.Models
     public class UserDislikedComment
     {
         public int UserId { get; set; }
-        public uint CommentId { get; set; }
+        public int CommentId { get; set; }
     }
 }

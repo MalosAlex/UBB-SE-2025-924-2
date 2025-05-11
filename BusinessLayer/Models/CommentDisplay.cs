@@ -12,11 +12,11 @@ namespace BusinessLayer.Models
         // User information
         public User Author { get; private set; }
         // Properties for easy binding
-        public uint Id => Comment.Id;
+        public int Id => Comment.Id;
         public string Body => Comment.Body;
         public int Score => Comment.Score;
         public string TimeStamp => Comment.TimeStamp.ToString();
-        public uint AuthorId => Comment.AuthorId;
+        public int AuthorId => Comment.AuthorId;
         // User properties
         public string Username => Author.Username;
         public string ProfilePicturePath => Author.ProfilePicturePath;

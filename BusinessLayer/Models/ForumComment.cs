@@ -8,12 +8,12 @@ namespace BusinessLayer.Models
 {
     public class ForumComment
     {
-        public uint Id { get; set; }
+        public int Id { get; set; }
         public string Body { get; set; }
         public int Score { get; set; }
         public DateTime TimeStamp { get; set; }
-        public uint AuthorId { get; set; }
+        public int AuthorId { get; set; }
 
-        public uint PostId { get; set; }
+        public int PostId { get; set; }
     }
 }

@@ -60,7 +60,7 @@ namespace SteamProfile.Views
             try
             {
                 // Get comments for this post
-                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments((uint)post.Id);
+                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments(post.Id);
                 // Clear existing comments
                 CommentsPanel.Children.Clear();
                 commentControls.Clear();
@@ -97,7 +97,7 @@ namespace SteamProfile.Views
                 System.Diagnostics.Debug.WriteLine($"Error loading comments: {ex.Message}");
             }
         }
-        private void CommentControl_DeleteRequested(object sender, uint commentId)
+        private void CommentControl_DeleteRequested(object sender, int commentId)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace SteamProfile.Views
                 System.Diagnostics.Debug.WriteLine($"Error deleting comment: {ex.Message}");
             }
         }
-        private void CommentControl_CommentVoted(object sender, uint commentId)
+        private void CommentControl_CommentVoted(object sender, int commentId)
         {
             // Mark that changes were made
             ChangesWereMade = true;
@@ -124,7 +124,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance.VoteOnPost((uint)post.Id, 1);
+                ForumService.GetForumServiceInstance.VoteOnPost((int)post.Id, 1);
                 // Update score display
                 post.Score += 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -142,7 +142,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance.VoteOnPost((uint)post.Id, -1);
+                ForumService.GetForumServiceInstance.VoteOnPost((int)post.Id, -1);
                 // Update score display
                 post.Score -= 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -163,7 +163,7 @@ namespace SteamProfile.Views
                 this.Hide();
 
                 // Create and show the add comment dialog
-                AddCommentDialog dialog = new AddCommentDialog((uint)post.Id);
+                AddCommentDialog dialog = new AddCommentDialog((int)post.Id);
 
                 // Ensure the XamlRoot is set properly
                 if (Application.Current is App app && app.MainWindow != null && app.MainWindow.Content != null)

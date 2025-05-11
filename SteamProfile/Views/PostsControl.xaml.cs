@@ -189,7 +189,7 @@ namespace SteamProfile.Views
         // Handle upvote button click
         private void UpvoteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is uint postId)
+            if (sender is Button button && button.Tag is int postId)
             {
                 // Call the service with a positive vote value (1)
                 ForumService.GetForumServiceInstance.VoteOnPost(postId, 1);
@@ -200,7 +200,7 @@ namespace SteamProfile.Views
         // Handle downvote button click
         private void DownvoteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is uint postId)
+            if (sender is Button button && button.Tag is int postId)
             {
                 // Call the service with a negative vote value (-1)
                 ForumService.GetForumServiceInstance.VoteOnPost(postId, -1);
@@ -228,7 +228,7 @@ namespace SteamProfile.Views
             }
         }
         // Helper method to refresh a specific post
-        private void RefreshPost(uint postId)
+        private void RefreshPost(int postId)
         {
             // Find the post in the collection
             for (int i = 0; i < posts.Count; i++)

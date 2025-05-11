@@ -40,29 +40,29 @@ namespace BusinessLayer.Services
             return repository.GetTopPosts(filter);
         }
 
-        public void VoteOnPost(uint postId, int voteValue)
+        public void VoteOnPost(int postId, int voteValue)
         {
             repository.VoteOnPost(postId, voteValue, (int)GetCurrentUserId());
         }
 
-        public void VoteOnComment(uint commentId, int voteValue)
+        public void VoteOnComment(int commentId, int voteValue)
         {
             repository.VoteOnComment(commentId, voteValue, (int)GetCurrentUserId());
         }
 
-        public List<ForumComment> GetComments(uint postId)
+        public List<ForumComment> GetComments(int postId)
         {
             return repository.GetComments(postId);
         }
 
-        public void DeleteComment(uint commentId)
+        public void DeleteComment(int commentId)
         {
             repository.DeleteComment(commentId);
         }
 
-        public void CreateComment(string body, uint postId, string date)
+        public void CreateComment(string body, int postId, string date)
         {
-            repository.CreateComment(body, postId, date, GetCurrentUserId());
+            repository.CreateComment(body, postId, date, (int)GetCurrentUserId());
         }
 
         public void DeletePost(int postId)
@@ -72,7 +72,7 @@ namespace BusinessLayer.Services
 
         public void CreatePost(string title, string body, string date, int? gameId)
         {
-            repository.CreatePost(title, body, GetCurrentUserId(), date, gameId);
+            repository.CreatePost(title, body, (int)GetCurrentUserId(), date, gameId);
         }
     }
 }

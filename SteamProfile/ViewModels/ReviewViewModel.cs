@@ -180,17 +180,7 @@ namespace SteamProfile.ViewModels
             }
 
             reviewService.ToggleVote(reviewId, voteType, shouldIncrement);
-
-            if (voteType == "Helpful")
-            {
-                review.TotalHelpfulVotesReceived += shouldIncrement ? 1 : -1;
-            }
-            else if (voteType == "Funny")
-            {
-                review.TotalFunnyVotesReceived += shouldIncrement ? 1 : -1;
-            }
-
-            OnPropertyChanged(nameof(CollectionOfGameReviews));
+            LoadReviewsForGame(currentGameIdentifier);
         }
 
         public void ApplyReccomendationFilter(string filter)
