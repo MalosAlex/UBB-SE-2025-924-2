@@ -20,8 +20,8 @@ namespace SteamProfile.Views
         public Action<object, RoutedEventArgs> CommentUpdated { get; internal set; }
 
         // Events for user interactions
-        public event EventHandler<uint> DeleteRequested;
-        public event EventHandler<uint> CommentVoted;
+        public event EventHandler<int> DeleteRequested;
+        public event EventHandler<int> CommentVoted;
         public CommentControl()
         {
             this.InitializeComponent();
@@ -60,7 +60,7 @@ namespace SteamProfile.Views
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             // Trigger the DeleteRequested event
-            DeleteRequested?.Invoke(this, comment.Id);
+            DeleteRequested?.Invoke(this, (int)comment.Id);
         }
         // Handle upvote button click
         private void UpvoteButton_Click(object sender, RoutedEventArgs e)
@@ -73,7 +73,7 @@ namespace SteamProfile.Views
                 comment.Comment.Score += 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();
                 // Notify of vote
-                CommentVoted?.Invoke(this, comment.Id);
+                CommentVoted?.Invoke(this, (int)comment.Id);
             }
             catch (Exception ex)
             {
@@ -92,7 +92,7 @@ namespace SteamProfile.Views
                 comment.Comment.Score -= 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();
                 // Notify of vote
-                CommentVoted?.Invoke(this, comment.Id);
+                CommentVoted?.Invoke(this, (int)comment.Id);
             }
             catch (Exception ex)
             {
@@ -109,8 +109,8 @@ namespace SteamProfile.Views
 
             var display = new ForumComment
             {
-                Id = (uint)commentModel.CommentId,
-                AuthorId = (uint)commentModel.AuthorId,
+                Id = (int)commentModel.CommentId,
+                AuthorId = (int)commentModel.AuthorId,
                 Body = commentModel.Content,
                 Score = commentModel.NrLikes,
                 TimeStamp = commentModel.CommentDate

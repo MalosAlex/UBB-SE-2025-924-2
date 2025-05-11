@@ -131,7 +131,7 @@ namespace SteamProfile.ViewModels
 
             try
             {
-                var comments = forumService.GetComments((uint)SelectedPost.Id);
+                var comments = forumService.GetComments((int)SelectedPost.Id);
                 Comments.Clear();
                 foreach (var comment in comments)
                 {
@@ -163,7 +163,7 @@ namespace SteamProfile.ViewModels
             try
             {
                 // NOTE: If you need to set XamlRoot, do it from the View (code-behind) before calling this command.
-                var addCommentDialog = new AddCommentDialog((uint)SelectedPost.Id);
+                var addCommentDialog = new AddCommentDialog((int)SelectedPost.Id);
                 var result = await addCommentDialog.ShowAsync();
                 if (result == ContentDialogResult.Primary && addCommentDialog.CommentCreated)
                 {

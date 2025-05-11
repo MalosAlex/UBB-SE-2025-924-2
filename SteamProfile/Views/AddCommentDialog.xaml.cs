@@ -12,10 +12,10 @@ namespace SteamProfile.Views
         private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
         private User currentUser;
         // The post ID this comment will be added to
-        public uint PostId { get; private set; }
+        public int PostId { get; private set; }
         // Result indicating if a comment was created
         public bool CommentCreated { get; private set; }
-        public AddCommentDialog(uint postId)
+        public AddCommentDialog(int postId)
         {
             this.InitializeComponent();
             PostId = postId;
