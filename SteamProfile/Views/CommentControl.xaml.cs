@@ -31,7 +31,16 @@ namespace SteamProfile.Views
         {
             this.comment = comment;
             // Set up UI elements
-            BodyTextBlock.Text = comment.Body;
+            this.Loaded += async (s, e) =>
+            {
+                string html = comment.Body;
+                if (!html.TrimStart().StartsWith("<html", StringComparison.OrdinalIgnoreCase))
+                {
+                    html = $"<html><body>{html}</body></html>";
+                }
+                await BodyWebView.EnsureCoreWebView2Async();
+                BodyWebView.CoreWebView2.NavigateToString(html);
+            };
             UsernameTextBlock.Text = comment.Username;
             TimeStampTextBlock.Text = comment.TimeStamp;
             ScoreTextBlock.Text = comment.Score.ToString();

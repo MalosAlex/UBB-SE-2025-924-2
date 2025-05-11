@@ -29,7 +29,16 @@ namespace SteamProfile.Views
             postDisplay = PostDisplay.FromPost(post);
             // Set post information
             TitleTextBlock.Text = post.Title;
-            PostBodyTextBlock.Text = post.Body;
+            this.Loaded += async (s, e) =>
+            {
+                string html = post.Body;
+                if (!html.TrimStart().StartsWith("<html", StringComparison.OrdinalIgnoreCase))
+                {
+                    html = $"<html><body>{html}</body></html>";
+                }
+                await PostContentWebView.EnsureCoreWebView2Async();
+                PostContentWebView.CoreWebView2.NavigateToString(html);
+            };
             ScoreTextBlock.Text = post.Score.ToString();
             // Set user information
             User author = User.GetUserById(post.AuthorId);

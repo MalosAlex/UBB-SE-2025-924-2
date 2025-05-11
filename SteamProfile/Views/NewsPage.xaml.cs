@@ -20,6 +20,9 @@ namespace SteamProfile.Views
 
             News_PostControl.PanelClosed += (_, __) => ViewModel.CloseOverlays();
             News_PostEditorPanel.PostUploaded += (_, __) => ViewModel.HandlePostUploaded();
+
+            // Ensure the grid refreshes when posts change
+            ViewModel.PositionedPosts.CollectionChanged += (_, __) => RefreshPostGrid();
         }
 
         private void SearchBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
