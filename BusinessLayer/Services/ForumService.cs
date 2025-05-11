@@ -30,7 +30,7 @@ namespace BusinessLayer.Services
             return 1;
         }
 #nullable enable
-        public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, uint? gameId = null, string? filter = null)
+        public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
         {
             return repository.GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
         }
@@ -65,12 +65,12 @@ namespace BusinessLayer.Services
             repository.CreateComment(body, postId, date, GetCurrentUserId());
         }
 
-        public void DeletePost(uint postId)
+        public void DeletePost(int postId)
         {
             repository.DeletePost(postId);
         }
 
-        public void CreatePost(string title, string body, string date, uint? gameId)
+        public void CreatePost(string title, string body, string date, int? gameId)
         {
             repository.CreatePost(title, body, GetCurrentUserId(), date, gameId);
         }

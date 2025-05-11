@@ -64,5 +64,6 @@
             <ComboBoxItem Content="Game 2" Tag="2"/>
             <ComboBoxItem Content="Game 3" Tag="3"/>
         </ComboBox>
+        <TextBlock x:Name="GeneralErrorText" Foreground="Red" Visibility="Collapsed" TextWrapping="Wrap"/>
     </StackPanel>
 </ContentDialog> 

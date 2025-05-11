@@ -24,6 +24,9 @@ namespace SteamProfile.Views
             ViewModel = new ForumViewModel(forumService);
             this.DataContext = ViewModel;
 
+            // Subscribe to CreatePostRequested event
+            ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
+
             // Set up post selection event handler
             if (PostsControl != null)
             {
@@ -168,6 +171,18 @@ namespace SteamProfile.Views
                 await errorDialog.ShowAsync();
             }
         }
+
+        private async void ViewModel_CreatePostRequested(object sender, EventArgs e)
+        {
+            var dialog = new CreatePostDialog();
+            dialog.XamlRoot = this.Content.XamlRoot;
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary && dialog.PostCreated)
+            {
+                ViewModel.LoadPosts();
+            }
+        }
+
         private void GoBack(object sender, RoutedEventArgs eventArgs)
         {
             Frame.GoBack();

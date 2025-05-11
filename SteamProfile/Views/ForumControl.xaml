@@ -32,7 +32,7 @@
 
             <!-- Create Post Button - Bound to ViewModel Command -->
             <Button Content="Create Post" Width="100" Height="30"
-                    Margin="10,0,0,0" Command="{Binding CreatePostCommand}"/>
+                    Margin="10,0,0,0" Command="{Binding RequestCreatePostCommand}"/>
                     
             <!-- Spacer -->
             <Border Width="10"/>

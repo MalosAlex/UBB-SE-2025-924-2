@@ -22,8 +22,8 @@ namespace SteamProfile.ViewModels
 
         public ViewModelActionCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
-            execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            canExecute = canExecute;
+            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            this.canExecute = canExecute;
         }
 
         // Event required by ICommand interface
@@ -78,6 +78,8 @@ namespace SteamProfile.ViewModels
         public ICommand CreatePostCommand { get; }
         public ICommand AddCommentCommand { get; }
         public ICommand LoadPostsCommand { get; }
+        public event EventHandler CreatePostRequested;
+        public ICommand RequestCreatePostCommand { get; }
 
         // Constructor
         public ForumViewModel(IForumService forumService)
@@ -89,16 +91,16 @@ namespace SteamProfile.ViewModels
 
             // Initialize Commands
             LoadPostsCommand = new ViewModelActionCommand(parameter => LoadPosts());
-            // Point RelayCommands to the async methods
             CreatePostCommand = new ViewModelActionCommand(async parameter => await CreateNewPostAsync());
             AddCommentCommand = new ViewModelActionCommand(async parameter => await AddNewCommentAsync(), parameter => SelectedPost != null);
+            RequestCreatePostCommand = new ViewModelActionCommand(_ => OnCreatePostRequested());
 
             // Load initial posts
             LoadPosts(); // Call synchronous method directly
         }
 
         // Method to load posts (synchronous to match service)
-        private void LoadPosts()
+        public void LoadPosts()
         {
             try
             {
@@ -129,7 +131,7 @@ namespace SteamProfile.ViewModels
 
             try
             {
-                var comments = forumService.GetComments(SelectedPost.Id);
+                var comments = forumService.GetComments((uint)SelectedPost.Id);
                 Comments.Clear();
                 foreach (var comment in comments)
                 {
@@ -142,20 +144,14 @@ namespace SteamProfile.ViewModels
             }
         }
 
+        private void OnCreatePostRequested()
+        {
+            CreatePostRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         private async Task CreateNewPostAsync()
         {
-            // Instantiate the dialog
-            var createPostDialog = new CreatePostDialog();
-
-            // Show the dialog asynchronously
-            var result = await createPostDialog.ShowAsync();
-
-            // Check if the dialog was submitted successfully
-            // AND if the dialog indicated success via its PostCreated property.
-            if (result == ContentDialogResult.Primary && createPostDialog.PostCreated)
-            {
-                LoadPosts(); // Reload posts
-            }
+            // This method is now unused for dialog display. You may keep post-creation logic here if needed.
         }
 
         private async Task AddNewCommentAsync()
@@ -164,18 +160,19 @@ namespace SteamProfile.ViewModels
             {
                 return;
             }
-
-            // Instantiate the dialog, passing the selected post's ID
-            var addCommentDialog = new AddCommentDialog(SelectedPost.Id);
-
-            // Show the dialog asynchronously
-            var result = await addCommentDialog.ShowAsync();
-
-            // Check if the dialog was submitted successfully
-            // AND if the dialog indicated success via its CommentCreated property.
-            if (result == ContentDialogResult.Primary && addCommentDialog.CommentCreated)
+            try
             {
-                LoadCommentsForPost(); // Reload comments for the current post
+                // NOTE: If you need to set XamlRoot, do it from the View (code-behind) before calling this command.
+                var addCommentDialog = new AddCommentDialog((uint)SelectedPost.Id);
+                var result = await addCommentDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary && addCommentDialog.CommentCreated)
+                {
+                    LoadCommentsForPost(); // Reload comments for the current post
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding new comment: {ex.Message}");
             }
         }
 

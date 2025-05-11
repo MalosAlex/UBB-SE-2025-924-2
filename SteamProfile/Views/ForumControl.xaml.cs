@@ -34,6 +34,9 @@ namespace SteamProfile.Views
             ViewModel = new ForumViewModel(forumService);
             this.DataContext = ViewModel;
 
+            // Subscribe to CreatePostRequested event
+            ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
+
             // Set up post selection event handler
             if (PostsControl != null)
             {
@@ -127,7 +130,16 @@ namespace SteamProfile.Views
             bool positiveScoreOnly = PositiveScoreToggle.IsChecked ?? false;
             PostsControl.LoadPagedPosts(0, pageSize, positiveScoreOnly, null, currentSearchFilter);
         }
-        // CreatePostButton_Click is removed as it will be handled by ViewModel Command
+        private async void ViewModel_CreatePostRequested(object sender, EventArgs e)
+        {
+            var dialog = new CreatePostDialog();
+            dialog.XamlRoot = this.Content.XamlRoot;
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary && dialog.PostCreated)
+            {
+                ViewModel.LoadPosts();
+            }
+        }
         private async void PostsControl_PostSelected(object sender, ForumPost post)
         {
             try

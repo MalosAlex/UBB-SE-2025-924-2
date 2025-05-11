@@ -42,14 +42,16 @@ namespace SteamProfile.Views
                 string title = TitleTextBox.Text.Trim();
                 string body = BodyTextBox.Text.Trim();
                 // Get game ID (if selected)
-                uint? gameId = null;
+                int? gameId = null;
                 if (GameComboBox.SelectedIndex > 0) // First option is "No game"
                 {
-                    if (GameComboBox.SelectedItem is ComboBoxItem selectedItem &&
-                        selectedItem.Tag is string tagValue &&
-                        uint.TryParse(tagValue, out uint parsedGameId))
+                    if (GameComboBox.SelectedItem is ComboBoxItem selectedItem)
                     {
-                        gameId = parsedGameId;
+                        var tagString = selectedItem.Tag.ToString();
+                        if (int.TryParse(tagString, out int parsedGameId))
+                        {
+                            gameId = parsedGameId;
+                        }
                     }
                 }
                 // Create the post
@@ -60,15 +62,14 @@ namespace SteamProfile.Views
             }
             catch (Exception ex)
             {
-                // Handle any errors that might occur
-                ContentDialog errorDialog = new ContentDialog
+                // Show error inside the dialog instead of opening a new ContentDialog
+                var message = $"There was an error creating your post: {ex.Message}";
+                if (ex.InnerException != null)
                 {
-                    Title = "Error Creating Post",
-                    Content = $"There was an error creating your post: {ex.Message}",
-                    CloseButtonText = "OK"
-                };
-                // Don't wait for this to complete in this method
-                _ = errorDialog.ShowAsync();
+                    message += $"\nDetails: {ex.InnerException.Message}";
+                }
+                GeneralErrorText.Text = message;
+                GeneralErrorText.Visibility = Visibility.Visible;
                 // Prevent dialog from closing
                 args.Cancel = true;
             }
