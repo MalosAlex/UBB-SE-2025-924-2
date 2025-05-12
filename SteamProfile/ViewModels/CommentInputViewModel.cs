@@ -9,7 +9,7 @@ namespace SteamProfile.ViewModels
 {
     public partial class CommentInputViewModel : ObservableObject
     {
-        private readonly NewsService service;
+        private readonly INewsService service;
 
         [ObservableProperty]
         private string rawText = string.Empty;
@@ -37,7 +37,7 @@ namespace SteamProfile.ViewModels
 
         public CommentInputViewModel()
         {
-            service = (NewsService)App.GetService<INewsService>();
+            service = App.GetService<INewsService>();
             ToggleRawCommand = new RelayCommand(ShowRaw);
             TogglePreviewCommand = new RelayCommand(ShowPreview);
             PostCommand = new RelayCommand(PostComment);

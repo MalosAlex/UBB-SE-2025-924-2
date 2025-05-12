@@ -59,7 +59,7 @@ namespace SteamProfile.ViewModels
         public ObservableCollection<FeatureDisplay> Pets { get; } = new();
         public ObservableCollection<FeatureDisplay> Hats { get; } = new();
 
-        public FeaturesViewModel(FeaturesService featuresService, IUserService userService)
+        public FeaturesViewModel(IFeaturesService featuresService, IUserService userService)
         {
             this.featuresService = featuresService;
             this.userService = userService;

@@ -10,7 +10,7 @@ namespace SteamProfile.ViewModels
 {
     public partial class ReviewViewModel : INotifyPropertyChanged
     {
-        private readonly ReviewService reviewService;
+        private readonly IReviewService reviewService;
         private int currentGameIdentifier;
         public int CurrentGameId => currentGameIdentifier;
 
@@ -61,7 +61,7 @@ namespace SteamProfile.ViewModels
 
         public ReviewViewModel()
         {
-            reviewService = (ReviewService)App.GetService<IReviewService>();
+            reviewService = App.GetService<IReviewService>();
         }
 
         public void LoadReviewsForGame(int gameIdentifier)

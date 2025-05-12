@@ -26,13 +26,13 @@ namespace SteamProfile.Views
         public Post PostData { get; private set; }
 
         private readonly IUserService userService = App.UserService;
-        private NewsService service;
+        private INewsService service;
 
         public PostControl()
         {
             this.InitializeComponent();
 
-            service = service = (NewsService)App.GetService<INewsService>();
+            service = service = App.GetService<INewsService>();
 
             this.Loaded += PostControl_Loaded;
         }
@@ -69,7 +69,7 @@ namespace SteamProfile.Views
             DislikesCount.Text = post.NrDislikes.ToString();
             CommentsCount.Text = post.NrComments.ToString();
 
-            bool isDeveloper = service.ActiveUser.IsDeveloper;
+            bool isDeveloper = App.CurrentUser.IsDeveloper;
             EditButton.Visibility = isDeveloper ? Visibility.Visible : Visibility.Collapsed;
             DeleteButton.Visibility = isDeveloper ? Visibility.Visible : Visibility.Collapsed;
 
