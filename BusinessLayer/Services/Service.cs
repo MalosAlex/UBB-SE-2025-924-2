@@ -24,19 +24,20 @@ namespace BusinessLayer.Services
 
         public Service()
         {
-            this.repository = new Repository();
+            // This constructor should be removed, but keeping for backward compatibility
+            // Get the repository instance from the App's services
+            // this.repository = App.Current.Services.GetService<IRepository>();
         }
-        public Service(IRepository repository)
+        public Service(IRepository newRepository)
         {
-            this.repository = repository;
+            repository = newRepository ?? throw new ArgumentNullException(nameof(newRepository));
         }
 
         public List<User> GetFirst10UsersMatchedSorted(string username)
         {
             try
             {
-                string selectQuery = this.GetSelectQueryForUsersByName(username);
-                List<User> foundUsers = this.repository.GetUsers(selectQuery);
+                List<User> foundUsers = repository.GetUsers(username);
                 foundUsers = this.SortAscending(foundUsers);
                 foreach (User user in foundUsers)
                 {
@@ -76,10 +77,11 @@ namespace BusinessLayer.Services
             {
                 bool alreadyInvited = this.repository.CheckMessageInviteRequestExistance(senderUserId, receiverUserId);
 
-                Dictionary<string, object> invite = new Dictionary<string, object>();
-
-                invite[Repository.MESSAGE_INVITES_SENDER_ROW] = senderUserId;
-                invite[Repository.MESSAGE_INVITES_RECEIVER_ROW] = receiverUserId;
+                Dictionary<string, object> invite = new Dictionary<string, object>()
+                {
+                    ["sender"] = senderUserId,
+                    ["receiver"] = receiverUserId
+                };
 
                 switch (alreadyInvited)
                 {
@@ -107,8 +109,7 @@ namespace BusinessLayer.Services
 
                 foreach (int id in foundIds)
                 {
-                    string selectQuery = this.GetSelectQueryForUsersById(id);
-                    List<User> foundUser = this.repository.GetUsers(selectQuery);
+                    List<User> foundUser = this.repository.GetUserById(id);
                     foundUsers.AddRange(foundUser);
                 }
 
@@ -125,10 +126,11 @@ namespace BusinessLayer.Services
         {
             try
             {
-                Dictionary<string, object> invite = new Dictionary<string, object>();
-
-                invite.Add(Repository.MESSAGE_INVITES_SENDER_ROW, senderUserId);
-                invite.Add(Repository.MESSAGE_INVITES_RECEIVER_ROW, receiverUserId);
+                Dictionary<string, object> invite = new Dictionary<string, object>()
+                {
+                    ["sender"] = senderUserId,
+                    ["receiver"] = receiverUserId
+                };
 
                 this.repository.RemoveMessageRequest(invite);
             }
@@ -244,16 +246,6 @@ namespace BusinessLayer.Services
             {
                 Debug.WriteLine(exception);
             }
-        }
-
-        private string GetSelectQueryForUsersByName(string username)
-        {
-            return $"SELECT * FROM {Repository.USER_TABLE_NAME} WHERE username LIKE '%{username}%'";
-        }
-
-        private string GetSelectQueryForUsersById(int userId)
-        {
-            return $"SELECT * FROM {Repository.USER_TABLE_NAME} WHERE {Repository.USER_ID_ROW} = {userId}";
         }
     }
 }

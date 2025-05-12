@@ -81,6 +81,9 @@ namespace SteamProfile
             var achievementsRepository = new AchievementsRepository(dataContext);
             Services[typeof(IAchievementsRepository)] = achievementsRepository;
 
+            var repository = new Repository(dataContext);
+            Services[typeof(IRepository)] = repository;
+
             Services[typeof(IForumRepository)] = new ForumRepository(GetService<ApplicationDbContext>());
 
             // This is the old repository that is not used anymore (needs to be removed)
@@ -108,6 +111,9 @@ namespace SteamProfile
 
             var userService = new UserService(userRepository, sessionService);
             Services[typeof(IUserService)] = userService;
+
+            var service = new Service(repository);
+            Services[typeof(IService)] = service;
 
             Services[typeof(ICollectionsService)] = new CollectionsService(collectionsRepository);
 

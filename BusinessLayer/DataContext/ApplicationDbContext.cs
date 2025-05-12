@@ -53,6 +53,10 @@ namespace BusinessLayer.DataContext
 
         public DbSet<SoldGame> SoldGames { get; set; }
 
+        public DbSet<ChatUser> ChatUsers { get; set; }
+
+        public DbSet<ChatInvite> ChatInvites { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Collection>()
@@ -68,6 +72,32 @@ namespace BusinessLayer.DataContext
             modelBuilder.Ignore<CommentDisplay>();
 
             // Configure entities here
+
+            // -- ChatUser mapping --------------------------------------------------------
+            modelBuilder.Entity<ChatUser>(entity =>
+            {
+                entity.ToTable("ChatUsers");
+
+                entity.HasKey(u => u.UserId);
+
+                entity.Property(u => u.UserId)
+                    .HasColumnName("userid");
+                entity.Property(u => u.Username)
+                    .HasColumnName("username");
+                entity.Property(u => u.IpAddress)
+                    .HasColumnName("ipAddress");
+            });
+
+            // -- ChatInvite mapping -------------------------------------------------------
+            modelBuilder.Entity<ChatInvite>(entity =>
+            {
+                entity.ToTable("CHAT_INVITES");
+                entity.HasKey(ci => new { ci.SenderId, ci.ReceiverId });
+                entity.Property(ci => ci.SenderId)
+                    .HasColumnName("sender");
+                entity.Property(ci => ci.ReceiverId)
+                    .HasColumnName("receiver");
+            });
 
             // -- ReviewsUser mapping ---------------------------------------------------
             modelBuilder.Entity<ReviewsUser>(entity =>

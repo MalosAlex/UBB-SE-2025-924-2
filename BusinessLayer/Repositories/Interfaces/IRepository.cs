@@ -7,6 +7,8 @@ namespace BusinessLayer.Repositories.Interfaces
     {
         List<User> GetUsers(string selectQuery);
 
+        List<User> GetUserById(int userId);
+
         void SendNewMessageRequest(Dictionary<string, object> invite);
 
         void RemoveMessageRequest(Dictionary<string, object> request);
