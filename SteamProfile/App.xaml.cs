@@ -16,6 +16,7 @@ using BusinessLayer.DataContext;
 using Microsoft.EntityFrameworkCore.SqlServer;
 using SteamProfile.Services;
 using BusinessLayer.Services.Proxies;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace SteamProfile
 {
@@ -134,7 +135,6 @@ namespace SteamProfile
             Services[typeof(DatabaseConnection)] = dbConnection;
 
             // Register repositories
-
             // Register services
             var friendService = new FriendService(friendRepository);
             Services[typeof(IFriendService)] = friendService;
@@ -174,6 +174,30 @@ namespace SteamProfile
             // Configure session service first since many others depend on it
             var sessionService = ServiceFactory.CreateSessionService();
             Services[typeof(ISessionService)] = sessionService;
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            var connectionString = config.GetConnectionString("DefaultConnection");
+
+            var dbContextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseSqlServer(connectionString)
+                .Options;
+
+            var dataContext = new ApplicationDbContext(dbContextOptions);
+            Services[typeof(ApplicationDbContext)] = dataContext;
+
+            var userRepository = new UsersRepository(dataContext);
+            Services[typeof(IUsersRepository)] = userRepository;
+
+            var passwordResetRepository = new PasswordResetRepository(dataContext);
+            Services[typeof(IPasswordResetRepository)] = passwordResetRepository;
+
+            var userProfilesRepository = new UserProfilesRepository(dataContext);
+            Services[typeof(IUserProfilesRepository)] = userProfilesRepository;
+
+            var collectionsRepository = new CollectionsRepository(dataContext);
+            Services[typeof(ICollectionsRepository)] = collectionsRepository;
 
             // Configure user service next as it's also a common dependency
             var userService = ServiceFactory.CreateUserService();
@@ -207,7 +231,7 @@ namespace SteamProfile
 
         // Services
         public static IAchievementsService AchievementsService { get; private set; }
-        public static FeaturesService FeaturesService { get; private set; }
+        public static IFeaturesService FeaturesService { get; private set; }
         public static ICollectionsService CollectionsService { get; private set; }
         public static IWalletService WalletService { get; private set; }
         public static IUserService UserService { get; private set; }
@@ -223,9 +247,9 @@ namespace SteamProfile
         public static UsersViewModel UsersViewModel { get; private set; }
         public static FriendsViewModel FriendsViewModel { get; private set; }
 
-        public static PasswordResetService PasswordResetService { get; private set; }
-        public static SessionService SessionService { get; private set; }
-        public static UserProfilesRepository UserProfileRepository { get; private set; }
+        public static IPasswordResetService PasswordResetService { get; private set; }
+        public static ISessionService SessionService { get; private set; }
+        public static IUserProfilesRepository UserProfileRepository { get; private set; }
         public static ICollectionsRepository CollectionsRepository { get; private set; }
         public static PasswordResetRepository PasswordResetRepository { get; private set; }
         public static IUsersRepository UserRepository { get; private set; }
@@ -282,12 +306,18 @@ namespace SteamProfile
         {
             // For remote services, we're using the service proxies
             // All services are now implemented as proxies
+            var dataLink = DataLink.Instance;
+            var navigationService = NavigationService.Instance;
             UserService = GetService<IUserService>();
+            UserRepository = GetService<IUsersRepository>();
+            UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
+            PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
+            CollectionsRepository = GetService<ICollectionsRepository>();
 
             // Some services may need a cast to a specific type
             try
             {
-                SessionService = GetService<ISessionService>() as SessionService;
+                SessionService = GetService<ISessionService>();
             }
             catch
             {
@@ -352,7 +382,7 @@ namespace SteamProfile
             // Services that need a specific cast
             try
             {
-                FeaturesService = GetService<IFeaturesService>() as FeaturesService;
+                FeaturesService = GetService<IFeaturesService>();
             }
             catch
             {
@@ -361,7 +391,7 @@ namespace SteamProfile
 
             try
             {
-                PasswordResetService = GetService<IPasswordResetService>() as PasswordResetService;
+                PasswordResetService = GetService<IPasswordResetService>();
             }
             catch
             {

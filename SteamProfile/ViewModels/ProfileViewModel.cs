@@ -242,9 +242,9 @@ namespace SteamProfile.ViewModels
             IUserService userService,
             IFriendsService friendsService,
             DispatcherQueue dispatcherQueue,
-            UserProfilesRepository userProfileRepository,
+            IUserProfilesRepository userProfileRepository,
             ICollectionsRepository gameCollectionsRepository,
-            FeaturesService featuresService,
+            IFeaturesService featuresService,
             IAchievementsService achievementsService)
         {
             if (profileViewModelInstance != null)
@@ -259,9 +259,9 @@ namespace SteamProfile.ViewModels
             IUserService userService,
             IFriendsService friendsService,
             DispatcherQueue dispatcherQueue,
-            UserProfilesRepository userProfileRepository,
+            IUserProfilesRepository userProfileRepository,
             ICollectionsRepository gameCollectionsRepository,
-            FeaturesService featuresService,
+            IFeaturesService featuresService,
             IAchievementsService achievementsService)
         {
             // Initialize userProfile to prevent null reference exceptions

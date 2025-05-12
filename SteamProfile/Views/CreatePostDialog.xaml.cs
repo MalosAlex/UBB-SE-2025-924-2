@@ -43,7 +43,7 @@ namespace SteamProfile.Views
                 string body = BodyTextBox.Text.Trim();
                 // Get game ID (if selected)
                 int? gameId = null;
-                if (GameComboBox.SelectedIndex > 0) // First option is "No game"
+                if (GameComboBox.SelectedIndex > 0)
                 {
                     if (GameComboBox.SelectedItem is ComboBoxItem selectedItem)
                     {

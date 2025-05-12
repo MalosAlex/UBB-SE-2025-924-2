@@ -27,7 +27,7 @@ namespace SteamProfile.ViewModels
 {
     public partial class ForgotPasswordViewModel : ObservableObject
     {
-        private readonly PasswordResetService passwordResetService;
+        private readonly IPasswordResetService passwordResetService;
         private string email = string.Empty;
         private string resetCode = string.Empty;
         private string newPassword = string.Empty;
@@ -101,7 +101,7 @@ namespace SteamProfile.ViewModels
 
         public event EventHandler PasswordResetSuccess;
 
-        public ForgotPasswordViewModel(PasswordResetService passwordResetService)
+        public ForgotPasswordViewModel(IPasswordResetService passwordResetService)
         {
             this.passwordResetService = passwordResetService;
         }
