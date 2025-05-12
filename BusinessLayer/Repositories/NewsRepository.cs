@@ -243,6 +243,9 @@ namespace BusinessLayer.Repositories
         /// <exception cref="Exception">Throw an error if anything failed</exception>
         public List<Post> LoadFollowingPosts(int pageNumber, int userId, string searchedText)
         {
+            // Ensure pageNumber is at least 1
+            pageNumber = Math.Max(1, pageNumber);
+
             var query = context.NewsPosts
                 .Where(p => EF.Functions.Like(p.Content, $"%{searchedText}%"))
                 .OrderByDescending(p => p.UploadDate)
