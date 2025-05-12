@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "SteamProfile.csproj",
+        "Path": "..\\SteamWebApi\\SteamWebApi.csproj",
         "Action": "Start"
       },
       {
-        "Path": "..\\SteamWebApi\\SteamWebApi.csproj",
+        "Path": "SteamProfile.csproj",
         "Action": "Start"
       }
     ]

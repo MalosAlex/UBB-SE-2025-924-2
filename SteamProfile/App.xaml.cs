@@ -14,13 +14,20 @@ using SteamProfile.Views;
 using Microsoft.Extensions.Configuration;
 using BusinessLayer.DataContext;
 using Microsoft.EntityFrameworkCore.SqlServer;
+using SteamProfile.Services;
+using BusinessLayer.Services.Proxies;
 
 namespace SteamProfile
 {
     public partial class App : Application
     {
+        // Configuration settings
+        private static bool useRemoteServices = false; // Set to true to use proxy services
+        private static string apiBaseUrl = "https://localhost:7262/api/";
+
         // Steam Community part
         private static readonly Dictionary<Type, object> Services = new Dictionary<Type, object>();
+
         private static void ConfigureServices()
         {
             // Build configuration from appsettings.json
@@ -29,6 +36,25 @@ namespace SteamProfile
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
+            // Check if we should use remote services
+            if (config["UseRemoteServices"] != null)
+            {
+                useRemoteServices = bool.Parse(config["UseRemoteServices"]);
+            }
+
+            // Get API base URL if specified
+            if (config["ApiSettings:BaseUrl"] != null)
+            {
+                apiBaseUrl = config["ApiSettings:BaseUrl"];
+            }
+
+            if (useRemoteServices)
+            {
+                ConfigureProxyServices();
+                return;
+            }
+
+            // Continue with local service configuration
             // Read connection string
             var connectionString = config.GetConnectionString("DefaultConnection");
 
@@ -118,13 +144,41 @@ namespace SteamProfile
 
             Services[typeof(IForumService)] = new ForumService(GetService<IForumRepository>());
 
-            new FriendRequestService(friendRequestRepository, friendService);
             var friendRequestService = new FriendRequestService(friendRequestRepository, friendService);
             Services[typeof(IFriendRequestService)] = friendRequestService;
 
             // Register view models
             var friendRequestViewModel = new FriendRequestViewModel(friendRequestService, currentUsername);
             Services[typeof(FriendRequestViewModel)] = friendRequestViewModel;
+        }
+
+        // Configure proxy services for remote API usage
+        private static void ConfigureProxyServices()
+        {
+            // Set the API base URL for all proxies
+            ServiceFactory.SetApiBaseUrl(apiBaseUrl);
+
+            // Configure session service first since many others depend on it
+            var sessionService = ServiceFactory.CreateSessionService();
+            Services[typeof(ISessionService)] = sessionService;
+
+            // Configure user service next as it's also a common dependency
+            var userService = ServiceFactory.CreateUserService();
+            Services[typeof(IUserService)] = userService;
+
+            // Configure all other services
+            Services[typeof(IFriendRequestService)] = ServiceFactory.CreateFriendRequestService();
+            Services[typeof(IWalletService)] = ServiceFactory.CreateWalletService();
+            Services[typeof(ICollectionsService)] = ServiceFactory.CreateCollectionsService();
+            Services[typeof(IFeaturesService)] = ServiceFactory.CreateFeaturesService();
+            Services[typeof(IFriendsService)] = ServiceFactory.CreateFriendsService();
+            Services[typeof(IAchievementsService)] = ServiceFactory.CreateAchievementsService();
+            Services[typeof(IOwnedGamesService)] = ServiceFactory.CreateOwnedGamesService();
+            Services[typeof(IReviewService)] = ServiceFactory.CreateReviewService();
+            Services[typeof(INewsService)] = ServiceFactory.CreateNewsService();
+            Services[typeof(IForumService)] = ServiceFactory.CreateForumService();
+            Services[typeof(IPasswordResetService)] = ServiceFactory.CreatePasswordResetService();
+            Services[typeof(IFriendService)] = ServiceFactory.CreateFriendService();
         }
 
         public static T GetService<T>()
@@ -139,30 +193,28 @@ namespace SteamProfile
         }
 
         // Services
-        public static readonly IAchievementsService AchievementsService;
-        public static readonly FeaturesService FeaturesService;
-        public static readonly ICollectionsService CollectionsService;
-        public static readonly IWalletService WalletService;
-        public static readonly IUserService UserService;
-        public static readonly IFriendsService FriendsService;
-        public static readonly IOwnedGamesService OwnedGamesService;
-        public static readonly AuthenticationService AuthenticationService;
-        public static readonly IForumService ForumService;
+        public static IAchievementsService AchievementsService { get; private set; }
+        public static FeaturesService FeaturesService { get; private set; }
+        public static ICollectionsService CollectionsService { get; private set; }
+        public static IWalletService WalletService { get; private set; }
+        public static IUserService UserService { get; private set; }
+        public static IFriendsService FriendsService { get; private set; }
+        public static IOwnedGamesService OwnedGamesService { get; private set; }
+        public static AuthenticationService AuthenticationService { get; private set; }
+        public static IForumService ForumService { get; private set; }
 
         // View Models
-        public static readonly AddGameToCollectionViewModel AddGameToCollectionViewModel;
-        public static readonly CollectionGamesViewModel CollectionGamesViewModel;
-        public static readonly CollectionsViewModel CollectionsViewModel;
-        public static readonly UsersViewModel UsersViewModel;
-        public static readonly FriendsViewModel FriendsViewModel;
+        public static AddGameToCollectionViewModel AddGameToCollectionViewModel { get; private set; }
+        public static CollectionGamesViewModel CollectionGamesViewModel { get; private set; }
+        public static CollectionsViewModel CollectionsViewModel { get; private set; }
+        public static UsersViewModel UsersViewModel { get; private set; }
+        public static FriendsViewModel FriendsViewModel { get; private set; }
 
         public static PasswordResetService PasswordResetService { get; private set; }
-        public static readonly SessionService SessionService;
+        public static SessionService SessionService { get; private set; }
         public static UserProfilesRepository UserProfileRepository { get; private set; }
-        public static ICollectionsRepository CollectionsRepository { get;  }
-
+        public static ICollectionsRepository CollectionsRepository { get; private set; }
         public static PasswordResetRepository PasswordResetRepository { get; private set; }
-
         public static IUsersRepository UserRepository { get; private set; }
 
         static App()
@@ -170,36 +222,40 @@ namespace SteamProfile
             // Wire up EF Core and all new repositories and services
             ConfigureServices();
 
+            if (useRemoteServices)
+            {
+                InitializeRemoteServices();
+            }
+            else
+            {
+                InitializeLocalServices();
+            }
+        }
+
+        private static void InitializeLocalServices()
+        {
             var dataLink = DataLink.Instance;
             var navigationService = NavigationService.Instance;
             var achievementsRepository = GetService<IAchievementsRepository>();
 
             // EF-Core repositories
-            var sessionRepository = (SessionRepository)GetService<ISessionRepository>();
-            var walletRepository = GetService<IWalletRepository>();
             UserRepository = GetService<IUsersRepository>();
             UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
             PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
-            CollectionsRepository = (CollectionsRepository)GetService<ICollectionsRepository>();
-            var reviewRepository = GetService<IReviewRepository>();
-            var ownedGamesRepository = GetService<IOwnedGamesRepository>();
-            var newsRepository = GetService<INewsRepository>();
-            var friendshipsRepository = GetService<IFriendshipsRepository>();
-            var forumRespository = GetService<IForumRepository>();
-            var featuresRepository = GetService<IFeaturesRepository>();
+            CollectionsRepository = GetService<ICollectionsRepository>();
 
             // Initialize all services
-            SessionService = new SessionService(sessionRepository, UserRepository);
-            UserService = new UserService(UserRepository, SessionService);
+            SessionService = (SessionService)GetService<ISessionService>();
+            UserService = GetService<IUserService>();
             AchievementsService = new AchievementsService(achievementsRepository);
-            CollectionsService = new CollectionsService(CollectionsRepository);
+            CollectionsService = GetService<ICollectionsService>();
             AuthenticationService = new AuthenticationService(UserRepository);
-            FriendsService = new FriendsService(friendshipsRepository, UserService);
-            OwnedGamesService = new OwnedGamesService(ownedGamesRepository);
+            FriendsService = new FriendsService(GetService<IFriendshipsRepository>(), UserService);
+            OwnedGamesService = new OwnedGamesService(GetService<IOwnedGamesRepository>());
             PasswordResetService = new PasswordResetService(PasswordResetRepository, UserService);
-            FeaturesService = new FeaturesService(featuresRepository, UserService);
-            WalletService = new WalletService(walletRepository, UserService);
-            ForumService = new ForumService(forumRespository);
+            FeaturesService = (FeaturesService)GetService<IFeaturesService>();
+            WalletService = new WalletService(GetService<IWalletRepository>(), UserService);
+            ForumService = (ForumService)GetService<IForumService>();
             ForumService.Initialize(GetService<IForumService>());
 
             // Initialize all view models
@@ -209,13 +265,121 @@ namespace SteamProfile
             CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
             CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
 
-            // Finally, initialize the achivements off of the EF-based AchievementsService
+            // initialize the achievements off of the EF-based AchievementsService
             InitializeAchievements();
         }
 
+        private static void InitializeRemoteServices()
+        {
+            // For remote services, we're using the service proxies
+            // All services are now implemented as proxies
+            UserService = GetService<IUserService>();
+
+            // Some services may need a cast to a specific type
+            try
+            {
+                SessionService = GetService<ISessionService>() as SessionService;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            // Regular service assignments
+            try
+            {
+                AchievementsService = GetService<IAchievementsService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                CollectionsService = GetService<ICollectionsService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                FriendsService = GetService<IFriendsService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                OwnedGamesService = GetService<IOwnedGamesService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                WalletService = GetService<IWalletService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                ForumService = GetService<IForumService>();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            // Services that need a specific cast
+            try
+            {
+                FeaturesService = GetService<IFeaturesService>() as FeaturesService;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                PasswordResetService = GetService<IPasswordResetService>() as PasswordResetService;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            // Initialize view models that will work with proxy services
+            UsersViewModel = UsersViewModel.Instance;
+
+            try
+            {
+                AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
+                FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
+                CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
+                CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
+            }
+            catch
+            {
+                // ignore view model initialization errors
+            }
+        }
         private static void InitializeAchievements()
         {
-            AchievementsService.InitializeAchievements();
+            if (!useRemoteServices && AchievementsService != null)
+            {
+                AchievementsService.InitializeAchievements();
+            }
         }
 
         private Window mainWindow;
@@ -232,6 +396,29 @@ namespace SteamProfile
             mainWindow = new MainWindow();
             // NavigationService.Instance.Initialize(m_window.Content as Frame); // Ensure the frame is passed
             mainWindow.Activate();
+        }
+    }
+
+    // Helper class for services that haven't been proxied yet
+    public class ThrowingServiceProxy<T> : IDisposable
+    {
+        private readonly string serviceName;
+
+        public ThrowingServiceProxy(string serviceName)
+        {
+            this.serviceName = serviceName;
+        }
+
+        public void Dispose()
+        {
+            // No resources to dispose
+        }
+
+        // This allows the proxy to be cast to any interface but will throw when methods are called
+        public static implicit operator T(ThrowingServiceProxy<T> proxy)
+        {
+            throw new NotImplementedException($"The {proxy.serviceName} proxy has not been implemented yet. " +
+                $"You need to implement a proxy for this service to use it with the remote API.");
         }
     }
 }
