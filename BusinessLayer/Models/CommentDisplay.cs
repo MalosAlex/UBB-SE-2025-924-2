@@ -1,12 +1,13 @@
 using System;
-using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 
 namespace BusinessLayer.Models
 {
     public class CommentDisplay
     {
-        // Currently logged-in user ID for comparison
-        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
+        // Currently logged-in user ID for comparison (settable from UI)
+        private static int currentUserId = 1;
+        public static void SetCurrentUserId(int userId) => currentUserId = userId;
         // Original comment data
         public ForumComment Comment { get; private set; }
         // User information
@@ -21,7 +22,7 @@ namespace BusinessLayer.Models
         public string Username => Author.Username;
         public string ProfilePicturePath => Author.ProfilePicturePath;
         // Indicates if the comment belongs to the current user (for delete button visibility)
-        public bool IsCurrentUser => AuthorId == CurrentUserId;
+        public bool IsCurrentUser => AuthorId == currentUserId;
         // Create a CommentDisplay from a ForumComment
         public static CommentDisplay FromComment(ForumComment comment)
         {

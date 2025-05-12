@@ -13,19 +13,43 @@ namespace BusinessLayer.Services
     public class ForumService : IForumService
     {
         private IForumRepository repository;
+        private static readonly object Lock = new object();
+        private static IForumService instance;
 
-        public static IForumService GetForumServiceInstance { get; private set; }
+        public static IForumService GetForumServiceInstance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    throw new InvalidOperationException("ForumService has not been initialized. Call Initialize() first.");
+                }
+                return instance;
+            }
+            private set
+            {
+                instance = value;
+            }
+        }
+
         public void Initialize(IForumService instance)
         {
-            GetForumServiceInstance = instance;
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+            lock (Lock)
+            {
+                GetForumServiceInstance = instance;
+            }
         }
 
         public ForumService(IForumRepository repository)
         {
-            this.repository = repository;
+            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public uint GetCurrentUserId()
+        public int GetCurrentUserId()
         {
             return 1;
         }

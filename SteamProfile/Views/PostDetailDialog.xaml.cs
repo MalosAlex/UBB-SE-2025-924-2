@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Models;
 
 namespace SteamProfile.Views
@@ -12,7 +13,7 @@ namespace SteamProfile.Views
     public sealed partial class PostDetailDialog : ContentDialog
     {
         // Hard-coded current user ID for demo
-        private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId(); // Using JaneSmith as the current user
+        private readonly int currentUserId = App.GetService<IForumService>().GetCurrentUserId(); // Using JaneSmith as the current user
         // The forum post to display
         private ForumPost post;
         private PostDisplay postDisplay;
@@ -60,7 +61,7 @@ namespace SteamProfile.Views
             try
             {
                 // Get comments for this post
-                List<ForumComment> postComments = ForumService.GetForumServiceInstance.GetComments(post.Id);
+                List<ForumComment> postComments = App.GetService<IForumService>().GetComments(post.Id);
                 // Clear existing comments
                 CommentsPanel.Children.Clear();
                 commentControls.Clear();
@@ -102,7 +103,7 @@ namespace SteamProfile.Views
             try
             {
                 // Delete the comment
-                ForumService.GetForumServiceInstance.DeleteComment(commentId);
+                App.GetService<IForumService>().DeleteComment(commentId);
                 // Reload comments
                 LoadComments();
                 // Indicate changes were made
@@ -124,7 +125,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance.VoteOnPost((int)post.Id, 1);
+                App.GetService<IForumService>().VoteOnPost((int)post.Id, 1);
                 // Update score display
                 post.Score += 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -142,7 +143,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance.VoteOnPost((int)post.Id, -1);
+                App.GetService<IForumService>().VoteOnPost((int)post.Id, -1);
                 // Update score display
                 post.Score -= 1;
                 ScoreTextBlock.Text = post.Score.ToString();
@@ -213,7 +214,7 @@ namespace SteamProfile.Views
             try
             {
                 // Delete the post
-                ForumService.GetForumServiceInstance.DeletePost(post.Id);
+                App.GetService<IForumService>().DeletePost(post.Id);
                 // Notify that the post was deleted
                 PostDeleted?.Invoke(this, EventArgs.Empty);
                 // Close the dialog

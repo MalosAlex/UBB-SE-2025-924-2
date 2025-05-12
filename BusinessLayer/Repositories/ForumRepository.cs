@@ -249,11 +249,22 @@ namespace BusinessLayer.Repositories
             {
                 query = query.Where(p => p.Title.Contains(filter) || p.Body.Contains(filter));
             }
-            return query
-                .OrderByDescending(p => p.TimeStamp)
-                .Skip((int)((pageNumber - 1) * pageSize))
-                .Take((int)pageSize)
-                .ToList();
+            if (pageNumber > 0)
+            {
+                return query
+                    .OrderByDescending(p => p.TimeStamp)
+                    .Skip((int)((pageNumber - 1) * pageSize))
+                    .Take((int)pageSize)
+                    .ToList();
+            }
+            else
+            {
+                return query
+                    .OrderByDescending(p => p.TimeStamp)
+                    .Skip((int)(pageNumber * pageSize))
+                    .Take((int)pageSize)
+                    .ToList();
+            }
         }
 
         public List<ForumComment> GetComments(int postId)

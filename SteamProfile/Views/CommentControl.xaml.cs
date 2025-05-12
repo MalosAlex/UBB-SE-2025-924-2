@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
-using BusinessLayer.Services;
 using SteamProfile.ViewModels;
 
 namespace SteamProfile.Views
@@ -12,7 +11,7 @@ namespace SteamProfile.Views
     public sealed partial class CommentControl : UserControl
     {
         // The currently logged-in user ID
-        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
+        private static readonly int CurrentUserId = App.GetService<IForumService>().GetCurrentUserId();
         // The comment being displayed
         private CommentDisplay comment;
 
@@ -68,7 +67,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service to upvote the comment
-                ForumService.GetForumServiceInstance.VoteOnComment(comment.Id, 1);
+                App.GetService<IForumService>().VoteOnComment(comment.Id, 1);
                 // Update the score locally
                 comment.Comment.Score += 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();
@@ -87,7 +86,7 @@ namespace SteamProfile.Views
             try
             {
                 // Call the service to downvote the comment
-                ForumService.GetForumServiceInstance.VoteOnComment(comment.Id, -1);
+                App.GetService<IForumService>().VoteOnComment(comment.Id, -1);
                 // Update the score locally
                 comment.Comment.Score -= 1;
                 ScoreTextBlock.Text = comment.Comment.Score.ToString();

@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Services;
 
 namespace SteamProfile.Views
@@ -48,7 +49,7 @@ namespace SteamProfile.Views
                 // Clear existing posts
                 posts.Clear();
                 // Get posts from repository
-                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance.GetTopPosts(filter);
+                List<ForumPost> forumPosts = App.GetService<IForumService>().GetTopPosts(filter);
                 // Update the UI on the UI thread
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
@@ -70,7 +71,13 @@ namespace SteamProfile.Views
             {
                 // Handle errors
                 ShowLoading(false);
-                // Could show error message here
+                var dialog = new ContentDialog
+                {
+                    Title = "Error",
+                    Content = "Failed to load posts. Please try again later.",
+                    CloseButtonText = "OK"
+                };
+                dialog.ShowAsync();
             }
         }
         // Load paged posts with optional filters
@@ -93,7 +100,7 @@ namespace SteamProfile.Views
                     posts.Clear();
                 }
                 // Get posts from repository
-                List<ForumPost> forumPosts = ForumService.GetForumServiceInstance.GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
+                List<ForumPost> forumPosts = App.GetService<IForumService>().GetPagedPosts(pageNumber, pageSize, positiveScoreOnly, gameId, filter);
                 // Update the UI on the UI thread
                 this.DispatcherQueue.TryEnqueue(() =>
                 {
@@ -144,7 +151,7 @@ namespace SteamProfile.Views
                 else
                 {
                     // Get next page of posts
-                    morePosts = ForumService.GetForumServiceInstance.GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
+                    morePosts = App.GetService<IForumService>().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                     // If we got fewer posts than the page size, there are no more posts to load
                     if (morePosts.Count < pageSize)
                     {
@@ -192,7 +199,7 @@ namespace SteamProfile.Views
             if (sender is Button button && button.Tag is int postId)
             {
                 // Call the service with a positive vote value (1)
-                ForumService.GetForumServiceInstance.VoteOnPost(postId, 1);
+                App.GetService<IForumService>().VoteOnPost(postId, 1);
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
@@ -203,7 +210,7 @@ namespace SteamProfile.Views
             if (sender is Button button && button.Tag is int postId)
             {
                 // Call the service with a negative vote value (-1)
-                ForumService.GetForumServiceInstance.VoteOnPost(postId, -1);
+                App.GetService<IForumService>().VoteOnPost(postId, -1);
                 // Refresh the specific post in the list to show updated score
                 RefreshPost(postId);
             }
@@ -217,9 +224,9 @@ namespace SteamProfile.Views
                 {
                     // Skip the confirmation dialog for now due to XamlRoot issues
                     // Just delete the post directly
-                    ForumService.GetForumServiceInstance.DeletePost(postId);
+                    App.GetService<IForumService>().DeletePost(postId);
                     // Remove the post from the UI
-                    RemovePostFromUI((uint)postId);
+                    RemovePostFromUI((int)postId);
                 }
                 catch (Exception ex)
                 {
@@ -247,11 +254,11 @@ namespace SteamProfile.Views
                         List<ForumPost> posts;
                         if (isTopPostsMode)
                         {
-                            posts = ForumService.GetForumServiceInstance.GetTopPosts(timeSpanFilter);
+                            posts = App.GetService<IForumService>().GetTopPosts(timeSpanFilter);
                         }
                         else
                         {
-                            posts = ForumService.GetForumServiceInstance.GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
+                            posts = App.GetService<IForumService>().GetPagedPosts(currentPage, pageSize, positiveScoreOnly, gameId, filter);
                         }
                         // Find the post with matching ID to get updated score
                         ForumPost updatedPost = posts.FirstOrDefault(p => p.Id == postId);
@@ -311,7 +318,7 @@ namespace SteamProfile.Views
             }
         }
         // Helper method to remove a post from the UI
-        private void RemovePostFromUI(uint postId)
+        private void RemovePostFromUI(int postId)
         {
             for (int i = 0; i < posts.Count; i++)
             {

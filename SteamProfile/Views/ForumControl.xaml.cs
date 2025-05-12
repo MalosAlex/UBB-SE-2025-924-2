@@ -29,22 +29,36 @@ namespace SteamProfile.Views
         {
             this.InitializeComponent();
 
-            // Instantiate the service using the static instance getter
-            IForumService forumService = ForumService.GetForumServiceInstance;
-            ViewModel = new ForumViewModel(forumService);
-            this.DataContext = ViewModel;
-
-            // Subscribe to CreatePostRequested event
-            ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
-
-            // Set up post selection event handler
-            if (PostsControl != null)
+            try
             {
-                 PostsControl.PostSelected += PostsControl_PostSelected;
-            }
+                // Get the service from App's service container
+                IForumService forumService = App.GetService<IForumService>();
+                ViewModel = new ForumViewModel(forumService);
+                this.DataContext = ViewModel;
 
-            // Initialize the UI after all elements are loaded
-            LoadPosts();
+                // Subscribe to CreatePostRequested event
+                ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
+
+                // Set up post selection event handler
+                if (PostsControl != null)
+                {
+                    PostsControl.PostSelected += PostsControl_PostSelected;
+                }
+
+                // Initialize the UI after all elements are loaded
+                LoadPosts();
+            }
+            catch (Exception ex)
+            {
+                // Handle initialization error
+                var dialog = new ContentDialog
+                {
+                    Title = "Error",
+                    Content = "Failed to initialize forum service. Please try again later.",
+                    CloseButtonText = "OK"
+                };
+                dialog.ShowAsync();
+            }
         }
 
         // Keep LoadPosts for now as it interacts directly with PostsControl sorting/filtering

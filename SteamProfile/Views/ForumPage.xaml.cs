@@ -19,42 +19,42 @@ namespace SteamProfile.Views
 
         public ForumPage()
         {
-            bool useRemoteServices = false;
-            this.InitializeComponent();
-            var config = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            // Check if we should use remote services
-            if (config["UseRemoteServices"] != null)
+            try
             {
-                useRemoteServices = bool.Parse(config["UseRemoteServices"]);
-            }
-            // Instantiate the service using the static instance getter
-            IForumService forumService;
-            if (useRemoteServices)
-            {
-                forumService = new ForumServiceProxy(App.UserService);
-            }
-            else
-            {
-               forumService = ForumService.GetForumServiceInstance;
-            }
-            ViewModel = new ForumViewModel(forumService);
-            this.DataContext = ViewModel;
+                this.InitializeComponent();
+                var config = new ConfigurationBuilder()
+                    .SetBasePath(AppContext.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .Build();
 
-            // Subscribe to CreatePostRequested event
-            ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
+                // Get the service from App's service container
+                IForumService forumService = App.GetService<IForumService>();
+                ViewModel = new ForumViewModel(forumService);
+                this.DataContext = ViewModel;
 
-            // Set up post selection event handler
-            if (PostsControl != null)
-            {
-                PostsControl.PostSelected += PostsControl_PostSelected;
+                // Subscribe to CreatePostRequested event
+                ViewModel.CreatePostRequested += ViewModel_CreatePostRequested;
+
+                // Set up post selection event handler
+                if (PostsControl != null)
+                {
+                    PostsControl.PostSelected += PostsControl_PostSelected;
+                }
+
+                // Initialize the UI after all elements are loaded
+                LoadPosts();
             }
-
-            // Initialize the UI after all elements are loaded
-            LoadPosts();
+            catch (Exception ex)
+            {
+                // Handle initialization error
+                var dialog = new ContentDialog
+                {
+                    Title = "Error",
+                    Content = "Failed to initialize forum service. Please try again later.",
+                    CloseButtonText = "OK"
+                };
+                dialog.ShowAsync();
+            }
         }
 
         // Keep LoadPosts for now as it interacts directly with PostsControl sorting/filtering

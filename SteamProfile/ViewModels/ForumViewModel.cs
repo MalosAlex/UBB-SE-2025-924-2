@@ -86,6 +86,9 @@ namespace SteamProfile.ViewModels
         {
             this.forumService = forumService ?? throw new ArgumentNullException(nameof(forumService));
 
+            // Set the current user ID for comment display logic
+            CommentDisplay.SetCurrentUserId(forumService.GetCurrentUserId());
+
             Posts = new ObservableCollection<ForumPost>();
             Comments = new ObservableCollection<ForumComment>();
 

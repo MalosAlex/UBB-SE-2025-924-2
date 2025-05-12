@@ -12,7 +12,7 @@ namespace BusinessLayer.Services.Interfaces
         // at the moment, implementations of IForumService must contain a static field
         // that holds the initialised service
         public void Initialize(IForumService forumService);
-        public uint GetCurrentUserId();
+        public int GetCurrentUserId();
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter);
         public void VoteOnPost(int postId, int voteValue);
