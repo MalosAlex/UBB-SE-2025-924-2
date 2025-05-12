@@ -6,6 +6,8 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Services;
 using SteamProfile.ViewModels;
 using BusinessLayer.Models;
+using Microsoft.Extensions.Configuration;
+using BusinessLayer.Services.Proxies;
 
 namespace SteamProfile.Views
 {
@@ -17,10 +19,28 @@ namespace SteamProfile.Views
 
         public ForumPage()
         {
+            bool useRemoteServices = false;
             this.InitializeComponent();
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
 
+            // Check if we should use remote services
+            if (config["UseRemoteServices"] != null)
+            {
+                useRemoteServices = bool.Parse(config["UseRemoteServices"]);
+            }
             // Instantiate the service using the static instance getter
-            IForumService forumService = ForumService.GetForumServiceInstance;
+            IForumService forumService;
+            if (useRemoteServices)
+            {
+                forumService = new ForumServiceProxy(App.UserService);
+            }
+            else
+            {
+               forumService = ForumService.GetForumServiceInstance;
+            }
             ViewModel = new ForumViewModel(forumService);
             this.DataContext = ViewModel;
 

@@ -111,7 +111,7 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await httpClient.PostAsync($"{baseUrl}{endpoint}", content);
+                var response = await httpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
                 await EnsureSuccessStatusCode(response);
             }
             catch (HttpRequestException ex)
@@ -142,7 +142,7 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                var response = await httpClient.DeleteAsync($"{baseUrl}{endpoint}");
+                var response = await httpClient.DeleteAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
                 return await HandleResponse<T>(response);
             }
             catch (HttpRequestException ex)
