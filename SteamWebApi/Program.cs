@@ -39,39 +39,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // Add JWT authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SteamWebApi",
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SteamProfile",
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourTemporarySecretKeyHere32CharsMini")),
-        ClockSkew = TimeSpan.Zero
-    };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnTokenValidated = async context =>
-        {
-            var sessionId = context.Principal.FindFirst("sessionId")?.Value;
-            if (!string.IsNullOrEmpty(sessionId) && Guid.TryParse(sessionId, out var sessionGuid))
-            {
-                var sessionService = context.HttpContext.RequestServices.GetRequiredService<ISessionService>();
-                sessionService.RestoreSessionFromDatabase(sessionGuid);
-            }
-        }
-    };
-});
 
 // Explicitly add controllers with enhanced discovery
 builder.Services.AddControllers()
@@ -285,10 +252,6 @@ app.UseHttpsRedirection();
 
 // Enable CORS
 app.UseCors("AllowAll");
-
-// Add authentication middleware before authorization
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 

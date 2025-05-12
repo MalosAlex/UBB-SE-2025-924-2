@@ -57,7 +57,6 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("Logout")]
-        [Authorize]
         public IActionResult Logout()
         {
             sessionService.EndSession();
@@ -65,7 +64,6 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpGet("Current")]
-        [Authorize]
         public IActionResult GetCurrentUser()
         {
             var user = sessionService.GetCurrentUser();
