@@ -7,11 +7,11 @@ using BusinessLayer.DataContext;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient; // Keep only this SQL Client import
 using BusinessLayer.Services.Proxies;
 using Microsoft.OpenApi.Models;
-using System.Data.SqlClient;
 using Microsoft.Extensions.Logging;
+using System.Reflection; // For controller discovery
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,8 +73,21 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add services to the container.
-builder.Services.AddControllers();
+// Explicitly add controllers with enhanced discovery
+builder.Services.AddControllers()
+    .AddApplicationPart(Assembly.GetExecutingAssembly()) // Ensure all controllers are discovered
+    .AddControllersAsServices(); // Register controllers as services
+
+// Register controller classes explicitly for better discoverability
+var controllerTypes = Assembly.GetExecutingAssembly().GetTypes()
+    .Where(type => !type.IsAbstract && type.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
+    .ToList();
+
+foreach (var controllerType in controllerTypes)
+{
+    Console.WriteLine($"Registering controller: {controllerType.Name}");
+    builder.Services.AddTransient(controllerType);
+}
 
 // Register core services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -165,6 +178,11 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    // Enable XML comments for better documentation
+    // c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "SteamWebApi.xml"));
+
+    // Enable Swagger annotations
 });
 
 // Add CORS support for client applications
@@ -179,6 +197,16 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Print discovered routes for troubleshooting
+var endpointDataSource = app.Services.GetRequiredService<Microsoft.AspNetCore.Routing.EndpointDataSource>();
+foreach (var endpoint in endpointDataSource.Endpoints)
+{
+    if (endpoint is Microsoft.AspNetCore.Routing.RouteEndpoint routeEndpoint)
+    {
+        Console.WriteLine($"Endpoint: {routeEndpoint.RoutePattern.RawText}, Display Name: {routeEndpoint.DisplayName}");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -223,6 +251,29 @@ if (app.Environment.IsDevelopment())
             Status = "Success",
             Message = "API is running",
             Timestamp = DateTime.Now
+        });
+    });
+
+    // Add controller discovery test
+    app.MapGet("/api/test/controllers", () =>
+    {
+        var controllers = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(type => !type.IsAbstract && type.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
+            .Select(type => new
+            {
+                Name = type.Name,
+                Namespace = type.Namespace,
+                Methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Where(m => !m.IsSpecialName)
+                    .Select(m => m.Name)
+                    .ToList()
+            })
+            .ToList();
+
+        return Results.Ok(new
+        {
+            ControllerCount = controllers.Count,
+            Controllers = controllers
         });
     });
 }
