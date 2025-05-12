@@ -22,10 +22,65 @@ namespace SteamWebApi.Controllers
             return Ok(featuresByCategories);
         }
 
-        [HttpPost]
-        public IActionResult AddFeature(Feature feature)
+        [HttpGet("user/{userId}")]
+        public IActionResult GetUserFeatures(int userId)
         {
-            return BadRequest("AddFeature method is not implemented in IFeaturesService.");
+            var features = featuresService.GetUserFeatures(userId);
+            return Ok(features);
         }
+
+        [HttpGet("user/{userId}/equipped")]
+        public IActionResult GetUserEquippedFeatures(int userId)
+        {
+            var features = featuresService.GetUserEquippedFeatures(userId);
+            return Ok(features);
+        }
+
+        [HttpGet("user/{userId}/purchased/{featureId}")]
+        public IActionResult IsFeaturePurchased(int userId, int featureId)
+        {
+            var isPurchased = featuresService.IsFeaturePurchased(userId, featureId);
+            return Ok(isPurchased);
+        }
+
+        [HttpGet("user/{userId}/preview/{featureId}")]
+        public IActionResult GetFeaturePreviewData(int userId, int featureId)
+        {
+            var (profilePicturePath, bioText, equippedFeatures) = featuresService.GetFeaturePreviewData(userId, featureId);
+
+            return Ok(new
+            {
+                ProfilePicturePath = profilePicturePath,
+                BioText = bioText,
+                EquippedFeatures = equippedFeatures
+            });
+        }
+
+        [HttpPost("equip")]
+        public IActionResult EquipFeature([FromBody] FeatureActionRequest request)
+        {
+            var result = featuresService.EquipFeature(request.UserId, request.FeatureId);
+            return Ok(result);
+        }
+
+        [HttpPost("unequip")]
+        public IActionResult UnequipFeature([FromBody] FeatureActionRequest request)
+        {
+            var (success, message) = featuresService.UnequipFeature(request.UserId, request.FeatureId);
+            return Ok(new { Success = success, Message = message });
+        }
+
+        [HttpPost("purchase")]
+        public IActionResult PurchaseFeature([FromBody] FeatureActionRequest request)
+        {
+            var (success, message) = featuresService.PurchaseFeature(request.UserId, request.FeatureId);
+            return Ok(new { Success = success, Message = message });
+        }
+    }
+
+    public class FeatureActionRequest
+    {
+        public int UserId { get; set; }
+        public int FeatureId { get; set; }
     }
 }
