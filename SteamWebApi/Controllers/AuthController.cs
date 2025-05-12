@@ -1,4 +1,4 @@
-﻿using BusinessLayer.Models;
+﻿/*using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -105,3 +105,4 @@ namespace SteamWebApi.Controllers
         public UserWithSessionDetails UserWithSessionDetails { get; set; }
     }
 }
+*/
