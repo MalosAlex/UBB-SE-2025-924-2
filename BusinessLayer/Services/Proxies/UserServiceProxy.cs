@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 
@@ -69,10 +70,11 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                PostAsync("User/validate", new { Email = email, Username = username }).GetAwaiter().GetResult();
+                PostSync("User/validate", new { Email = email, Username = username });
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"ValidateUserAndEmail Exception: {ex.Message}");
                 throw new BusinessLayer.Exceptions.UserValidationException(ex.Message);
             }
         }
@@ -81,11 +83,20 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                return PostAsync<User>("User", user).GetAwaiter().GetResult();
+                return PostSync<User>("User", user);
             }
             catch (Exception ex)
             {
-                throw new BusinessLayer.Exceptions.UserValidationException(ex.Message);
+                Debug.WriteLine($"CreateUser Exception: {ex.Message}");
+                Debug.WriteLine($"Exception Type: {ex.GetType().FullName}");
+
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    Debug.WriteLine($"Inner Exception Type: {ex.InnerException.GetType().FullName}");
+                }
+
+                throw new BusinessLayer.Exceptions.UserValidationException($"Failed to create user: {ex.Message}");
             }
         }
 
