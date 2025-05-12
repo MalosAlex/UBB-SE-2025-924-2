@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SteamCommunityTests
+namespace Tests.Community_Tests
 {
     [TestClass]
     public class ServiceTests

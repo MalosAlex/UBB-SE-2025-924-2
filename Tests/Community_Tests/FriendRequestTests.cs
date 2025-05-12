@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Friend_Requests_MSTests
+namespace Tests.Community_Tests
 {
 /*
     [TestClass]

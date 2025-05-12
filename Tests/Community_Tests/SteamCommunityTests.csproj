@@ -50,7 +50,7 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.8.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Steam_Community\Steam_Community.csproj" />
+    <ProjectReference Include="..\..\Steam_Community\Steam_Community.csproj" />
   </ItemGroup>
 
   <!-- 

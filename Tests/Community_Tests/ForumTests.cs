@@ -1,4 +1,4 @@
-﻿using Forum_Lib;
+using Forum_Lib;
 
 //MUST HAVE THESE INCLUDES IN EACH TEST FILE
 using Microsoft.UI.Xaml.Controls;
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SteamCommunityForumTests
+namespace Tests.Community_Tests
 {
     [TestClass]
     //simple unit tests (no mocking)
