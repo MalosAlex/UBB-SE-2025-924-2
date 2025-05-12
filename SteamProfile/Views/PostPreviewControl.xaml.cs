@@ -52,7 +52,6 @@ namespace SteamProfile.Views
             UpdateWebViewContent();
         }
 
-
         private void PostPreviewControl_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             PostClicked?.Invoke(this, new RoutedEventArgs());

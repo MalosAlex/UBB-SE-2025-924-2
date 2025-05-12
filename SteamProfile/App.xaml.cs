@@ -28,6 +28,19 @@ namespace SteamProfile
         // Steam Community part
         private static readonly Dictionary<Type, object> Services = new Dictionary<Type, object>();
 
+        public static void InitViewModels()
+        {
+            if (UsersViewModel == null)
+            {
+                // This means its not remote
+                UsersViewModel = UsersViewModel.Instance;
+                AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
+                FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
+                CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
+                CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
+            }
+        }
+
         private static void ConfigureServices()
         {
             // Build configuration from appsettings.json
@@ -258,12 +271,8 @@ namespace SteamProfile
             ForumService = (ForumService)GetService<IForumService>();
             ForumService.Initialize(GetService<IForumService>());
 
-            // Initialize all view models
-            UsersViewModel = UsersViewModel.Instance;
-            AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
-            FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
-            CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
-            CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
+            // Initialize the View Models
+            InitViewModels();
 
             // initialize the achievements off of the EF-based AchievementsService
             InitializeAchievements();
@@ -357,21 +366,6 @@ namespace SteamProfile
             catch
             {
                 // ignore
-            }
-
-            // Initialize view models that will work with proxy services
-            UsersViewModel = UsersViewModel.Instance;
-
-            try
-            {
-                AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
-                FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
-                CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
-                CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
-            }
-            catch
-            {
-                // ignore view model initialization errors
             }
         }
         private static void InitializeAchievements()

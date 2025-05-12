@@ -18,10 +18,19 @@ namespace BusinessLayer.Services.Proxies
         // Store the session info on the client side
         protected static UserWithSessionDetails CurrentUser { get; private set; }
 
-        public ServiceProxy(string baseUrl = "https://localhost:7262/api/")
+        public ServiceProxy(string baseUrl = "http://localhost:7262/api/")
         {
             this.baseUrl = baseUrl;
-            httpClient = new HttpClient();
+            var handler = new HttpClientHandler()
+            {
+                UseProxy = false,
+                // Add these crucial lines for local development:
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true,
+                // ^ This bypasses SSL certificate validation, use only in development!
+            };
+            httpClient = new HttpClient(handler);
+            // Set reasonable timeouts
+            httpClient.Timeout = TimeSpan.FromSeconds(30);
 
             // If we have an auth token, include it with every request
             if (!string.IsNullOrEmpty(authToken))
@@ -35,7 +44,7 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                var response = await httpClient.GetAsync($"{baseUrl}{endpoint}");
+                var response = await httpClient.GetAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
                 return await HandleResponse<T>(response);
             }
             catch (HttpRequestException ex)
@@ -46,19 +55,50 @@ namespace BusinessLayer.Services.Proxies
 
         protected async Task<T> PostAsync<T>(string endpoint, object data)
         {
+            var requestUri = $"{baseUrl}{endpoint}";
+            using var content = new StringContent(
+                JsonSerializer.Serialize(data),
+                Encoding.UTF8,
+                "application/json");
+
+            // Use 30-second timeout for troubleshooting
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
             try
             {
-                var content = new StringContent(
-                    JsonSerializer.Serialize(data),
-                    Encoding.UTF8,
-                    "application/json");
+                Console.WriteLine($"Starting POST to {requestUri} at {DateTime.Now:HH:mm:ss.fff}");
 
-                var response = await httpClient.PostAsync($"{baseUrl}{endpoint}", content);
-                return await HandleResponse<T>(response);
+                // Set explicit timeout on the request level as well
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+
+                var response = await httpClient.PostAsync(requestUri, content, cts.Token).ConfigureAwait(false);
+
+                Console.WriteLine($"Response received at {DateTime.Now:HH:mm:ss.fff} with status: {response.StatusCode}");
+
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"Response deserialized, content length: {json.Length}");
+
+                return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                })!;
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("Request timed out after 30 seconds");
+                throw new ServiceException("The request timed out after 30 seconds.");
             }
             catch (HttpRequestException ex)
             {
-                throw new ServiceException($"Network error: {ex.Message}", ex);
+                Console.WriteLine($"HTTP request failed: {ex.Message}");
+                throw new ServiceException($"HTTP request failed: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error: {ex.GetType().Name}: {ex.Message}");
+                throw new ServiceException($"Request failed: {ex.Message}", ex);
             }
         }
 
@@ -89,7 +129,7 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await httpClient.PutAsync($"{baseUrl}{endpoint}", content);
+                var response = await httpClient.PutAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
                 return await HandleResponse<T>(response);
             }
             catch (HttpRequestException ex)
