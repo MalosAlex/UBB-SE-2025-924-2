@@ -5,7 +5,7 @@ namespace BusinessLayer.Models
     public class CommentDisplay
     {
         // Currently logged-in user ID for comparison
-        private static readonly uint CurrentUserId = ForumService.GetForumServiceInstance().GetCurrentUserId();
+        private static readonly uint CurrentUserId = App.GetService<IForumService>().GetCurrentUserId();
         
         // Original comment data
         public ForumComment Comment { get; private set; }

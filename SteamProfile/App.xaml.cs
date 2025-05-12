@@ -157,6 +157,8 @@ namespace SteamProfile
             Services[typeof(INewsService)] = new NewsService(GetService<INewsRepository>(), GetService<IUserService>());
 
             Services[typeof(IForumService)] = new ForumService(GetService<IForumRepository>());
+            // Ensure static instance is initialized for legacy code
+            ((ForumService)Services[typeof(IForumService)]).Initialize((ForumService)Services[typeof(IForumService)]);
 
             var friendRequestService = new FriendRequestService(friendRequestRepository, friendService);
             Services[typeof(IFriendRequestService)] = friendRequestService;

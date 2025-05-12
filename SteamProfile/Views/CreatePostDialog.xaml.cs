@@ -3,13 +3,14 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Models;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.Views
 {
     public sealed partial class CreatePostDialog : ContentDialog
     {
         // Hard-coded current user ID for demo
-        private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
+        private readonly int currentUserId = App.GetService<IForumService>().GetCurrentUserId();
         private User currentUser;
         // Result indicating if a post was created
         public bool PostCreated { get; private set; }
@@ -56,7 +57,7 @@ namespace SteamProfile.Views
                 }
                 // Create the post
                 string currentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                ForumService.GetForumServiceInstance.CreatePost(title, body, currentDate, gameId);
+                App.GetService<IForumService>().CreatePost(title, body, currentDate, gameId);
                 // Indicate that a post was created
                 PostCreated = true;
             }

@@ -2,6 +2,7 @@ using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Models;
 
 namespace SteamProfile.Views
@@ -9,7 +10,7 @@ namespace SteamProfile.Views
     public sealed partial class AddCommentDialog : ContentDialog
     {
         // Current user ID from service
-        private readonly uint currentUserId = ForumService.GetForumServiceInstance.GetCurrentUserId();
+        private readonly int currentUserId = App.GetService<IForumService>().GetCurrentUserId();
         private User currentUser;
         // The post ID this comment will be added to
         public int PostId { get; private set; }
@@ -45,7 +46,7 @@ namespace SteamProfile.Views
                 string commentBody = CommentTextBox.Text.Trim();
                 // Create the comment
                 string currentDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                BusinessLayer.Services.ForumService.GetForumServiceInstance.CreateComment(commentBody, PostId, currentDate);
+                App.GetService<IForumService>().CreateComment(commentBody, PostId, currentDate);
                 // Log success
                 System.Diagnostics.Debug.WriteLine($"Comment created successfully for post {PostId}");
                 // Indicate that a comment was created

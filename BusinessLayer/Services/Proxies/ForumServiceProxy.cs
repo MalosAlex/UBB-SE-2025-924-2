@@ -16,10 +16,10 @@ namespace BusinessLayer.Services.Proxies
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        public uint GetCurrentUserId()
+        public int GetCurrentUserId()
         {
             var currentUser = userService.GetCurrentUser();
-            return currentUser != null ? (uint)currentUser.UserId : 0;
+            return currentUser != null ? (int)currentUser.UserId : 0;
         }
 
 #nullable enable
