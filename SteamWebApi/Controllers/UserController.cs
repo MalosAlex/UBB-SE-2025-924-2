@@ -19,6 +19,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult GetAllUsers()
         {
             return Ok(userService.GetAllUsers());
@@ -77,6 +78,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public IActionResult UpdateUser(int id, [FromBody] User user)
         {
             if (id != user.UserId)
@@ -96,6 +98,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public IActionResult DeleteUser(int id)
         {
             try
@@ -110,12 +113,14 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("{id}/verify")]
+        [Authorize]
         public IActionResult VerifyPassword(int id, [FromBody] PasswordVerifyRequest request)
         {
             return Ok(userService.AcceptChanges(id, request.Password));
         }
 
         [HttpPut("{id}/email")]
+        [Authorize]
         public IActionResult UpdateEmail(int id, [FromBody] EmailUpdateRequest request)
         {
             try
@@ -130,6 +135,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPut("{id}/password")]
+        [Authorize]
         public IActionResult UpdatePassword(int id, [FromBody] PasswordUpdateRequest request)
         {
             try
@@ -144,6 +150,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPut("{id}/username")]
+        [Authorize]
         public IActionResult UpdateUsername(int id, [FromBody] UsernameUpdateRequest request)
         {
             try
@@ -158,6 +165,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("updateUsername")]
+        [Authorize]
         public IActionResult UpdateUsername([FromBody] UsernameChangeRequest request)
         {
             var user = userService.GetCurrentUser();
@@ -175,6 +183,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("updatePassword")]
+        [Authorize]
         public IActionResult UpdatePassword([FromBody] PasswordChangeRequest request)
         {
             var user = userService.GetCurrentUser();
@@ -192,6 +201,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("updateEmail")]
+        [Authorize]
         public IActionResult UpdateEmail([FromBody] EmailChangeRequest request)
         {
             var user = userService.GetCurrentUser();
@@ -209,6 +219,7 @@ namespace SteamWebApi.Controllers
         }
 
         [HttpPost("verifyPassword")]
+        [Authorize]
         public IActionResult VerifyPassword([FromBody] PasswordVerifyRequest request)
         {
             return Ok(userService.VerifyUserPassword(request.Password));

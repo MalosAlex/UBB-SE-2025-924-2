@@ -39,6 +39,39 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // Add JWT authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SteamWebApi",
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SteamProfile",
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourTemporarySecretKeyHere32CharsMini")),
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var sessionId = context.Principal.FindFirst("sessionId")?.Value;
+            if (!string.IsNullOrEmpty(sessionId) && Guid.TryParse(sessionId, out var sessionGuid))
+            {
+                var sessionService = context.HttpContext.RequestServices.GetRequiredService<ISessionService>();
+                sessionService.RestoreSessionFromDatabase(sessionGuid);
+            }
+        }
+    };
+});
 
 // Explicitly add controllers with enhanced discovery
 builder.Services.AddControllers()
@@ -72,6 +105,7 @@ builder.Services.AddScoped<IAchievementsService, AchievementsService>();
 builder.Services.AddScoped<IOwnedGamesService, OwnedGamesService>();
 builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<IForumService, ForumService>();
+
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 // Register core repositories
@@ -89,6 +123,7 @@ builder.Services.AddScoped<IFriendshipsRepository, FriendshipsRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
 builder.Services.AddScoped<IOwnedGamesRepository, OwnedGamesRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
+builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IForumRepository, ForumRepository>();
 builder.Services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
@@ -252,6 +287,10 @@ app.UseHttpsRedirection();
 
 // Enable CORS
 app.UseCors("AllowAll");
+
+// Add authentication middleware before authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
