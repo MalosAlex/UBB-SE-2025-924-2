@@ -47,6 +47,7 @@ namespace SteamProfile.ViewModels
                 if (user != null)
                 {
                     // Navigate to profile page after successful login
+                    App.CurrentUser = user;
                     App.InitViewModels();
                     loginViewFrame.Navigate(typeof(ProfilePage), user.UserId);  // !!!!!!!
                 }

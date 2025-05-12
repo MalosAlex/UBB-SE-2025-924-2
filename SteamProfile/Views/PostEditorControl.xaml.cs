@@ -16,7 +16,7 @@ namespace SteamProfile.Views
         private const string EMPTY_STRING = "";
 
         public event RoutedEventHandler? PostUploaded;
-        private NewsService service;
+        private INewsService service;
         private Post? postBeingEdited = null;
         private bool isEditMode = false;
 
@@ -24,7 +24,7 @@ namespace SteamProfile.Views
         {
             this.InitializeComponent();
 
-            service = service = (NewsService)App.GetService<INewsService>();
+            service = service = App.GetService<INewsService>();
 
             this.Loaded += PostEditorControl_Loaded;
         }
@@ -105,11 +105,11 @@ namespace SteamProfile.Views
             {
                 System.Diagnostics.Debug.WriteLine($"WebView2 initialization error: {ex.Message}");
             }
-            Username.Text = service.ActiveUser.Username;
+            Username.Text = App.CurrentUser.Username;
             CurrentDate.Text = DateTime.Now.ToString("MMM d, yyyy");
 
             var image = new BitmapImage();
-            image.SetSource(new MemoryStream(service.ActiveUser.ProfilePicture).AsRandomAccessStream());
+            image.SetSource(new MemoryStream(App.CurrentUser.ProfilePicture).AsRandomAccessStream());
             ProfilePicture.ImageSource = image;
         }
     }

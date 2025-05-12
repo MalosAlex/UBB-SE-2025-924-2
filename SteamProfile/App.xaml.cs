@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore.SqlServer;
 using SteamProfile.Services;
 using BusinessLayer.Services.Proxies;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using BusinessLayer.Models;
 
 namespace SteamProfile
 {
@@ -246,6 +247,8 @@ namespace SteamProfile
         public static CollectionsViewModel CollectionsViewModel { get; private set; }
         public static UsersViewModel UsersViewModel { get; private set; }
         public static FriendsViewModel FriendsViewModel { get; private set; }
+
+        public static User CurrentUser { get; set; } = new User();
 
         public static IPasswordResetService PasswordResetService { get; private set; }
         public static ISessionService SessionService { get; private set; }

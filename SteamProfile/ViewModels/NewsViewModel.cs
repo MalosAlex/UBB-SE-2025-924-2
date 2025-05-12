@@ -27,7 +27,7 @@ namespace SteamProfile.ViewModels
 
     public partial class NewsViewModel : ObservableObject
     {
-        private readonly NewsService service;
+        private readonly INewsService service;
         private const int DIVISOR = 3;
 
         public ObservableCollection<PostWithPosition> PositionedPosts { get; } = new();
@@ -47,12 +47,12 @@ namespace SteamProfile.ViewModels
 
         public NewsViewModel()
         {
-            service = (NewsService)App.GetService<INewsService>();
+            service = App.GetService<INewsService>();
 
             LoadMoreCommand = new RelayCommand(() => LoadPosts(false));
             ShowCreatePostPanelCommand = new RelayCommand(() => EditorOverlayVisibility = Visibility.Visible);
 
-            createPostButtonVisibility = service.ActiveUser.IsDeveloper ? Visibility.Visible : Visibility.Collapsed;
+            createPostButtonVisibility = App.CurrentUser.IsDeveloper ? Visibility.Visible : Visibility.Collapsed;
             LoadPosts(true);
         }
 
