@@ -1,12 +1,14 @@
-﻿using BusinessLayer.Models;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using BusinessLayer.Models.Login;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SteamWebApi.Controllers
 {
@@ -25,6 +27,7 @@ namespace SteamWebApi.Controllers
             this.configuration = configuration;
         }
 
+        [AllowAnonymous]
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -90,18 +93,5 @@ namespace SteamWebApi.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    }
-
-    public class LoginRequest
-    {
-        public string EmailOrUsername { get; set; }
-        public string Password { get; set; }
-    }
-
-    public class LoginResponse
-    {
-        public User User { get; set; }
-        public string Token { get; set; }
-        public UserWithSessionDetails UserWithSessionDetails { get; set; }
     }
 }
