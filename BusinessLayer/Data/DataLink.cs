@@ -43,7 +43,6 @@ namespace BusinessLayer.Data
         private const string ExecuteNonQueryAsyncErrorMessage = "Database error during ExecuteNonQueryAsync operation: ";
         private const string ExecuteNonQueryAsyncUnexpectedErrorMessage = "Error during ExecuteNonQueryAsync operation: ";
 
-        // New constants for SQL direct execution error messages
         private const string ExecuteScalarSqlErrorMessage = "Database error during ExecuteScalarSql operation: ";
         private const string ExecuteScalarSqlCastErrorMessage = "Error during ExecuteScalarSql operation: ";
         private const string ExecuteScalarSqlUnexpectedErrorMessage = "Unexpected error during ExecuteScalarSql operation: ";
