@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessLayer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250510163744_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250513114423_MainMigration")]
+    partial class MainMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -227,15 +227,15 @@ namespace BusinessLayer.Migrations
 
             modelBuilder.Entity("BusinessLayer.Models.ForumComment", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
+                        .HasColumnType("int")
                         .HasColumnName("comment_id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<long>("AuthorId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int")
                         .HasColumnName("author_id");
 
                     b.Property<string>("Body")
@@ -243,8 +243,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("body");
 
-                    b.Property<long>("PostId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("PostId")
+                        .HasColumnType("int")
                         .HasColumnName("post_id");
 
                     b.Property<int>("Score")
@@ -262,12 +262,12 @@ namespace BusinessLayer.Migrations
 
             modelBuilder.Entity("BusinessLayer.Models.ForumPost", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
+                        .HasColumnType("int")
                         .HasColumnName("post_id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AuthorId")
                         .HasColumnType("int")
@@ -278,8 +278,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("body");
 
-                    b.Property<long?>("GameId")
-                        .HasColumnType("bigint")
+                    b.Property<int?>("GameId")
+                        .HasColumnType("int")
                         .HasColumnName("game_id");
 
                     b.Property<int>("Score")
@@ -365,9 +365,6 @@ namespace BusinessLayer.Migrations
                         .HasColumnName("RequestDate")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int?>("UserProfileProfileId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -375,8 +372,6 @@ namespace BusinessLayer.Migrations
                         .HasColumnName("SenderUsername");
 
                     b.HasKey("RequestId");
-
-                    b.HasIndex("UserProfileProfileId");
 
                     b.HasIndex("Username", "ReceiverUsername")
                         .IsUnique()
@@ -426,9 +421,6 @@ namespace BusinessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GameId"));
 
-                    b.Property<int?>("CollectionId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CoverPicture")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
@@ -450,8 +442,6 @@ namespace BusinessLayer.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("GameId");
-
-                    b.HasIndex("CollectionId");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("IX_OwnedGames_UserId");
@@ -790,8 +780,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("int")
                         .HasColumnName("userId");
 
-                    b.Property<long>("CommentId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int")
                         .HasColumnName("comment_id");
 
                     b.HasKey("UserId", "CommentId");
@@ -805,8 +795,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("int")
                         .HasColumnName("userId");
 
-                    b.Property<long>("PostId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("PostId")
+                        .HasColumnType("int")
                         .HasColumnName("post_id");
 
                     b.HasKey("UserId", "PostId");
@@ -820,8 +810,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("int")
                         .HasColumnName("userId");
 
-                    b.Property<long>("CommentId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("CommentId")
+                        .HasColumnType("int")
                         .HasColumnName("comment_id");
 
                     b.HasKey("UserId", "CommentId");
@@ -835,8 +825,8 @@ namespace BusinessLayer.Migrations
                         .HasColumnType("int")
                         .HasColumnName("userId");
 
-                    b.Property<long>("PostId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("PostId")
+                        .HasColumnType("int")
                         .HasColumnName("post_id");
 
                     b.HasKey("UserId", "PostId");
@@ -939,20 +929,6 @@ namespace BusinessLayer.Migrations
                     b.Navigation("Feature");
                 });
 
-            modelBuilder.Entity("BusinessLayer.Models.FriendRequest", b =>
-                {
-                    b.HasOne("BusinessLayer.Models.UserProfile", null)
-                        .WithMany("FriendRequests")
-                        .HasForeignKey("UserProfileProfileId");
-                });
-
-            modelBuilder.Entity("BusinessLayer.Models.OwnedGame", b =>
-                {
-                    b.HasOne("BusinessLayer.Models.Collection", null)
-                        .WithMany("Games")
-                        .HasForeignKey("CollectionId");
-                });
-
             modelBuilder.Entity("BusinessLayer.Models.Review", b =>
                 {
                     b.HasOne("BusinessLayer.Models.ReviewsUser", null)
@@ -1000,8 +976,6 @@ namespace BusinessLayer.Migrations
             modelBuilder.Entity("BusinessLayer.Models.Collection", b =>
                 {
                     b.Navigation("CollectionGames");
-
-                    b.Navigation("Games");
                 });
 
             modelBuilder.Entity("BusinessLayer.Models.OwnedGame", b =>
@@ -1019,11 +993,6 @@ namespace BusinessLayer.Migrations
                     b.Navigation("SoldGames");
 
                     b.Navigation("UserAchievements");
-                });
-
-            modelBuilder.Entity("BusinessLayer.Models.UserProfile", b =>
-                {
-                    b.Navigation("FriendRequests");
                 });
 #pragma warning restore 612, 618
         }

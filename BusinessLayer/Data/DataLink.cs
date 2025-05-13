@@ -11,8 +11,6 @@ namespace BusinessLayer.Data
 {
     public sealed partial class DataLink : IDataLink
     {
-        private static readonly Lazy<DataLink> DataLinkInstance = new(() => new DataLink());
-
         // Constants for configuration keys and error messages
         private const string AppSettingsFileName = "appsettings.json";
         private const bool OptionalAppSettings = false;
@@ -101,8 +99,6 @@ namespace BusinessLayer.Data
                 throw new ConfigurationErrorsException(ConnectionInitErrorMessage, exception);
             }
         }
-
-        public static DataLink Instance => DataLinkInstance.Value;
 
         private SqlConnection CreateConnection()
         {
