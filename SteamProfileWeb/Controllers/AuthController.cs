@@ -50,6 +50,31 @@ public class AuthController : Controller
 
         return View(model);
     }
+    
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var success = await authManager.RegisterAsync(
+            model.Username,
+            model.Email,
+            model.Password,
+            model.IsDeveloper
+        );
+
+        if (success)
+        {
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        ModelState.AddModelError(string.Empty, "Registration failed. Please try again.");
+        return View(model);
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]

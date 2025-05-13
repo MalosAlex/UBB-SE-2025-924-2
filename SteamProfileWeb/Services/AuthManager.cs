@@ -46,6 +46,22 @@ public class AuthManager : IAuthManager
         await httpContextAccessor.HttpContext.SignInAsync("SteamWebApi", principal);
         return true;
     }
+    
+    public async Task<bool> RegisterAsync(string username, string email, string password, bool isDeveloper)
+    {
+        var registerModel = new 
+        {
+            Username = username,
+            Email = email,
+            Password = password,
+            IsDeveloper = isDeveloper
+        };
+        var response = await httpClient.PostAsJsonAsync("Auth/Register", registerModel);
+        if (!response.IsSuccessStatusCode)
+            return false;
+        
+        return true;
+    }
 
     public async Task LogoutAsync()
     {
