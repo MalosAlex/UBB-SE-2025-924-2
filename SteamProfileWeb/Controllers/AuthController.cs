@@ -22,6 +22,14 @@ public class AuthController : Controller
         return View();
     }
     
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult Register(string returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
+    
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
