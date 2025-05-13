@@ -188,8 +188,8 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                var response = await StaticHttpClient.GetAsync($"{baseUrl}{endpoint}");
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.GetAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -206,8 +206,8 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content);
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -224,8 +224,8 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content);
-                await EnsureSuccessStatusCode(response);
+                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                await EnsureSuccessStatusCode(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -242,8 +242,8 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await StaticHttpClient.PutAsync($"{baseUrl}{endpoint}", content);
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.PutAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -255,8 +255,8 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                var response = await StaticHttpClient.DeleteAsync($"{baseUrl}{endpoint}");
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.DeleteAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -304,9 +304,9 @@ namespace BusinessLayer.Services.Proxies
 
         private async Task<T> HandleResponse<T>(HttpResponseMessage response)
         {
-            await EnsureSuccessStatusCode(response);
+            await EnsureSuccessStatusCode(response).ConfigureAwait(false);
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -317,7 +317,7 @@ namespace BusinessLayer.Services.Proxies
         {
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 switch (response.StatusCode)
                 {
