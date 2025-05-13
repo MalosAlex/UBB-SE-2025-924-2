@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using BusinessLayer.Models.Login;
+using BusinessLayer.Models.Register;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SteamWebApi.Controllers
@@ -31,6 +32,11 @@ namespace SteamWebApi.Controllers
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.EmailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest("Username or email, and password are required.");
+            }
+            
             // Authenticate the user
             var user = userService.Login(request.EmailOrUsername, request.Password);
 
@@ -67,6 +73,61 @@ namespace SteamWebApi.Controllers
                 UserWithSessionDetails = userWithSessionDetails
             });
         }
+        
+    [AllowAnonymous]
+    [HttpPost("Register")]
+    public IActionResult Register([FromBody] RegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Username, email and password are required.");
+        }
+
+        // 2) Try to create the user
+        User newUser;
+        try
+        {
+            newUser = userService.CreateUser(new BusinessLayer.Models.User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                Password = request.Password,
+                IsDeveloper = request.IsDeveloper
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        // 3) Spin up the session
+        var sessionId = sessionService.CreateNewSession(newUser);
+
+        // 4) Build the response details
+        var details = new UserWithSessionDetails
+        {
+            SessionId = sessionId,
+            UserId = newUser.UserId,
+            Username = newUser.Username,
+            Email = newUser.Email,
+            Developer = newUser.IsDeveloper,
+            UserCreatedAt = newUser.CreatedAt,
+            LastLogin = newUser.LastLogin,
+            CreatedAt = UserSession.Instance.CreatedAt,
+            ExpiresAt = UserSession.Instance.ExpiresAt
+        };
+
+        // 5) Issue a JWT
+        var token = GenerateJwtToken(newUser, sessionId);
+
+        // 6) Return 200 + payload
+        return Ok(new RegisterResponse
+        {
+            User = newUser,
+            Token = token,
+            UserWithSessionDetails = details
+        });
+    }
 
         private string GenerateJwtToken(User user, Guid sessionId)
         {
