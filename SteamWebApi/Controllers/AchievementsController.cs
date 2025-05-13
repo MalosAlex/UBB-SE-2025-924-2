@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Models;
+﻿using BusinessLayer.Exceptions;
+using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using static BusinessLayer.Services.AchievementsService;
@@ -61,8 +62,21 @@ namespace SteamWebApi.Controllers
         [HttpGet("{userId}/{achievementId}/points")]
         public IActionResult GetPointsForUnlockedAchievement(int userId, int achievementId)
         {
-            var points = achievementsService.GetPointsForUnlockedAchievement(userId, achievementId);
-            return Ok(points);
+            try
+            {
+                var points = achievementsService.GetPointsForUnlockedAchievement(userId, achievementId);
+                return Ok(points);
+            }
+            catch (ServiceException ex) when (ex.Message.Contains("Achievement is not unlocked or does not exist"))
+            {
+                // Return 404 Not Found for achievement not found/unlocked
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Return 500 for unexpected errors
+                return StatusCode(500, new { message = "An unexpected error occurred", error = ex.Message });
+            }
         }
 
         [HttpPost("initialize")]

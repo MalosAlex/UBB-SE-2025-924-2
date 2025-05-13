@@ -15,11 +15,13 @@ namespace BusinessLayer.Services
     {
         private readonly IFeaturesRepository featuresRepository;
         private readonly IUserService userService;
+        private readonly IUserProfilesRepository userProfilesRepository;
 
-        public FeaturesService(IFeaturesRepository featuresRepository, IUserService userService)
+        public FeaturesService(IFeaturesRepository featuresRepository, IUserService userService, IUserProfilesRepository userProfilesRepository)
         {
             this.featuresRepository = featuresRepository;
             this.userService = userService;
+            this.userProfilesRepository = userProfilesRepository;
         }
 
         public IUserService UserService => userService;
@@ -138,8 +140,8 @@ namespace BusinessLayer.Services
 
             try
             {
-                var userProfileRepo = new UserProfilesRepository(null);
-                var userProfile = userProfileRepo.GetUserProfileByUserId(userId);
+                // Replace the problematic line with the properly injected repository
+                var userProfile = userProfilesRepository.GetUserProfileByUserId(userId);
 
                 if (userProfile != null)
                 {

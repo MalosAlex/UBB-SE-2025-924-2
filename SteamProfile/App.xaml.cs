@@ -151,7 +151,7 @@ namespace SteamProfile
 
             Services[typeof(ICollectionsService)] = new CollectionsService(collectionsRepository);
 
-            var featuresService = new FeaturesService(featureRepository, userService);
+            var featuresService = new FeaturesService(featureRepository, userService, userProfilesRepository);
             Services[typeof(IFeaturesService)] = featuresService;
 
             Services[typeof(INewsService)] = new NewsService(GetService<INewsRepository>(), GetService<IUserService>());

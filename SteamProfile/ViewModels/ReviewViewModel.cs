@@ -168,11 +168,13 @@ namespace SteamProfile.ViewModels
             {
                 shouldIncrement = !review.HasVotedHelpful;
                 review.HasVotedHelpful = !review.HasVotedHelpful;
+                review.TotalHelpfulVotesReceived += shouldIncrement ? 1 : -1;
             }
             else if (voteType == "Funny")
             {
                 shouldIncrement = !review.HasVotedFunny;
                 review.HasVotedFunny = !review.HasVotedFunny;
+                review.TotalFunnyVotesReceived += shouldIncrement ? 1 : -1;
             }
             else
             {
@@ -180,7 +182,10 @@ namespace SteamProfile.ViewModels
             }
 
             reviewService.ToggleVote(reviewId, voteType, shouldIncrement);
-            LoadReviewsForGame(currentGameIdentifier);
+            review.OnPropertyChanged(nameof(review.TotalHelpfulVotesReceived));
+            review.OnPropertyChanged(nameof(review.HasVotedHelpful));
+            review.OnPropertyChanged(nameof(review.TotalFunnyVotesReceived));
+            review.OnPropertyChanged(nameof(review.HasVotedFunny));
         }
 
         public void ApplyReccomendationFilter(string filter)

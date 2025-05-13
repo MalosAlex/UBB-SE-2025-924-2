@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,41 +12,184 @@ namespace BusinessLayer.Services.Proxies
 {
     public class ServiceProxy
     {
-        protected readonly HttpClient httpClient;
         protected readonly string baseUrl;
+        // Static HttpClient with a reasonable timeout
+        private static readonly HttpClient StaticHttpClient;
         private static string authToken;
+
+        // Static constructor to configure the HttpClient once
+        static ServiceProxy()
+        {
+            StaticHttpClient = new HttpClient();
+            StaticHttpClient.Timeout = TimeSpan.FromSeconds(30); // Set a 30-second timeout
+
+            // Configure default headers
+            StaticHttpClient.DefaultRequestHeaders.Accept.Clear();
+            StaticHttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
 
         // Store the session info on the client side
         protected static UserWithSessionDetails CurrentUser { get; private set; }
 
-        public ServiceProxy(string baseUrl = "http://localhost:7262/api/")
+        public ServiceProxy(string baseUrl = "https://localhost:7262/api/")
         {
             this.baseUrl = baseUrl;
-            var handler = new HttpClientHandler()
-            {
-                UseProxy = false,
-                // Add these crucial lines for local development:
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true,
-                // ^ This bypasses SSL certificate validation, use only in development!
-            };
-            httpClient = new HttpClient(handler);
-            // Set reasonable timeouts
-            httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-            // If we have an auth token, include it with every request
-            if (!string.IsNullOrEmpty(authToken))
+            // Update auth token if needed
+            SetAuthTokenSafely(authToken);
+        }
+
+        // Safe method to update auth token
+        private void SetAuthTokenSafely(string token)
+        {
+            if (string.IsNullOrEmpty(token))
             {
-                httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", authToken);
+                return;
+            }
+
+            try
+            {
+                if (StaticHttpClient.DefaultRequestHeaders.Contains("Authorization"))
+                {
+                    StaticHttpClient.DefaultRequestHeaders.Remove("Authorization");
+                }
+
+                StaticHttpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error setting auth token: {ex.Message}");
+                // Don't throw - just log the error
             }
         }
 
+        protected T GetSync<T>(string endpoint)
+        {
+            try
+            {
+                // Use a new task and wait for it, which avoids potential deadlocks
+                var task = Task.Run(() => StaticHttpClient.GetAsync($"{baseUrl}{endpoint}"));
+                var response = task.GetAwaiter().GetResult();
+                return HandleResponseSync<T>(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"GET Error for {endpoint}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw new ServiceException($"Network error: {ex.Message}", ex);
+            }
+        }
+
+        protected T PostSync<T>(string endpoint, object data)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(data);
+                Debug.WriteLine($"POST Request to {endpoint}: {json}");
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Use a new task and wait for it, which avoids potential deadlocks
+                var task = Task.Run(() => StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content));
+                var response = task.GetAwaiter().GetResult();
+
+                return HandleResponseSync<T>(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"POST Error for {endpoint}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw new ServiceException($"Network error: {ex.Message}", ex);
+            }
+        }
+
+        protected void PostSync(string endpoint, object data)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(data);
+                Debug.WriteLine($"POST Request to {endpoint}: {json}");
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Use a new task and wait for it, which avoids potential deadlocks
+                var task = Task.Run(() => StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content));
+                var response = task.GetAwaiter().GetResult();
+
+                EnsureSuccessStatusCodeSync(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"POST Error for {endpoint}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw new ServiceException($"Network error: {ex.Message}", ex);
+            }
+        }
+
+        protected T PutSync<T>(string endpoint, object data)
+        {
+            try
+            {
+                var content = new StringContent(
+                    JsonSerializer.Serialize(data),
+                    Encoding.UTF8,
+                    "application/json");
+
+                // Use a new task and wait for it, which avoids potential deadlocks
+                var task = Task.Run(() => StaticHttpClient.PutAsync($"{baseUrl}{endpoint}", content));
+                var response = task.GetAwaiter().GetResult();
+
+                return HandleResponseSync<T>(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"PUT Error for {endpoint}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw new ServiceException($"Network error: {ex.Message}", ex);
+            }
+        }
+
+        protected T DeleteSync<T>(string endpoint)
+        {
+            try
+            {
+                // Use a new task and wait for it, which avoids potential deadlocks
+                var task = Task.Run(() => StaticHttpClient.DeleteAsync($"{baseUrl}{endpoint}"));
+                var response = task.GetAwaiter().GetResult();
+
+                return HandleResponseSync<T>(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"DELETE Error for {endpoint}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw new ServiceException($"Network error: {ex.Message}", ex);
+            }
+        }
+
+        // Keep the async methods for completeness but we'll use the sync ones
         protected async Task<T> GetAsync<T>(string endpoint)
         {
             try
             {
-                var response = await httpClient.GetAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.GetAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -55,22 +199,19 @@ namespace BusinessLayer.Services.Proxies
 
         protected async Task<T> PostAsync<T>(string endpoint, object data)
         {
-            var requestUri = $"{baseUrl}{endpoint}";
-            var content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
             try
             {
-                var response = await httpClient.PostAsync(requestUri, content, cts.Token).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
+                var content = new StringContent(
+                    JsonSerializer.Serialize(data),
+                    Encoding.UTF8,
+                    "application/json");
 
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException)
+            catch (HttpRequestException ex)
             {
-                throw new ServiceException($"POST to {requestUri} failed: {ex.Message}", ex);
+                throw new ServiceException($"Network error: {ex.Message}", ex);
             }
         }
 
@@ -83,8 +224,8 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await httpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
-                await EnsureSuccessStatusCode(response);
+                var response = await StaticHttpClient.PostAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                await EnsureSuccessStatusCode(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -101,8 +242,8 @@ namespace BusinessLayer.Services.Proxies
                     Encoding.UTF8,
                     "application/json");
 
-                var response = await httpClient.PutAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.PutAsync($"{baseUrl}{endpoint}", content).ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -114,8 +255,8 @@ namespace BusinessLayer.Services.Proxies
         {
             try
             {
-                var response = await httpClient.DeleteAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
-                return await HandleResponse<T>(response);
+                var response = await StaticHttpClient.DeleteAsync($"{baseUrl}{endpoint}").ConfigureAwait(false);
+                return await HandleResponse<T>(response).ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
             {
@@ -123,11 +264,49 @@ namespace BusinessLayer.Services.Proxies
             }
         }
 
+        private T HandleResponseSync<T>(HttpResponseMessage response)
+        {
+            EnsureSuccessStatusCodeSync(response);
+
+            var task = Task.Run(() => response.Content.ReadAsStringAsync());
+            var json = task.GetAwaiter().GetResult();
+
+            Debug.WriteLine($"Response: {json}");
+
+            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+
+        private void EnsureSuccessStatusCodeSync(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var task = Task.Run(() => response.Content.ReadAsStringAsync());
+                var content = task.GetAwaiter().GetResult();
+
+                Debug.WriteLine($"Error Response: {content}");
+
+                switch (response.StatusCode)
+                {
+                    case System.Net.HttpStatusCode.Unauthorized:
+                        throw new UnauthorizedAccessException("Authentication required");
+                    case System.Net.HttpStatusCode.Forbidden:
+                        throw new UnauthorizedAccessException("You don't have permission to access this resource");
+                    case System.Net.HttpStatusCode.NotFound:
+                        throw new RepositoryException("Resource not found");
+                    default:
+                        throw new ServiceException($"API error: {response.StatusCode}. {content}");
+                }
+            }
+        }
+
         private async Task<T> HandleResponse<T>(HttpResponseMessage response)
         {
-            await EnsureSuccessStatusCode(response);
+            await EnsureSuccessStatusCode(response).ConfigureAwait(false);
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -138,7 +317,7 @@ namespace BusinessLayer.Services.Proxies
         {
             if (!response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 switch (response.StatusCode)
                 {
@@ -158,8 +337,7 @@ namespace BusinessLayer.Services.Proxies
         protected void SetAuthToken(string token)
         {
             authToken = token;
-            httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", authToken);
+            SetAuthTokenSafely(token);
         }
 
         // Method to store current user session

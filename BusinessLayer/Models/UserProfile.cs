@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BusinessLayer.Models
 {
@@ -20,7 +21,10 @@ namespace BusinessLayer.Models
             set => profilePhotoPath = value;
         }
 
+        [NotMapped]
         public ObservableCollection<Friend> Friends { get; set; } = new ObservableCollection<Friend>();
+
+        [NotMapped]
         public ObservableCollection<FriendRequest> FriendRequests { get; set; } = new ObservableCollection<FriendRequest>();
     }
 }
