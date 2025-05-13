@@ -11,10 +11,11 @@ namespace BusinessLayer.Services
     {
         private readonly IFriendRequestRepository friendRequestRepository;
         private readonly IFriendService friendService;
+
         public FriendRequestService(IFriendRequestRepository friendRequestRepository, IFriendService friendService)
         {
-            friendRequestRepository = friendRequestRepository ?? throw new ArgumentNullException(nameof(friendRequestRepository));
-            friendService = friendService ?? throw new ArgumentNullException(nameof(friendService));
+            this.friendRequestRepository = friendRequestRepository ?? throw new ArgumentNullException(nameof(friendRequestRepository));
+            this.friendService = friendService ?? throw new ArgumentNullException(nameof(friendService));
         }
 
         public async Task<IEnumerable<FriendRequest>> GetFriendRequestsAsync(string username)

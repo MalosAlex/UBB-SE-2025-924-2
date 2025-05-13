@@ -1,6 +1,10 @@
-﻿using BusinessLayer.Models;
+﻿using System.Security.Claims;
+using BusinessLayer.Exceptions;
+using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace SteamWebApi.Controllers
 {
@@ -25,15 +29,71 @@ namespace SteamWebApi.Controllers
         [HttpGet("{collectionId}/user/{userId}")]
         public IActionResult GetCollection(int collectionId, int userId)
         {
-            var collection = collectionsService.GetCollectionByIdentifier(collectionId, userId);
-            return Ok(collection);
+            try
+            {
+                var collection = collectionsService.GetCollectionByIdentifier(collectionId, userId);
+                if (collection == null)
+                {
+                    return NotFound(new { message = $"Collection with ID {collectionId} for user {userId} not found." });
+                }
+                return Ok(collection);
+            }
+            catch (ServiceException ex) when (ex.InnerException is SqlException sqlEx &&
+                                             (sqlEx.Number == 207 || sqlEx.Message.Contains("Invalid column name")))
+            {
+                // SQL Error 207 is "Invalid column name"
+                return BadRequest(new
+                {
+                    message = "Database schema error. The collection might be missing required columns or there's a naming mismatch.",
+                    suggestion = "Please verify database connection or contact the administrator."
+                });
+            }
+            catch (ServiceException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred", error = ex.Message });
+            }
         }
 
         [HttpGet("{collectionId}/games")]
+        [Authorize] // Add this attribute to ensure authentication
         public IActionResult GetGamesInCollection(int collectionId)
         {
-            var games = collectionsService.GetGamesInCollection(collectionId);
-            return Ok(games);
+            try
+            {
+                var games = collectionsService.GetGamesInCollection(collectionId);
+                return Ok(games);
+            }
+            catch (ServiceException ex) when (ex.InnerException is SqlException sqlEx &&
+                                             (sqlEx.Number == 207 || sqlEx.Message.Contains("Invalid column name")))
+            {
+                return BadRequest(new
+                {
+                    message = "Database schema error. Check column names in the query.",
+                    suggestion = "Please verify database connection or contact the administrator."
+                });
+            }
+            catch (ServiceException ex)
+            {
+                // Log the exception for debugging
+                Console.WriteLine($"Service Exception: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Log the full exception
+                Console.WriteLine($"Unhandled Exception: {ex.ToString()}");
+
+                return StatusCode(500, new { message = "An unexpected error occurred", error = ex.Message });
+            }
         }
 
         [HttpGet("public/{userId}")]
