@@ -3,9 +3,11 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories.Interfaces;
 using SteamProfileWeb.ViewModels;
 using System;
+using Microsoft.AspNetCore.Authorization; // Added this line
 
 namespace SteamProfileWeb.Controllers
 {
+    [Authorize] // Added this attribute
     public class WalletController : Controller
     {
         private readonly IWalletService _walletService;
