@@ -29,7 +29,12 @@ namespace BusinessLayer.Services
         public Dictionary<string, List<Feature>> GetFeaturesByCategories()
         {
             var categories = new Dictionary<string, List<Feature>>();
-            var allFeatures = featuresRepository.GetAllFeatures(userService.GetCurrentUser().UserId);
+            var currentUser = userService.GetCurrentUser();
+            if (currentUser == null)
+            {
+                throw new InvalidOperationException("No user is currently logged in.");
+            }
+            var allFeatures = featuresRepository.GetAllFeatures(currentUser.UserId);
 
             foreach (var feature in allFeatures)
             {
@@ -40,6 +45,21 @@ namespace BusinessLayer.Services
                 categories[feature.Type].Add(feature);
             }
 
+            return categories;
+        }
+
+        public Dictionary<string, List<Feature>> GetFeaturesByCategories(int userId)
+        {
+            var categories = new Dictionary<string, List<Feature>>();
+            var allFeatures = featuresRepository.GetAllFeatures(userId);
+            foreach (var feature in allFeatures)
+            {
+                if (!categories.ContainsKey(feature.Type))
+                {
+                    categories[feature.Type] = new List<Feature>();
+                }
+                categories[feature.Type].Add(feature);
+            }
             return categories;
         }
 

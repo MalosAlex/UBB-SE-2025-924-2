@@ -76,6 +76,13 @@ namespace SteamWebApi.Controllers
             var (success, message) = featuresService.PurchaseFeature(request.UserId, request.FeatureId);
             return Ok(new { Success = success, Message = message });
         }
+
+        [HttpGet("user/{userId}/categories")]
+        public IActionResult GetFeaturesByCategoriesForUser(int userId)
+        {
+            var featuresByCategories = featuresService.GetFeaturesByCategories(userId);
+            return Ok(featuresByCategories);
+        }
     }
 
     public class FeatureActionRequest
