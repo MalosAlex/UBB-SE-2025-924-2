@@ -79,6 +79,9 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
+builder.Services.AddScoped<ICollectionsRepository, CollectionsRepository>();
+builder.Services.AddScoped<IFriendshipsRepository, FriendshipsRepository>();
+builder.Services.AddScoped<IFeaturesRepository, FeaturesRepository>();
 
 
 // Register Services - Note the order: SessionService needs to be registered before UserService
@@ -86,6 +89,8 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IAchievementsService, AchievementsService>();
+builder.Services.AddScoped<IFriendsService, FriendsService>();
+builder.Services.AddScoped<IFeaturesService, FeaturesService>();
 
 
 // Add Authorization
@@ -115,5 +120,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+app.MapControllerRoute(
+    name: "profile",
+    pattern: "Profile/{userId?}",
+    defaults: new { controller = "Profile", action = "Index" });
 
 app.Run();

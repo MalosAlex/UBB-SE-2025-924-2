@@ -1,0 +1,61 @@
+﻿@model SteamProfileWeb.ViewModels.ProfileViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Username}'s Profile";
+}
+
+<h2>@Model.Username's Profile</h2>
+<img src="@Model.ProfilePhotoPath" alt="Profile Picture" style="width:128px;height:128px;" />
+<p><strong>Email:</strong> @Model.Email</p>
+<p><strong>Bio:</strong> @Model.Biography</p>
+<p><strong>Friends:</strong> @Model.FriendCount</p>
+
+<form asp-action="ToggleFriendship" asp-route-userId="@Model.UserIdentifier" method="post">
+    <button type="submit">@Model.FriendButtonText</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+<h3>Collections</h3>
+<ul>
+    @foreach (var collection in Model.GameCollections)
+    {
+        <li>@collection.CollectionName</li>
+    }
+</ul>
+
+<h3>Achievements</h3>
+@if (Model.FriendshipsAchievement != null)
+{
+    <div>
+        <span>@Model.FriendshipsAchievement.Achievement.AchievementName</span>
+        <span>@(Model.FriendshipsAchievement.IsUnlocked ? "Unlocked" : "Locked")</span>
+    </div>
+}
+
+<h3>Equipped Features</h3>
+<ul>
+    @if (Model.HasEquippedFrame)
+    {
+        <li>Frame: <img src="@Model.EquippedFrameSource" style="height:32px;" /></li>
+    }
+    @if (Model.HasEquippedHat)
+    {
+        <li>Hat: <img src="@Model.EquippedHatSource" style="height:32px;" /></li>
+    }
+    @if (Model.HasEquippedPet)
+    {
+        <li>Pet: <img src="@Model.EquippedPetSource" style="height:32px;" /></li>
+    }
+    @if (Model.HasEquippedEmoji)
+    {
+        <li>Emoji: <img src="@Model.EquippedEmojiSource" style="height:32px;" /></li>
+    }
+    @if (Model.HasEquippedBackground)
+    {
+        <li>Background: <img src="@Model.EquippedBackgroundSource" style="height:32px;" /></li>
+    }
+</ul>
