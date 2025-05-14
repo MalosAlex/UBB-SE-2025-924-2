@@ -1,9 +1,13 @@
 [
   {
-    "Name": "New Profile",
+    "Name": "goodStart",
     "Projects": [
       {
         "Path": "..\\SteamWebApi\\SteamWebApi.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\SteamProfileWeb\\SteamProfileWeb.csproj",
         "Action": "Start"
       },
       {

@@ -1,12 +1,15 @@
-﻿using BusinessLayer.Models;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using BusinessLayer.Models.Login;
+using BusinessLayer.Models.Register;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SteamWebApi.Controllers
 {
@@ -18,6 +21,12 @@ namespace SteamWebApi.Controllers
         private readonly ISessionService sessionService;
         private readonly IConfiguration configuration;
 
+        /// <summary>
+        /// Constructor for AuthController
+        /// </summary>
+        /// <param name="userService">Service to manage user operations</param>
+        /// <param name="sessionService">Service to manage session operations</param>
+        /// <param name="configuration">Application configuration settings</param>
         public AuthController(IUserService userService, ISessionService sessionService, IConfiguration configuration)
         {
             this.userService = userService;
@@ -25,21 +34,33 @@ namespace SteamWebApi.Controllers
             this.configuration = configuration;
         }
 
+        /// <summary>
+        /// Authenticates a user and returns a JWT token and session information.
+        /// </summary>
+        /// <param name="request">Login request containing email/username and password</param>
+        /// <returns>JWT token and session details if successful, appropriate error otherwise</returns>
+        [AllowAnonymous]
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            // Authenticate the user
+            // Validate input
+            if (string.IsNullOrWhiteSpace(request.EmailOrUsername) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest("Username or email, and password are required.");
+            }
+
+            // Authenticate the user using the user service
             var user = userService.Login(request.EmailOrUsername, request.Password);
 
             if (user == null)
             {
-                return Unauthorized();
+                return Unauthorized(); // Invalid credentials
             }
 
-            // Get the session details from the singleton
+            // Retrieve the session ID from the UserSession singleton
             var sessionId = UserSession.Instance.CurrentSessionId.Value;
 
-            // Create UserWithSessionDetails
+            // Construct session detail object
             var userWithSessionDetails = new UserWithSessionDetails
             {
                 SessionId = sessionId,
@@ -53,10 +74,10 @@ namespace SteamWebApi.Controllers
                 ExpiresAt = UserSession.Instance.ExpiresAt
             };
 
-            // Generate JWT token
+            // Generate a JWT token
             var token = GenerateJwtToken(user, sessionId);
 
-            // Return the login response with token and session details
+            // Return successful login response
             return Ok(new LoginResponse
             {
                 User = user,
@@ -65,6 +86,76 @@ namespace SteamWebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Registers a new user and returns a JWT token and session information.
+        /// </summary>
+        /// <param name="request">Register request containing username, email, password, and developer flag</param>
+        /// <returns>JWT token and session details if successful, appropriate error otherwise</returns>
+        [AllowAnonymous]
+        [HttpPost("Register")]
+        public IActionResult Register([FromBody] RegisterRequest request)
+        {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(request.Username) || 
+                string.IsNullOrWhiteSpace(request.Email) || 
+                string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest("Username, email and password are required.");
+            }
+
+            // Attempt to create the user
+            User newUser;
+            try
+            {
+                newUser = userService.CreateUser(new User
+                {
+                    Username = request.Username,
+                    Email = request.Email,
+                    Password = request.Password,
+                    IsDeveloper = request.IsDeveloper
+                });
+            }
+            catch (Exception ex)
+            {
+                // User creation failed
+                return BadRequest(ex.Message); 
+            }
+
+            // Create a new session for the user
+            var sessionId = sessionService.CreateNewSession(newUser);
+
+            // Build session detail response object
+            var details = new UserWithSessionDetails
+            {
+                SessionId = sessionId,
+                UserId = newUser.UserId,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                Developer = newUser.IsDeveloper,
+                UserCreatedAt = newUser.CreatedAt,
+                LastLogin = newUser.LastLogin,
+                CreatedAt = UserSession.Instance.CreatedAt,
+                ExpiresAt = UserSession.Instance.ExpiresAt
+            };
+
+            // Generate a JWT token
+            var token = GenerateJwtToken(newUser, sessionId);
+
+            // Return successful registration response
+            return Ok(new RegisterResponse
+            {
+                User = newUser,
+                Token = token,
+                UserWithSessionDetails = details
+            });
+        }
+
+        /// <summary>
+        /// Generates a JWT token for the authenticated user.
+        /// </summary>
+        /// <param name="user">User object</param>
+        /// <param name="sessionId">Current session ID</param>
+        /// <returns>JWT token as a string</returns>
         private string GenerateJwtToken(User user, Guid sessionId)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
@@ -72,6 +163,7 @@ namespace SteamWebApi.Controllers
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+            // Set user claims
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
@@ -81,6 +173,7 @@ namespace SteamWebApi.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
+            // Create the token
             var token = new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"] ?? "SteamWebApi",
                 audience: configuration["Jwt:Audience"] ?? "SteamProfile",
@@ -88,20 +181,8 @@ namespace SteamWebApi.Controllers
                 expires: DateTime.Now.AddHours(3),
                 signingCredentials: credentials);
 
+            // Return the serialized token
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    }
-
-    public class LoginRequest
-    {
-        public string EmailOrUsername { get; set; }
-        public string Password { get; set; }
-    }
-
-    public class LoginResponse
-    {
-        public User User { get; set; }
-        public string Token { get; set; }
-        public UserWithSessionDetails UserWithSessionDetails { get; set; }
     }
 }
