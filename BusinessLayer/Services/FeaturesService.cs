@@ -65,17 +65,6 @@ namespace BusinessLayer.Services
 
         public bool EquipFeature(int userId, int featureId)
         {
-            if (!featuresRepository.IsFeaturePurchased(userId, featureId))
-            {
-                return false;
-            }
-
-            var feature = featuresRepository.GetFeaturesByType("frame").FirstOrDefault(feature => feature.FeatureId == featureId);
-            if (feature != null)
-            {
-                featuresRepository.UnequipFeaturesByType(userId, "frame");
-            }
-
             return featuresRepository.EquipFeature(userId, featureId);
         }
 
@@ -92,8 +81,7 @@ namespace BusinessLayer.Services
 
         public List<Feature> GetUserEquippedFeatures(int userId)
         {
-            return featuresRepository.GetUserFeatures(userId)
-                .Where(feature => feature.Equipped)
+            return featuresRepository.GetEquippedFeatures(userId)
                 .ToList();
         }
 
@@ -142,7 +130,7 @@ namespace BusinessLayer.Services
                 {
                     return (false, "User not found.");
                 }
-
+                featuresRepository.AddUserFeature(userId, featureId);
                 return (true, $"Successfully purchased {feature.Name} for {feature.Value} points.");
             }
             catch
