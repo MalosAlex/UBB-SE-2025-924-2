@@ -1,0 +1,101 @@
+@model SteamProfileWeb.ViewModels.WalletViewModel
+@{
+    ViewData["Title"] = "Your Wallet";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
+
+    <div class="row">
+        <!-- Balance Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Current Balance
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title" style="color: #107C10;">@Model.BalanceText</h2>
+                    @* Form for Adding Money *@
+                    <form asp-controller="Wallet" asp-action="AddFunds" method="post" class="mt-3">
+                        @Html.AntiForgeryToken()
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="amount" class="form-control" placeholder="Enter amount" step="0.01" min="0.01" required />
+                            <button type="submit" class="btn btn-success">Add Money</button>
+                        </div>
+                        @if (TempData["AddFundsError"] != null)
+                        {
+                            <div class="alert alert-danger mt-2">@TempData["AddFundsError"]</div>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Points Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Available Points
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title" style="color: #5B4DFF;">@Model.PointsText</h2>
+                    @* Placeholder for "Add Points" - This would likely involve selecting an offer *@
+                    @* For now, a simple button. The XAML had AddPointsButton_Click which implies more complex logic,
+                       possibly navigating to a different view or showing a dialog to select a PointsOffer.
+                       The controller has a PurchasePoints action that expects a pointsOfferId.
+                       We'll need a way to present these offers.
+                    *@
+                    <p class="mt-3"><strong>Purchase Points:</strong></p>
+                    @if (Model.PointsOffers != null && Model.PointsOffers.Any())
+                    {
+                        <form asp-controller="Wallet" asp-action="PurchasePoints" method="post">
+                             @Html.AntiForgeryToken()
+                            <div class="list-group">
+                                @foreach (var offer in Model.PointsOffers)
+                                {
+                                    <button type="submit" name="pointsOfferId" value="@offer.OfferId" class="list-group-item list-group-item-action">
+                                        Purchase @offer.Points points for $@offer.Price.ToString("F2")
+                                        @* Also corrected PointsAmount to Points based on the PointsOffer model *@
+                                    </button>
+                                }
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <p>No points offers available at the moment.</p>
+                    }
+                     @if (TempData["PurchasePointsError"] != null)
+                    {
+                        <div class="alert alert-danger mt-2">@TempData["PurchasePointsError"]</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="mt-4">
+        @* Assuming "Profile" is the controller and "Index" is the action for the main profile page *@
+        <a asp-controller="Profile" asp-action="Index" class="btn btn-secondary">Back to Profile</a>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // JavaScript for client-side interactions can be added here if needed.
+        // For example, handling clicks or dynamic content updates.
+        // The XAML click events (AddMoneyButton_Click, AddPointsButton_Click) are now
+        // handled by form submissions to controller actions.
+    </script>
+}

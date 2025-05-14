@@ -79,6 +79,8 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
+builder.Services.AddScoped<IWalletRepository, WalletRepository>(); // Assuming WalletRepository exists and is the correct implementation
+builder.Services.AddScoped<IPointsOffersRepository, PointsOffersRepository>(); // Assuming PointsOffersRepository exists
 
 
 // Register Services - Note the order: SessionService needs to be registered before UserService
@@ -86,6 +88,7 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IAchievementsService, AchievementsService>();
+builder.Services.AddScoped<IWalletService, WalletService>(); // Assuming WalletService exists
 
 
 // Add Authorization
