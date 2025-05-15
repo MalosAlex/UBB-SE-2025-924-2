@@ -1,6 +1,7 @@
 ﻿
 
 using BusinessLayer.Models;
+using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,14 @@ namespace SteamWebApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService userService;
+        private readonly IWalletService walletService;
+        private readonly IUserProfilesRepository profilesRepo;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IWalletService walletService, IUserProfilesRepository profilesRepo)
         {
             this.userService = userService;
+            this.walletService = walletService;
+            this.profilesRepo = profilesRepo;
         }
 
         [HttpGet]
@@ -69,6 +74,9 @@ namespace SteamWebApi.Controllers
             try
             {
                 var createdUser = userService.CreateUser(user);
+                walletService.CreateWallet(createdUser.UserId);
+                profilesRepo.CreateProfile(user.UserId);
+
                 return Ok(createdUser);
             }
             catch (Exception ex)

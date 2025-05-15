@@ -3,6 +3,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BusinessLayer.Models.Login;
+using BusinessLayer.Models;
+using BusinessLayer.Services;
 
 namespace SteamProfileWeb.Services;
 
