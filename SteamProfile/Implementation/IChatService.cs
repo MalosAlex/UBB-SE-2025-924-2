@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace SteamProfile.Implementation
 {
-    internal interface IService
+    internal interface IChatService
     {
         public event EventHandler<MessageEventArgs> NewMessageEvent;
         public event EventHandler<ClientStatusEventArgs> ClientStatusChangedEvent;

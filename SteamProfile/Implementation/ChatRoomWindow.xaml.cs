@@ -4,15 +4,17 @@ using System;
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using BusinessLayer.Models;
+using System.Diagnostics;
 
 namespace SteamProfile.Implementation
 {
     public partial class ChatRoomWindow : Window
     {
-        private IService service;
-        private ObservableCollection<Message> messages;
+        private IChatService service;
+        private ObservableCollection<ChatMessageUI> messages;
 
-        private string userName;
+        private int myId;
 
         private bool isAdmin;
         private bool isHost;
@@ -23,7 +25,7 @@ namespace SteamProfile.Implementation
         /// <summary>
         /// This property is bound to the ListView from the View
         /// </summary>
-        public ObservableCollection<Message> Messages
+        public ObservableCollection<ChatMessageUI> Messages
         {
             get => this.messages;
         }
@@ -34,6 +36,7 @@ namespace SteamProfile.Implementation
         /// </summary>
         private bool IsOpen { get; set; }
 
+        /*
         /// <summary>
         /// Creates a new window representing a chat room for users
         /// </summary>
@@ -65,6 +68,33 @@ namespace SteamProfile.Implementation
 
             WaitAndConnectToTheServer();
         }
+        */
+
+        public ChatRoomWindow(int myId_param, int friendId)
+        {
+            this.InitializeComponent();
+
+            // Extra buttons: Admin/Mute/Kick
+            this.HideExtraButtonsFromUser();
+
+            // In the client we use the thread pool, but we need to update the ui in the main thread, so we capture it
+            Microsoft.UI.Dispatching.DispatcherQueue uiThread = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
+            this.myId = myId_param;
+            this.messages = new ObservableCollection<ChatMessageUI>();
+            this.service = new ChatService(this.myId, friendId, uiThread);
+
+            // Events -> if something happened, alert the listeners, in this case we are the listeners
+            //          and we assign functions for each trigger of an event
+            this.service.NewMessageEvent += HandleNewMessage;
+            this.service.ClientStatusChangedEvent += HandleUserStatusChange;
+            this.service.ExceptionEvent += HandleException;
+
+            this.Closed += this.DisconnectService;
+
+            WaitAndConnectToTheServer();
+        }
+
         public void Send_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
             this.service.SendMessage(this.MessageTextBox.Text);
@@ -74,39 +104,45 @@ namespace SteamProfile.Implementation
 
         public void Mute_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
+            /*
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
                 this.service.TryChangeMuteStatus(selectedMessage.MessageSenderName);
             }
+            */
         }
 
         public void Admin_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
+            /*
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
                 this.service.TryChangeAdminStatus(selectedMessage.MessageSenderName);
             }
+            */
         }
 
         public void Kick_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
+            /*
             if (this.InvertedListView.SelectedItem is Message selectedMessage)
             {
                 this.service.TryKick(selectedMessage.MessageSenderName);
             }
+            */
         }
 
         public void Clear_Button_Click(object sender, RoutedEventArgs routedEventArgs)
         {
-            this.messages.Clear();
+             this.messages.Clear();
         }
 
         public void OnHighlightedMessageChange(object sender, RoutedEventArgs routedEventArgs)
         {
-            if (this.InvertedListView.SelectedItem is Message message)
+            if (this.InvertedListView.SelectedItem is ChatMessage message)
             {
                 // Check if the current user sent the message, in which case hide these buttons
-                switch (message.MessageSenderName == this.userName)
+                switch (message.SenderId == this.myId)
                 {
                     case true:
                         this.HideExtraButtonsFromUser();
@@ -119,6 +155,7 @@ namespace SteamProfile.Implementation
         }
         private void HandleUserStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)
         {
+            /*
             ClientStatus clientStatus = clientStatusEventArgs.ClientStatus;
 
             // Store the values locally, to update ui dinamically (ex. on selecting a new message)
@@ -127,11 +164,26 @@ namespace SteamProfile.Implementation
             this.isMuted = clientStatus.IsMuted;
 
             this.ShowAvailableButtons();
+            */
         }
 
         private void HandleNewMessage(object? sender, MessageEventArgs messageEventArgs)
         {
-            this.messages.Add(messageEventArgs.Message);
+            User user = App.UserService.GetUserByIdentifier(messageEventArgs.Message.SenderId);
+            DateTime time = DateTimeOffset.FromUnixTimeMilliseconds(messageEventArgs.Message.Timestamp).DateTime;
+            ChatMessageUI messageUi = new ChatMessageUI()
+            {
+                MessageId = messageEventArgs.Message.MessageId,
+                ConversationId = messageEventArgs.Message.ConversationId,
+                MessageFormat = messageEventArgs.Message.MessageFormat,
+                Timestamp = messageEventArgs.Message.Timestamp,
+                SenderId = messageEventArgs.Message.SenderId,
+                SenderUsername = user.Username,
+                MessageContent = messageEventArgs.Message.MessageContent,
+                Aligment = messageEventArgs.Message.SenderId == this.myId ? "Right" : "Left",
+                Time = time.ToString("HH:mm | dd-MM-yyyy"),
+            };
+            this.messages.Add(messageUi);
 
             // If the user has more than 100 message, we delete the oldest message, like specified in the
             // requirements of the dms

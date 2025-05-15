@@ -124,6 +124,8 @@ namespace SteamProfile
 
             Services[typeof(IForumRepository)] = new ForumRepository(GetService<ApplicationDbContext>());
 
+            Services[typeof(IChatRepository)] = new ChatRepository(GetService<ApplicationDbContext>());
+
             // This is the old repository that is not used anymore (needs to be removed)
             var friendRepository = new FriendRepository(dataContext);
             Services[typeof(IFriendRepository)] = friendRepository;
@@ -219,6 +221,7 @@ namespace SteamProfile
             Services[typeof(IForumService)] = ServiceFactory.CreateForumService();
             Services[typeof(IPasswordResetService)] = ServiceFactory.CreatePasswordResetService();
             Services[typeof(IFriendService)] = ServiceFactory.CreateFriendService();
+            Services[typeof(IChatRepository)] = new ChatRepository(GetService<ApplicationDbContext>());
         }
 
         public static T GetService<T>()
@@ -259,6 +262,8 @@ namespace SteamProfile
         public static PasswordResetRepository PasswordResetRepository { get; private set; }
         public static IUsersRepository UserRepository { get; private set; }
 
+        public static IChatRepository ChatRepository { get; private set; }
+
         static App()
         {
             // Wire up EF Core and all new repositories and services
@@ -285,6 +290,7 @@ namespace SteamProfile
             UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
             PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
             CollectionsRepository = GetService<ICollectionsRepository>();
+            ChatRepository = GetService<IChatRepository>();
 
             // Initialize all services
             SessionService = (SessionService)GetService<ISessionService>();
@@ -318,6 +324,7 @@ namespace SteamProfile
             UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
             PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
             CollectionsRepository = GetService<ICollectionsRepository>();
+            ChatRepository = GetService<IChatRepository>();
 
             // Some services may need a cast to a specific type
             try
