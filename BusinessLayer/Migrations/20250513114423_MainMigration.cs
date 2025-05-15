@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BusinessLayer.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class MainMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,13 +71,13 @@ namespace BusinessLayer.Migrations
                 name: "ForumComments",
                 columns: table => new
                 {
-                    comment_id = table.Column<long>(type: "bigint", nullable: false)
+                    comment_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     score = table.Column<int>(type: "int", nullable: false),
                     creation_date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    author_id = table.Column<long>(type: "bigint", nullable: false),
-                    post_id = table.Column<long>(type: "bigint", nullable: false)
+                    author_id = table.Column<int>(type: "int", nullable: false),
+                    post_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,18 +88,35 @@ namespace BusinessLayer.Migrations
                 name: "ForumPosts",
                 columns: table => new
                 {
-                    post_id = table.Column<long>(type: "bigint", nullable: false)
+                    post_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     body = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     score = table.Column<int>(type: "int", nullable: false),
                     creation_date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     author_id = table.Column<int>(type: "int", nullable: false),
-                    game_id = table.Column<long>(type: "bigint", nullable: true)
+                    game_id = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ForumPosts", x => x.post_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FriendRequests",
+                columns: table => new
+                {
+                    RequestId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SenderUsername = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    SenderEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    SenderProfilePhotoPath = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    ReceiverUsername = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RequestDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FriendRequests", x => x.RequestId);
                 });
 
             migrationBuilder.CreateTable(
@@ -182,6 +199,22 @@ namespace BusinessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OwnedGames",
+                columns: table => new
+                {
+                    game_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    user_id = table.Column<int>(type: "int", nullable: false),
+                    title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    cover_picture = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OwnedGames", x => x.game_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PasswordResetCodes",
                 columns: table => new
                 {
@@ -231,7 +264,7 @@ namespace BusinessLayer.Migrations
                 columns: table => new
                 {
                     userId = table.Column<int>(type: "int", nullable: false),
-                    comment_id = table.Column<long>(type: "bigint", nullable: false)
+                    comment_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -243,7 +276,7 @@ namespace BusinessLayer.Migrations
                 columns: table => new
                 {
                     userId = table.Column<int>(type: "int", nullable: false),
-                    post_id = table.Column<long>(type: "bigint", nullable: false)
+                    post_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -255,7 +288,7 @@ namespace BusinessLayer.Migrations
                 columns: table => new
                 {
                     userId = table.Column<int>(type: "int", nullable: false),
-                    comment_id = table.Column<long>(type: "bigint", nullable: false)
+                    comment_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -267,7 +300,7 @@ namespace BusinessLayer.Migrations
                 columns: table => new
                 {
                     userId = table.Column<int>(type: "int", nullable: false),
-                    post_id = table.Column<long>(type: "bigint", nullable: false)
+                    post_id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -338,28 +371,6 @@ namespace BusinessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OwnedGames",
-                columns: table => new
-                {
-                    game_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    user_id = table.Column<int>(type: "int", nullable: false),
-                    title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    cover_picture = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CollectionId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OwnedGames", x => x.game_id);
-                    table.ForeignKey(
-                        name: "FK_OwnedGames_Collections_CollectionId",
-                        column: x => x.CollectionId,
-                        principalTable: "Collections",
-                        principalColumn: "collection_id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Feature_User",
                 columns: table => new
                 {
@@ -375,6 +386,30 @@ namespace BusinessLayer.Migrations
                         column: x => x.feature_id,
                         principalTable: "Features",
                         principalColumn: "feature_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OwnedGames_Collection",
+                columns: table => new
+                {
+                    collection_id = table.Column<int>(type: "int", nullable: false),
+                    game_id = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OwnedGames_Collection", x => new { x.collection_id, x.game_id });
+                    table.ForeignKey(
+                        name: "FK_OwnedGames_Collection_Collections_collection_id",
+                        column: x => x.collection_id,
+                        principalTable: "Collections",
+                        principalColumn: "collection_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OwnedGames_Collection_OwnedGames_game_id",
+                        column: x => x.game_id,
+                        principalTable: "OwnedGames",
+                        principalColumn: "game_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -404,29 +439,6 @@ namespace BusinessLayer.Migrations
                         principalTable: "ReviewsUsers",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "FriendRequests",
-                columns: table => new
-                {
-                    RequestId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SenderUsername = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    SenderEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    SenderProfilePhotoPath = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    ReceiverUsername = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    RequestDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
-                    UserProfileProfileId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FriendRequests", x => x.RequestId);
-                    table.ForeignKey(
-                        name: "FK_FriendRequests_UserProfiles_UserProfileProfileId",
-                        column: x => x.UserProfileProfileId,
-                        principalTable: "UserProfiles",
-                        principalColumn: "profile_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -475,30 +487,6 @@ namespace BusinessLayer.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "OwnedGames_Collection",
-                columns: table => new
-                {
-                    collection_id = table.Column<int>(type: "int", nullable: false),
-                    game_id = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OwnedGames_Collection", x => new { x.collection_id, x.game_id });
-                    table.ForeignKey(
-                        name: "FK_OwnedGames_Collection_Collections_collection_id",
-                        column: x => x.collection_id,
-                        principalTable: "Collections",
-                        principalColumn: "collection_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OwnedGames_Collection_OwnedGames_game_id",
-                        column: x => x.game_id,
-                        principalTable: "OwnedGames",
-                        principalColumn: "game_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Collections_user_id",
                 table: "Collections",
@@ -508,11 +496,6 @@ namespace BusinessLayer.Migrations
                 name: "IX_Feature_User_feature_id",
                 table: "Feature_User",
                 column: "feature_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FriendRequests_UserProfileProfileId",
-                table: "FriendRequests",
-                column: "UserProfileProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "UQ_SenderReceiver",
@@ -535,11 +518,6 @@ namespace BusinessLayer.Migrations
                 table: "Friendships",
                 columns: new[] { "user_id", "friend_id" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OwnedGames_CollectionId",
-                table: "OwnedGames",
-                column: "CollectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OwnedGames_UserId",
@@ -637,6 +615,9 @@ namespace BusinessLayer.Migrations
                 name: "UserLikedPost");
 
             migrationBuilder.DropTable(
+                name: "UserProfiles");
+
+            migrationBuilder.DropTable(
                 name: "UserSessions");
 
             migrationBuilder.DropTable(
@@ -646,7 +627,7 @@ namespace BusinessLayer.Migrations
                 name: "Features");
 
             migrationBuilder.DropTable(
-                name: "UserProfiles");
+                name: "Collections");
 
             migrationBuilder.DropTable(
                 name: "OwnedGames");
@@ -659,9 +640,6 @@ namespace BusinessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Collections");
         }
     }
 }

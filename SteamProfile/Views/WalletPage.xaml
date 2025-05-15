@@ -42,10 +42,6 @@
                                Foreground="#5B4DFF"/>
                 </StackPanel>
 
-                <Button Grid.Row="1" Grid.Column="1" 
-                        Content="Add Points" 
-                        Click="AddPointsButton_Click" 
-                        HorizontalAlignment="Stretch"/>
             </Grid>
             <Button Click="GoBack" Content="Back to profile"/>
             <!-- Transaction History Section could go here -->

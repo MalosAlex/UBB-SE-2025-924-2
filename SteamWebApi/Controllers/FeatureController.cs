@@ -59,8 +59,8 @@ namespace SteamWebApi.Controllers
         [HttpPost("equip")]
         public IActionResult EquipFeature([FromBody] FeatureActionRequest request)
         {
-            var result = featuresService.EquipFeature(request.UserId, request.FeatureId);
-            return Ok(result);
+            var success = featuresService.EquipFeature(request.UserId, request.FeatureId);
+            return Ok(new { Success = success, Message = success ? "Feature equipped successfully." : "Failed to equip feature." });
         }
 
         [HttpPost("unequip")]
@@ -75,6 +75,13 @@ namespace SteamWebApi.Controllers
         {
             var (success, message) = featuresService.PurchaseFeature(request.UserId, request.FeatureId);
             return Ok(new { Success = success, Message = message });
+        }
+
+        [HttpGet("user/{userId}/categories")]
+        public IActionResult GetFeaturesByCategoriesForUser(int userId)
+        {
+            var featuresByCategories = featuresService.GetFeaturesByCategories(userId);
+            return Ok(featuresByCategories);
         }
     }
 

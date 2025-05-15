@@ -104,26 +104,6 @@ namespace BusinessLayer.Repositories.Fakes
             throw new RepositoryException($"Failed to get points from wallet. Wallet ID {walletId} not found.");
         }
 
-        public void PurchasePoints(PointsOffer offer, int walletId)
-        {
-            if (wallets.TryGetValue(walletId, out var wallet))
-            {
-                if (wallet.Balance >= offer.Price)
-                {
-                    wallet.Balance -= offer.Price;
-                    wallet.Points += offer.Points;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Insufficient funds to purchase points.");
-                }
-            }
-            else
-            {
-                throw new RepositoryException($"Failed to purchase points. Wallet ID {walletId} not found.");
-            }
-        }
-
         public void AddNewWallet(int userId)
         {
             // Generate a new wallet ID

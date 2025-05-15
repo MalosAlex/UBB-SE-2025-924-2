@@ -6,6 +6,7 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Models;
+using SteamProfileWeb.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,15 +79,20 @@ builder.Services.AddScoped<IForumRepository, ForumRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
+builder.Services.AddScoped<IFeaturesRepository, FeaturesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
-
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+builder.Services.AddScoped<ICollectionsRepository, CollectionsRepository>();
+builder.Services.AddScoped<IFriendshipsRepository, FriendshipsRepository>();
 
 // Register Services - Note the order: SessionService needs to be registered before UserService
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
+builder.Services.AddScoped<IFeaturesService, FeaturesService>();
 builder.Services.AddScoped<IAchievementsService, AchievementsService>();
-
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IFriendsService, FriendsService>();
 
 // Add Authorization
 builder.Services.AddAuthorization();
@@ -109,11 +115,17 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSessionRestoration();
 app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+app.MapControllerRoute(
+    name: "profile",
+    pattern: "Profile/{userId?}",
+    defaults: new { controller = "Profile", action = "Index" });
 
 app.Run();

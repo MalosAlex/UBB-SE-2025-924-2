@@ -18,7 +18,6 @@ namespace BusinessLayer.DataContext
 
         // Define DbSets here
         public DbSet<Wallet> Wallets { get; set; }
-        public DbSet<PointsOffer> PointsOffers { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<Achievement> Achievements { get; set; }
@@ -164,6 +163,8 @@ namespace BusinessLayer.DataContext
                       .IsRequired();
                 entity.Property(f => f.Source)
                       .HasColumnName("source");
+                entity.Property(f => f.Equipped)
+                      .HasColumnName("equipped");
             });
 
             // -- FeatureUser mapping ---------------------------------------------------
@@ -669,29 +670,6 @@ namespace BusinessLayer.DataContext
                     .HasColumnName("money_for_games")
                     .HasColumnType("decimal(10,2)")
                     .HasDefaultValue(0m);
-            });
-
-            // -- PointsOffer mapping --------------------------------------------------------
-            modelBuilder.Entity<PointsOffer>(entity =>
-            {
-                // Map to table name
-                entity.ToTable("PointsOffers");
-
-                // Set primary key
-                entity.HasKey(po => po.OfferId);
-
-                // Column mappings
-                entity.Property(po => po.OfferId)
-                    .HasColumnName("offer_id")
-                    .ValueGeneratedOnAdd();
-
-                entity.Property(po => po.Points)
-                    .HasColumnName("numberOfPoints")
-                    .IsRequired();
-
-                entity.Property(po => po.Price)
-                    .HasColumnName("value")
-                    .IsRequired();
             });
 
             // -- Users mapping --------------------------------------------------------------
