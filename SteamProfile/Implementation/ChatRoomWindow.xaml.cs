@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System;
@@ -5,7 +6,6 @@ using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using BusinessLayer.Models;
-using System.Diagnostics;
 
 namespace SteamProfile.Implementation
 {
