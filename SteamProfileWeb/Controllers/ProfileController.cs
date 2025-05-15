@@ -2,10 +2,11 @@
 using SteamProfileWeb.ViewModels;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories.Interfaces;
-using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SteamProfileWeb.Controllers
 {
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly IUserService userService;
