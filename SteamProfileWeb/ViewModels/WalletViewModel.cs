@@ -15,12 +15,9 @@ namespace SteamProfileWeb.ViewModels
     public class WalletViewModel : IValidatableObject
     {
         private readonly IWalletService _walletService;
-        private readonly IPointsOffersRepository _pointsOffersRepository;
 
         public decimal Balance { get; private set; }
         public int Points { get; private set; }
-        [ValidateNever]
-        public List<PointsOffer> PointsOffers { get; private set; }
 
         [ValidateNever]
         public List<string> PaymentMethods { get; } = new List<string> { "Credit Card", "PayPal" };
@@ -48,17 +45,13 @@ namespace SteamProfileWeb.ViewModels
         public WalletViewModel()
         {
             _walletService = null!;
-            _pointsOffersRepository = null!;
-            PointsOffers = new List<PointsOffer>();
             SelectedPaymentMethod = string.Empty;
         }
 
         // Constructor to be called by the Controller for initial view rendering or when repopulating after error
-        public WalletViewModel(IWalletService walletService, IPointsOffersRepository pointsOffersRepository)
+        public WalletViewModel(IWalletService walletService)
         {
             _walletService = walletService ?? throw new ArgumentNullException(nameof(walletService));
-            _pointsOffersRepository = pointsOffersRepository ?? throw new ArgumentNullException(nameof(pointsOffersRepository));
-            PointsOffers = new List<PointsOffer>();
             SelectedPaymentMethod = string.Empty;
         }
 
@@ -67,26 +60,12 @@ namespace SteamProfileWeb.ViewModels
         {
             Balance = _walletService.GetBalance();
             Points = _walletService.GetPoints();
-            PointsOffers = _pointsOffersRepository.PointsOffers;
         }
 
         public void AddFunds(decimal amount)
         {
             _walletService.AddMoney(amount);
             RefreshWalletData();
-        }
-
-        public async Task<bool> PurchasePoints(PointsOffer pointsOffer)
-        {
-            return await Task.Run(() =>
-            {
-                bool success = _walletService.TryPurchasePoints(pointsOffer);
-                if (success)
-                {
-                    RefreshWalletData();
-                }
-                return success;
-            });
         }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

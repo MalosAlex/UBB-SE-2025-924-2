@@ -81,8 +81,6 @@ builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
-builder.Services.AddScoped<IPointsOffersRepository, PointsOffersRepository>();
-
 
 // Register Services
 builder.Services.AddScoped<ISessionService, SessionService>();

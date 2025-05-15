@@ -26,9 +26,9 @@ namespace BusinessLayer.Services
             walletRepository.AddMoneyToWallet(amount, userService.GetCurrentUser().UserId);
         }
 
-        public void AddPoints(int points)
+        public void CreditPoints(int userId, int numberOfPoints)
         {
-            walletRepository.AddPointsToWallet(points, userService.GetCurrentUser().UserId);
+            walletRepository.AddPointsToWallet(numberOfPoints, userId);
         }
 
         public decimal GetBalance()
@@ -68,44 +68,6 @@ namespace BusinessLayer.Services
         public void CreateWallet(int userIdentifier)
         {
             walletRepository.AddNewWallet(userIdentifier);
-        }
-        public void PurchasePoints(PointsOffer pointsOffer)
-        {
-            if (pointsOffer == null)
-            {
-                throw new ArgumentNullException(nameof(pointsOffer));
-            }
-
-            // Check if user has enough balance
-            if (GetBalance() < pointsOffer.Price)
-            {
-                throw new InvalidOperationException("Insufficient funds");
-            }
-
-            walletRepository.PurchasePoints(pointsOffer, userService.GetCurrentUser().UserId);
-        }
-
-        // Moved from WalletViewModel
-        public bool TryPurchasePoints(PointsOffer pointsOffer)
-        {
-            if (pointsOffer == null)
-            {
-                return false;
-            }
-            try
-            {
-                // Check if user has enough balance to purchase the points
-                if (GetBalance() >= pointsOffer.Price)
-                {
-                    PurchasePoints(pointsOffer);
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
     }
 }

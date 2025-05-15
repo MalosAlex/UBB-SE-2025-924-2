@@ -86,29 +86,7 @@
                 </div>
                 <div class="card-body">
                     <h2 class="card-title" style="color: #5B4DFF;">@Model.PointsText</h2>
-                    <p class="mt-3"><strong>Purchase Points:</strong></p>
-                    @if (Model.PointsOffers != null && Model.PointsOffers.Any())
-                    {
-                        <form asp-controller="Wallet" asp-action="PurchasePoints" method="post">
-                             @Html.AntiForgeryToken()
-                            <div class="list-group">
-                                @foreach (var offer in Model.PointsOffers)
-                                {
-                                    <button type="submit" name="pointsOfferId" value="@offer.OfferId" class="list-group-item list-group-item-action">
-                                        Purchase @offer.Points points for $@offer.Price.ToString("F2")
-                                    </button>
-                                }
-                            </div>
-                        </form>
-                    }
-                    else
-                    {
-                        <p>No points offers available at the moment.</p>
-                    }
-                     @if (TempData["PurchasePointsError"] != null)
-                    {
-                        <div class="alert alert-danger mt-2">@TempData["PurchasePointsError"]</div>
-                    }
+                    <p class="mt-3">Points are awarded automatically when you purchase games.</p>
                 </div>
             </div>
         </div>

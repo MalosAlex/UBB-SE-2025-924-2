@@ -11,17 +11,15 @@ namespace SteamProfileWeb.Controllers
     public class WalletController : Controller
     {
         private readonly IWalletService _walletService;
-        private readonly IPointsOffersRepository _pointsOffersRepository;
 
-        public WalletController(IWalletService walletService, IPointsOffersRepository pointsOffersRepository)
+        public WalletController(IWalletService walletService)
         {
             _walletService = walletService ?? throw new ArgumentNullException(nameof(walletService));
-            _pointsOffersRepository = pointsOffersRepository ?? throw new ArgumentNullException(nameof(pointsOffersRepository));
         }
 
         public IActionResult Index()
         {
-            var viewModel = new WalletViewModel(_walletService, _pointsOffersRepository);
+            var viewModel = new WalletViewModel(_walletService);
             viewModel.RefreshWalletData();
             return View(viewModel);
         }
@@ -45,7 +43,7 @@ namespace SteamProfileWeb.Controllers
             }
 
             TempData["AddFundsError"] = "Please correct the errors below.";
-            var freshViewModel = new WalletViewModel(_walletService, _pointsOffersRepository);
+            var freshViewModel = new WalletViewModel(_walletService);
             freshViewModel.RefreshWalletData();
             freshViewModel.AmountToAdd = viewModel.AmountToAdd;
             freshViewModel.SelectedPaymentMethod = viewModel.SelectedPaymentMethod;
@@ -55,15 +53,6 @@ namespace SteamProfileWeb.Controllers
             freshViewModel.PayPalEmail = viewModel.PayPalEmail;
 
             return View("Index", freshViewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PurchasePoints(int pointsOfferId)
-        {
-            await Task.CompletedTask;
-
-            return RedirectToAction(nameof(Index));
         }
 
     }
