@@ -873,19 +873,9 @@ namespace SteamProfile.ViewModels
         /// Navigates to the Community window (ChatRoomWindow).
         /// </summary>
         [RelayCommand]
-        private void NavigateToCommunity()
+        private void NavigateToAddFriend()
         {
-            try
-            {
-                var currentUser = userService.GetCurrentUser();
-                var chatWindow = new Implementation.ChatRoomWindow(currentUser.Username);
-                chatWindow.Activate();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error navigating to community: {ex.Message}");
-                this.ErrorMessage = "Failed to open community.";
-            }
+            NavigationService.Instance.Navigate(typeof(Views.AddFriendsPage), userIdentifier);
         }
     }
 

@@ -375,12 +375,12 @@
                 <Button Style="{StaticResource TransparentButton}"
                         Margin="0,0,10,0"
                         Padding="0"
-                        Command="{x:Bind ViewModel.NavigateToCommunityCommand}"
+                        Command="{x:Bind ViewModel.NavigateToAddFriendCommand}"
                         Visibility="{x:Bind ViewModel.IsProfileOwner, Mode=OneWay}">
                     <Border Background="#E6D5B8" 
                             Padding="15,5" 
                             CornerRadius="5">
-                        <TextBlock Text="Chat Room" 
+                        <TextBlock Text="Add friend" 
                                  FontSize="14"/>
                     </Border>
                 </Button>

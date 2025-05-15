@@ -1,6 +1,10 @@
+using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SteamProfile.ViewModels;
+using System;
+using System.Diagnostics;
 
 namespace SteamProfile.Views
 {
@@ -33,6 +37,23 @@ namespace SteamProfile.Views
             if (sender is Button button && button.Tag is int friendId)
             {
                 Frame.Navigate(typeof(ProfilePage), friendId);
+            }
+        }
+
+        private void ChatFriend_Click(object sender, RoutedEventArgs eventArgs)
+        {
+            if (sender is Button button && button.Tag is int friendId)
+            {
+                try
+                {
+                    var myId = usersViewModel.GetCurrentUser().UserId;
+                    var chatWindow = new Implementation.ChatRoomWindow(myId,friendId);
+                    chatWindow.Activate();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error navigating to community chat: {ex.Message}");
+                }
             }
         }
 
