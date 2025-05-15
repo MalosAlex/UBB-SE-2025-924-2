@@ -3,6 +3,8 @@ using SteamProfileWeb.ViewModels;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using BusinessLayer.Models;
 
 namespace SteamProfileWeb.Controllers
 {
@@ -32,23 +34,27 @@ namespace SteamProfileWeb.Controllers
             this.achievementsService = achievementsService;
         }
 
-        public IActionResult Index(int userId)
+        public IActionResult Index()
         {
+            string userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
             var user = userService.GetUserByIdentifier(userId);
             if (user == null)
                 return NotFound();
 
             var userProfile = userProfileRepository.GetUserProfileByUserId(userId);
             var collections = collectionsRepository.GetLastThreeCollectionsForUser(userId);
-            var currentUserId = userService.GetCurrentUser().UserId;
-            var isFriend = friendsService.AreUsersFriends(currentUserId, userId);
 
-            // Equipped features
-            var equippedFeatures = featuresService.GetUserEquippedFeatures(userId);
-            string GetFeatureSource(string type) =>
-                equippedFeatures.FirstOrDefault(feature => feature.Type.ToLower() == type && feature.Equipped)?.Source ?? "/images/default-profile.png";
-            bool HasEquipped(string type) =>
-                equippedFeatures.Any(feature => feature.Type.ToLower() == type && feature.Equipped);
+            //// Equipped features
+            //var equippedFeatures = featuresService.GetUserEquippedFeatures(userId) ?? new List<Feature>();
+            //string GetFeatureSource(string type) =>
+            //    equippedFeatures.FirstOrDefault(feature => feature.Type.ToLower() == type && feature.Equipped)?.Source ?? "/images/default-profile.png";
+            //bool HasEquipped(string type) =>
+            //    equippedFeatures.Any(feature => feature.Type.ToLower() == type && feature.Equipped);
 
             var vm = new ProfileViewModel
             {
@@ -59,20 +65,20 @@ namespace SteamProfileWeb.Controllers
                 Biography = userProfile?.Bio ?? "",
                 FriendCount = friendsService.GetFriendshipCount(userId),
                 GameCollections = collections,
-                IsFriend = isFriend,
-                FriendButtonText = isFriend ? "Unfriend" : "Add Friend",
+                IsFriend = false, // Always false for self
+                FriendButtonText = "Add Friend",
                 FriendshipsAchievement = achievementsService.GetAchievementsWithStatusForUser(userId)
                     .FirstOrDefault(achievement => achievement.Achievement.AchievementType == "Friendships"),
-                EquippedFrameSource = GetFeatureSource("frame"),
-                EquippedHatSource = GetFeatureSource("hat"),
-                EquippedPetSource = GetFeatureSource("pet"),
-                EquippedEmojiSource = GetFeatureSource("emoji"),
-                EquippedBackgroundSource = GetFeatureSource("background"),
-                HasEquippedFrame = HasEquipped("frame"),
-                HasEquippedHat = HasEquipped("hat"),
-                HasEquippedPet = HasEquipped("pet"),
-                HasEquippedEmoji = HasEquipped("emoji"),
-                HasEquippedBackground = HasEquipped("background")
+                //EquippedFrameSource = GetFeatureSource("frame"),
+                //EquippedHatSource = GetFeatureSource("hat"),
+                //EquippedPetSource = GetFeatureSource("pet"),
+                //EquippedEmojiSource = GetFeatureSource("emoji"),
+                //EquippedBackgroundSource = GetFeatureSource("background"),
+                //HasEquippedFrame = HasEquipped("frame"),
+                //HasEquippedHat = HasEquipped("hat"),
+                //HasEquippedPet = HasEquipped("pet"),
+                //HasEquippedEmoji = HasEquipped("emoji"),
+                //HasEquippedBackground = HasEquipped("background")
             };
 
             return View(vm);

@@ -11,7 +11,19 @@
 <p><strong>Friends:</strong> @Model.FriendCount</p>
 
 <form asp-action="ToggleFriendship" asp-route-userId="@Model.UserIdentifier" method="post">
-    <button type="submit">@Model.FriendButtonText</button>
+    @if (Model.FriendButtonText == "Add Friend")
+    {
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> @Model.FriendButtonText
+        </button>
+    }
+    else
+    {
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-person-dash"></i> @Model.FriendButtonText
+        </button>
+        <br />
+    }
 </form>
 
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -35,27 +47,3 @@
         <span>@(Model.FriendshipsAchievement.IsUnlocked ? "Unlocked" : "Locked")</span>
     </div>
 }
-
-<h3>Equipped Features</h3>
-<ul>
-    @if (Model.HasEquippedFrame)
-    {
-        <li>Frame: <img src="@Model.EquippedFrameSource" style="height:32px;" /></li>
-    }
-    @if (Model.HasEquippedHat)
-    {
-        <li>Hat: <img src="@Model.EquippedHatSource" style="height:32px;" /></li>
-    }
-    @if (Model.HasEquippedPet)
-    {
-        <li>Pet: <img src="@Model.EquippedPetSource" style="height:32px;" /></li>
-    }
-    @if (Model.HasEquippedEmoji)
-    {
-        <li>Emoji: <img src="@Model.EquippedEmojiSource" style="height:32px;" /></li>
-    }
-    @if (Model.HasEquippedBackground)
-    {
-        <li>Background: <img src="@Model.EquippedBackgroundSource" style="height:32px;" /></li>
-    }
-</ul>
