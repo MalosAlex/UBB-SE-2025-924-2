@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using BusinessLayer.Models.Login;
 using BusinessLayer.Models.Register;
 using Microsoft.AspNetCore.Authorization;
+using BusinessLayer.Services;
+using BusinessLayer.Repositories.Interfaces;
 
 namespace SteamWebApi.Controllers
 {
@@ -20,6 +22,8 @@ namespace SteamWebApi.Controllers
         private readonly IUserService userService;
         private readonly ISessionService sessionService;
         private readonly IConfiguration configuration;
+        private readonly IWalletService walletService;
+        private readonly IUserProfilesRepository profilesRepo;
 
         /// <summary>
         /// Constructor for AuthController
@@ -27,11 +31,13 @@ namespace SteamWebApi.Controllers
         /// <param name="userService">Service to manage user operations</param>
         /// <param name="sessionService">Service to manage session operations</param>
         /// <param name="configuration">Application configuration settings</param>
-        public AuthController(IUserService userService, ISessionService sessionService, IConfiguration configuration)
+        public AuthController(IUserService userService, ISessionService sessionService, IConfiguration configuration, IWalletService walletService, IUserProfilesRepository userProfilesRepository)
         {
             this.userService = userService;
             this.sessionService = sessionService;
             this.configuration = configuration;
+            this.walletService = walletService;
+            this.profilesRepo = userProfilesRepository;
         }
 
         /// <summary>
@@ -114,6 +120,8 @@ namespace SteamWebApi.Controllers
                     Password = request.Password,
                     IsDeveloper = request.IsDeveloper
                 });
+                walletService.CreateWallet(newUser.UserId);
+                profilesRepo.CreateProfile(newUser.UserId);
             }
             catch (Exception ex)
             {

@@ -723,5 +723,7 @@ INSERT INTO OwnedGames (user_id, title,                    description,         
     (11, 'Christmas Wonderland','Festive hidden object game',        '/Assets/Games/xmas.png');
 GO
 
+ALTER TABLE Features
+ADD equipped BIT NOT NULL DEFAULT 0;
 
 
