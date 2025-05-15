@@ -276,7 +276,6 @@ namespace SteamProfile
 
         private static void InitializeLocalServices()
         {
-            var dataLink = DataLink.Instance;
             var navigationService = NavigationService.Instance;
             var achievementsRepository = GetService<IAchievementsRepository>();
 
@@ -311,7 +310,6 @@ namespace SteamProfile
         {
             // For remote services, we're using the service proxies
             // All services are now implemented as proxies
-            var dataLink = DataLink.Instance;
             var navigationService = NavigationService.Instance;
             UserService = GetService<IUserService>();
             UserRepository = GetService<IUsersRepository>();

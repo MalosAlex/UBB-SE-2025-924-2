@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BusinessLayer.Models.Login;
+using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Models;
 using BusinessLayer.Services;
 
@@ -15,14 +16,16 @@ public class AuthManager : IAuthManager
 {
     private readonly HttpClient httpClient;
     private readonly IHttpContextAccessor httpContextAccessor;
+    private readonly ISessionService _sessionService;
 
     /// <summary>
-    /// Constructs the AuthManager with HTTP client factory and HTTP context accessor.
+    /// Constructs the AuthManager with HTTP client factory, HTTP context accessor, and session service.
     /// </summary>
-    public AuthManager(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+    public AuthManager(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, ISessionService sessionService)
     {
         this.httpClient = httpClientFactory.CreateClient("AuthApi");
         this.httpContextAccessor = httpContextAccessor;
+        _sessionService = sessionService;
     }
 
     /// <inheritdoc />
@@ -37,19 +40,27 @@ public class AuthManager : IAuthManager
         if (content == null || content.User == null || string.IsNullOrEmpty(content.Token))
             return false;
 
+        var userForSession = new BusinessLayer.Models.User { UserId = content.User.UserId };
+        Guid sessionId = _sessionService.CreateNewSession(userForSession);
+
         var user = content.User;
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim("AccessToken", content.Token)
+            new Claim("AccessToken", content.Token),
+            new Claim("SessionId", sessionId.ToString())
         };
 
-        // Create identity with the "SteamWebApi" cookie scheme
         var identity = new ClaimsIdentity(claims, "SteamWebApi");
         var principal = new ClaimsPrincipal(identity);
-        await httpContextAccessor.HttpContext.SignInAsync("SteamWebApi", principal);
+
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext == null)
+            throw new InvalidOperationException("HttpContext is null. Ensure the IHttpContextAccessor is properly configured.");
+
+        await httpContext.SignInAsync("SteamWebApi", principal);
         return true;
     }
 
@@ -68,10 +79,13 @@ public class AuthManager : IAuthManager
     }
 
     /// <inheritdoc />
-    public async Task LogoutAsync() 
-    { 
-        // Sign out using the same cookie scheme
-        await httpContextAccessor.HttpContext.SignOutAsync("SteamWebApi");
+    public async Task LogoutAsync()
+    {
+        var httpContext = httpContextAccessor.HttpContext;
+        if (httpContext == null)
+            throw new InvalidOperationException("HttpContext is null. Ensure the IHttpContextAccessor is properly configured.");
+
+        await httpContext.SignOutAsync("SteamWebApi");
     }
 }
 
