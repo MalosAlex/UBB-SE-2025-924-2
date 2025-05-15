@@ -6,6 +6,7 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Models;
+using SteamProfileWeb.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,16 +80,16 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
-builder.Services.AddScoped<IWalletRepository, WalletRepository>(); // Assuming WalletRepository exists and is the correct implementation
-builder.Services.AddScoped<IPointsOffersRepository, PointsOffersRepository>(); // Assuming PointsOffersRepository exists
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+builder.Services.AddScoped<IPointsOffersRepository, PointsOffersRepository>();
 
 
-// Register Services - Note the order: SessionService needs to be registered before UserService
+// Register Services
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IAchievementsService, AchievementsService>();
-builder.Services.AddScoped<IWalletService, WalletService>(); // Assuming WalletService exists
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 
 // Add Authorization
@@ -112,6 +113,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSessionRestoration();
 app.UseSession();
 
 app.MapControllerRoute(
