@@ -38,6 +38,7 @@ namespace SteamProfile
                 UsersViewModel = UsersViewModel.Instance;
                 AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
                 FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
+                AddFriendsViewModel = new AddFriendsViewModel(FriendsService, UserService);
                 CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
                 CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
             }
@@ -252,6 +253,7 @@ namespace SteamProfile
         public static CollectionsViewModel CollectionsViewModel { get; private set; }
         public static UsersViewModel UsersViewModel { get; private set; }
         public static FriendsViewModel FriendsViewModel { get; private set; }
+        public static AddFriendsViewModel AddFriendsViewModel { get; private set; }
 
         public static User CurrentUser { get; set; } = new User();
 
