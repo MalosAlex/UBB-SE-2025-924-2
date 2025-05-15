@@ -1,0 +1,49 @@
+﻿@model SteamProfileWeb.ViewModels.ProfileViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Username}'s Profile";
+}
+
+<h2>@Model.Username's Profile</h2>
+<img src="@Model.ProfilePhotoPath" alt="Profile Picture" style="width:128px;height:128px;" />
+<p><strong>Email:</strong> @Model.Email</p>
+<p><strong>Bio:</strong> @Model.Biography</p>
+<p><strong>Friends:</strong> @Model.FriendCount</p>
+
+<form asp-action="ToggleFriendship" asp-route-userId="@Model.UserIdentifier" method="post">
+    @if (Model.FriendButtonText == "Add Friend")
+    {
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> @Model.FriendButtonText
+        </button>
+    }
+    else
+    {
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-person-dash"></i> @Model.FriendButtonText
+        </button>
+        <br />
+    }
+</form>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+<h3>Collections</h3>
+<ul>
+    @foreach (var collection in Model.GameCollections)
+    {
+        <li>@collection.CollectionName</li>
+    }
+</ul>
+
+<h3>Achievements</h3>
+@if (Model.FriendshipsAchievement != null)
+{
+    <div>
+        <span>@Model.FriendshipsAchievement.Achievement.AchievementName</span>
+        <span>@(Model.FriendshipsAchievement.IsUnlocked ? "Unlocked" : "Locked")</span>
+    </div>
+}
