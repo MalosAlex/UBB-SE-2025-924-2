@@ -29,7 +29,12 @@ namespace BusinessLayer.Services
         public Dictionary<string, List<Feature>> GetFeaturesByCategories()
         {
             var categories = new Dictionary<string, List<Feature>>();
-            var allFeatures = featuresRepository.GetAllFeatures(userService.GetCurrentUser().UserId);
+            var currentUser = userService.GetCurrentUser();
+            if (currentUser == null)
+            {
+                throw new InvalidOperationException("No user is currently logged in.");
+            }
+            var allFeatures = featuresRepository.GetAllFeatures(currentUser.UserId);
 
             foreach (var feature in allFeatures)
             {
@@ -43,19 +48,23 @@ namespace BusinessLayer.Services
             return categories;
         }
 
+        public Dictionary<string, List<Feature>> GetFeaturesByCategories(int userId)
+        {
+            var categories = new Dictionary<string, List<Feature>>();
+            var allFeatures = featuresRepository.GetAllFeatures(userId);
+            foreach (var feature in allFeatures)
+            {
+                if (!categories.ContainsKey(feature.Type))
+                {
+                    categories[feature.Type] = new List<Feature>();
+                }
+                categories[feature.Type].Add(feature);
+            }
+            return categories;
+        }
+
         public bool EquipFeature(int userId, int featureId)
         {
-            if (!featuresRepository.IsFeaturePurchased(userId, featureId))
-            {
-                return false;
-            }
-
-            var feature = featuresRepository.GetFeaturesByType("frame").FirstOrDefault(feature => feature.FeatureId == featureId);
-            if (feature != null)
-            {
-                featuresRepository.UnequipFeaturesByType(userId, "frame");
-            }
-
             return featuresRepository.EquipFeature(userId, featureId);
         }
 
@@ -72,8 +81,7 @@ namespace BusinessLayer.Services
 
         public List<Feature> GetUserEquippedFeatures(int userId)
         {
-            return featuresRepository.GetUserFeatures(userId)
-                .Where(feature => feature.Equipped)
+            return featuresRepository.GetEquippedFeatures(userId)
                 .ToList();
         }
 
@@ -122,7 +130,7 @@ namespace BusinessLayer.Services
                 {
                     return (false, "User not found.");
                 }
-
+                featuresRepository.AddUserFeature(userId, featureId);
                 return (true, $"Successfully purchased {feature.Name} for {feature.Value} points.");
             }
             catch
