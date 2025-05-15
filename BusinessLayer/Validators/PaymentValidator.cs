@@ -26,7 +26,7 @@ namespace BusinessLayer.Validators
             public const string Password = @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
 
             public const string CardNumber = @"^\d{16}$";
-            public const string CardVerificationValue = @"^\d{3}$";
+            public const string CardVerificationValue = @"^\d{3,4}$"; // Allow 3 or 4 digits for CVV
             public const string ExpirationDate = @"^(0[1-9]|1[0-2])\/\d{2}$";
 
             public const string NumericOnly = @"^\d+$";
@@ -126,6 +126,55 @@ namespace BusinessLayer.Validators
             }
 
             return false;
+        }
+
+        public static System.Collections.Generic.IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> ValidatePaymentSubmission(
+            string selectedPaymentMethod,
+            string? cardNumber,
+            string? expiryDate,
+            string? cvv,
+            string? payPalEmail)
+        {
+            if (selectedPaymentMethod == "Credit Card")
+            {
+                if (string.IsNullOrWhiteSpace(cardNumber))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("Card Number is required for Credit Card payment.", new[] { "CardNumber" });
+                }
+                else if (!IsCardNumberValid(cardNumber))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("Invalid Card Number format.", new[] { "CardNumber" });
+                }
+
+                if (string.IsNullOrWhiteSpace(expiryDate))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("Expiry Date is required for Credit Card payment.", new[] { "ExpiryDate" });
+                }
+                else if (!IsExpirationDateValid(expiryDate))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("Expiry Date must be in MM/YY format and not be in the past (e.g., 06/28).", new[] { "ExpiryDate" });
+                }
+
+                if (string.IsNullOrWhiteSpace(cvv))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("CVV is required for Credit Card payment.", new[] { "CVV" });
+                }
+                else if (!IsCardVerificationValueValid(cvv))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("CVV must be 3 or 4 digits.", new[] { "CVV" });
+                }
+            }
+            else if (selectedPaymentMethod == "PayPal")
+            {
+                if (string.IsNullOrWhiteSpace(payPalEmail))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("PayPal Email is required for PayPal payment.", new[] { "PayPalEmail" });
+                }
+                else if (!IsEmailValid(payPalEmail))
+                {
+                    yield return new System.ComponentModel.DataAnnotations.ValidationResult("Invalid PayPal Email format.", new[] { "PayPalEmail" });
+                }
+            }
         }
     }
 }

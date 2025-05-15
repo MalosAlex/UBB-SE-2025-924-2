@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using BusinessLayer.Models;
 using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories.Interfaces;
+using BusinessLayer.Validators;
 
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace SteamProfileWeb.ViewModels
@@ -58,8 +58,8 @@ namespace SteamProfileWeb.ViewModels
         {
             _walletService = walletService ?? throw new ArgumentNullException(nameof(walletService));
             _pointsOffersRepository = pointsOffersRepository ?? throw new ArgumentNullException(nameof(pointsOffersRepository));
-            PointsOffers = new List<PointsOffer>(); // Initialize PointsOffers to avoid null
-            SelectedPaymentMethod = string.Empty;  // Initialize SelectedPaymentMethod to avoid null
+            PointsOffers = new List<PointsOffer>();
+            SelectedPaymentMethod = string.Empty;
         }
 
 
@@ -72,10 +72,6 @@ namespace SteamProfileWeb.ViewModels
 
         public void AddFunds(decimal amount)
         {
-            if (amount <= 0)
-            {
-                return;
-            }
             _walletService.AddMoney(amount);
             RefreshWalletData();
         }
@@ -95,38 +91,12 @@ namespace SteamProfileWeb.ViewModels
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (SelectedPaymentMethod == "Credit Card")
-            {
-                if (string.IsNullOrWhiteSpace(CardNumber))
-                {
-                    yield return new ValidationResult("Card Number is required for Credit Card payment.", new[] { nameof(CardNumber) });
-                }
-
-                if (string.IsNullOrWhiteSpace(ExpiryDate))
-                {
-                    yield return new ValidationResult("Expiry Date is required for Credit Card payment.", new[] { nameof(ExpiryDate) });
-                }
-                else if (!Regex.IsMatch(ExpiryDate, @"^(0[1-9]|1[0-2])\/\d{2}$"))
-                {
-                    yield return new ValidationResult("Expiry Date must be in MM/YY format (e.g., 06/28).", new[] { nameof(ExpiryDate) });
-                }
-
-                if (string.IsNullOrWhiteSpace(CVV))
-                {
-                    yield return new ValidationResult("CVV is required for Credit Card payment.", new[] { nameof(CVV) });
-                }
-                else if (!Regex.IsMatch(CVV, @"^\d{3,4}$"))
-                {
-                    yield return new ValidationResult("CVV must be 3 or 4 digits.", new[] { nameof(CVV) });
-                }
-            }
-            else if (SelectedPaymentMethod == "PayPal")
-            {
-                if (string.IsNullOrWhiteSpace(PayPalEmail))
-                {
-                    yield return new ValidationResult("PayPal Email is required for PayPal payment.", new[] { nameof(PayPalEmail) });
-                }
-            }
+            return PaymentValidator.ValidatePaymentSubmission(
+                SelectedPaymentMethod,
+                CardNumber,
+                ExpiryDate,
+                CVV,
+                PayPalEmail);
         }
     }
 }

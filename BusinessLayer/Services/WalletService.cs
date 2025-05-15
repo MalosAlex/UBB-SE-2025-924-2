@@ -19,6 +19,10 @@ namespace BusinessLayer.Services
 
         public void AddMoney(decimal amount)
         {
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be greater than 0.");
+            }
             walletRepository.AddMoneyToWallet(amount, userService.GetCurrentUser().UserId);
         }
 
