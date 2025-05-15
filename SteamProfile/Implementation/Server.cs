@@ -13,6 +13,7 @@ namespace SteamProfile.Implementation
 {
     public partial class Server
     {
+        /*
         private Socket serverSocket;
         private IPEndPoint ipEndPoint;
         private System.Threading.Timer? serverTimeout;
@@ -449,5 +450,6 @@ namespace SteamProfile.Implementation
             this.adminUsers.TryRemove(userName, out _);
             this.mutedUsers.TryRemove(userName, out _);
         }
+        */
     }
 }

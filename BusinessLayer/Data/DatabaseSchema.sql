@@ -290,4 +290,21 @@ CREATE TABLE Posts (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+
+
+CREATE TABLE ChatConversations (
+        conversation_id INT PRIMARY KEY IDENTITY(1,1),
+        user1_id INT NOT NULL,
+        user2_id INT NOT NULL
+);
+
+CREATE TABLE ChatMessages (
+        message_id INT PRIMARY KEY IDENTITY(1,1),
+        conversation_id INT NOT NULL,
+	    sender_id INT NOT NULL,
+	    timestamp BIGINT NOT NULL,
+        message_format NVARCHAR(50) NOT NULL,
+        message_content NVARCHAR(MAX) NOT NULL,
+);
+
 GO

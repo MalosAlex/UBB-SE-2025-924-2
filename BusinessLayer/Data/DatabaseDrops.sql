@@ -20,6 +20,9 @@ DROP TABLE IF EXISTS ReviewsGiven;
 DROP TABLE IF EXISTS ReviewsReceived;
 DROP TABLE IF EXISTS SoldGames;
 DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS ChatConversations;
+DROP TABLE IF EXISTS ChatMessages;
+
 
 -- Stored Procedure Related Drops
 DROP PROCEDURE IF EXISTS DeleteUser;

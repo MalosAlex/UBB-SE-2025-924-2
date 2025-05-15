@@ -875,6 +875,7 @@ namespace SteamProfile.ViewModels
         [RelayCommand]
         private void NavigateToCommunity()
         {
+            /*
             try
             {
                 var currentUser = userService.GetCurrentUser();
@@ -886,6 +887,7 @@ namespace SteamProfile.ViewModels
                 Debug.WriteLine($"Error navigating to community: {ex.Message}");
                 this.ErrorMessage = "Failed to open community.";
             }
+            */
         }
     }
 

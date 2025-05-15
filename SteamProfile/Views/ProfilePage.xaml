@@ -372,6 +372,7 @@
                 </Button>
 
                 <!-- Community button -->
+                <!--
                 <Button Style="{StaticResource TransparentButton}"
                         Margin="0,0,10,0"
                         Padding="0"
@@ -384,6 +385,7 @@
                                  FontSize="14"/>
                     </Border>
                 </Button>
+                -->
 
                 <!-- Money display -->
                 <Button Style="{StaticResource TransparentButton}"
