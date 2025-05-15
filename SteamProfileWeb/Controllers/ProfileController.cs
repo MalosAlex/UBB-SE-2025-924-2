@@ -49,13 +49,6 @@ namespace SteamProfileWeb.Controllers
             var userProfile = userProfileRepository.GetUserProfileByUserId(userId);
             var collections = collectionsRepository.GetLastThreeCollectionsForUser(userId);
 
-            //// Equipped features
-            //var equippedFeatures = featuresService.GetUserEquippedFeatures(userId) ?? new List<Feature>();
-            //string GetFeatureSource(string type) =>
-            //    equippedFeatures.FirstOrDefault(feature => feature.Type.ToLower() == type && feature.Equipped)?.Source ?? "/images/default-profile.png";
-            //bool HasEquipped(string type) =>
-            //    equippedFeatures.Any(feature => feature.Type.ToLower() == type && feature.Equipped);
-
             var vm = new ProfileViewModel
             {
                 UserIdentifier = user.UserId,
@@ -69,16 +62,6 @@ namespace SteamProfileWeb.Controllers
                 FriendButtonText = "Add Friend",
                 FriendshipsAchievement = achievementsService.GetAchievementsWithStatusForUser(userId)
                     .FirstOrDefault(achievement => achievement.Achievement.AchievementType == "Friendships"),
-                //EquippedFrameSource = GetFeatureSource("frame"),
-                //EquippedHatSource = GetFeatureSource("hat"),
-                //EquippedPetSource = GetFeatureSource("pet"),
-                //EquippedEmojiSource = GetFeatureSource("emoji"),
-                //EquippedBackgroundSource = GetFeatureSource("background"),
-                //HasEquippedFrame = HasEquipped("frame"),
-                //HasEquippedHat = HasEquipped("hat"),
-                //HasEquippedPet = HasEquipped("pet"),
-                //HasEquippedEmoji = HasEquipped("emoji"),
-                //HasEquippedBackground = HasEquipped("background")
             };
 
             return View(vm);
