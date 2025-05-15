@@ -37,6 +37,8 @@ DROP TABLE IF EXISTS Friendships
 DROP TABLE IF EXISTS FriendUsers
 DROP TABLE IF EXISTS ChatUsers
 DROP TABLE IF EXISTS Users
+DROP TABLE IF EXISTS ChatConversations
+DROP TABLE IF EXISTS ChatMessages
 
 ---------------------------------------------------------------------------------------------------
 -- Users - maintained original data types
@@ -568,6 +570,23 @@ CREATE TABLE NewsRatings (
     authorId INT,
     ratingType BIT,
     PRIMARY KEY(postId, authorId)
+);
+GO
+
+CREATE TABLE ChatConversations (
+        conversation_id INT PRIMARY KEY IDENTITY(1,1),
+        user1_id INT NOT NULL,
+        user2_id INT NOT NULL
+);
+GO
+
+CREATE TABLE ChatMessages (
+        message_id INT PRIMARY KEY IDENTITY(1,1),
+        conversation_id INT NOT NULL,
+	    sender_id INT NOT NULL,
+	    timestamp BIGINT NOT NULL,
+        message_format NVARCHAR(50) NOT NULL,
+        message_content NVARCHAR(MAX) NOT NULL,
 );
 GO
 
