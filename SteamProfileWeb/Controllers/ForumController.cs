@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace SteamProfileWeb.Controllers
 {
+    [Authorize]
     public class ForumController : Controller
     {
         private readonly IForumService _forumService;

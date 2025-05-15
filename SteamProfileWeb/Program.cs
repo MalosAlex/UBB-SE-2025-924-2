@@ -79,12 +79,14 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IFeaturesRepository, FeaturesRepository>();
+builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
 
 // Register Services - Note the order: SessionService needs to be registered before UserService
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IFeaturesService, FeaturesService>();
+builder.Services.AddScoped<IAchievementsService, AchievementsService>();
 
 // Add Authorization
 builder.Services.AddAuthorization();
