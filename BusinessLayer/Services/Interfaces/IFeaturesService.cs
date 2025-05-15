@@ -6,6 +6,7 @@ namespace BusinessLayer.Services.Interfaces
     public interface IFeaturesService
     {
         Dictionary<string, List<Feature>> GetFeaturesByCategories();
+        Dictionary<string, List<Feature>> GetFeaturesByCategories(int userId);
         bool EquipFeature(int userIdentifier, int featureIdentifier);
         (bool, string) UnequipFeature(int userIdentifier, int featureIdentifier);
         List<Feature> GetUserEquippedFeatures(int userIdentifier);

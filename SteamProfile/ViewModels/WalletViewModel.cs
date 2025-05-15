@@ -15,7 +15,6 @@ namespace SteamProfile.ViewModels
     public partial class WalletViewModel : ObservableObject
     {
         private readonly IWalletService walletService;
-        private readonly IPointsOffersRepository pointsOffersRepository;
 
         [ObservableProperty]
         private decimal balance;
@@ -24,8 +23,6 @@ namespace SteamProfile.ViewModels
         private int points;
 
         private int walletId;
-
-        public List<PointsOffer> PointsOffers { get; set; }
 
         public string BalanceText
         {
@@ -37,11 +34,9 @@ namespace SteamProfile.ViewModels
             get { return $"{Points} points"; }
         }
 
-        public WalletViewModel(IWalletService walletService, IPointsOffersRepository pointsOffersRepository)
+        public WalletViewModel(IWalletService walletService)
         {
             this.walletService = walletService ?? throw new ArgumentNullException(nameof(walletService));
-            this.pointsOffersRepository = pointsOffersRepository ?? throw new ArgumentNullException(nameof(pointsOffersRepository));
-            PointsOffers = this.pointsOffersRepository.PointsOffers;
             RefreshWalletData();
         }
 
@@ -67,20 +62,6 @@ namespace SteamProfile.ViewModels
 
             walletService.AddMoney(amount);
             RefreshWalletData();
-        }
-
-        [RelayCommand]
-        public async Task<bool> PurchasePoints(PointsOffer pointsOffer)
-        {
-            // Business logic moved to WalletService
-            bool success = walletService.TryPurchasePoints(pointsOffer);
-
-            if (success)
-            {
-                RefreshWalletData();
-            }
-
-            return success;
         }
     }
 }

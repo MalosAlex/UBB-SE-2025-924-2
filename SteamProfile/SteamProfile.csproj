@@ -61,7 +61,6 @@
 		<None Remove="Views\UsersPage.xaml" />
 		<None Remove="Views\WalletPage.xaml" />
 		<None Remove="Views\WalletViews\AddMoneyPage.xaml" />
-		<None Remove="Views\WalletViews\AddPointsPage.xaml" />
 		<None Remove="Views\WalletViews\CardPaymentPage.xaml" />
 		<None Remove="Views\WalletViews\PaypalPaymentPage.xaml" />
 		<None Remove="Implementation\ChatRoomWindow.xaml" />
@@ -271,9 +270,6 @@
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
 		<Page Update="Views\WalletViews\AddMoneyPage.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
-		<Page Update="Views\WalletViews\AddPointsPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</Page>
 		<Page Update="Views\WalletViews\CardPaymentPage.xaml">

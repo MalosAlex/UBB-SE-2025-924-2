@@ -67,15 +67,6 @@ namespace BusinessLayer.Repositories
             return GetWallet(walletId).Points;
         }
 
-        public void PurchasePoints(PointsOffer offer, int userId)
-        {
-            var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
-                ?? throw new RepositoryException($"No wallet for user {userId}");
-            wallet.Points += offer.Points;
-            wallet.Balance -= offer.Price;
-            context.SaveChanges();
-        }
-
         public void BuyWithMoney(decimal amount, int userId)
         {
             var wallet = context.Wallets.SingleOrDefault(w => w.UserId == userId)
@@ -112,21 +103,6 @@ namespace BusinessLayer.Repositories
                 context.Wallets.Remove(wallet);
                 context.SaveChanges();
             }
-        }
-
-        public PointsOffer[] GetAllPointsOffers()
-        {
-            return context.PointsOffers.ToArray();
-        }
-
-        public PointsOffer GetPointsOfferById(int offerId)
-        {
-            var offer = context.PointsOffers.Find(offerId);
-            if (offer == null)
-            {
-                throw new RepositoryException($"Points offer with ID {offerId} not found.");
-            }
-            return offer;
         }
 
         public void WinPoints(int amount, int userId)

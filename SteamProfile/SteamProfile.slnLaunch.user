@@ -9,10 +9,6 @@
       {
         "Path": "..\\SteamProfileWeb\\SteamProfileWeb.csproj",
         "Action": "Start"
-      },
-      {
-        "Path": "SteamProfile.csproj",
-        "Action": "Start"
       }
     ]
   }

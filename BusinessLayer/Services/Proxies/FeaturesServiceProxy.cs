@@ -30,6 +30,18 @@ namespace BusinessLayer.Services.Proxies
             }
         }
 
+        public Dictionary<string, List<Feature>> GetFeaturesByCategories(int userId)
+        {
+            try
+            {
+                return GetAsync<Dictionary<string, List<Feature>>>($"Feature/user/{userId}/categories").GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException("Failed to retrieve features from server", ex);
+            }
+        }
+
         public bool EquipFeature(int userIdentifier, int featureIdentifier)
         {
             try

@@ -27,26 +27,6 @@ namespace BusinessLayer.Services.Proxies
             }
         }
 
-        public void PurchasePoints(PointsOffer offer)
-        {
-            if (offer == null)
-            {
-                throw new ArgumentNullException(nameof(offer));
-            }
-
-            try
-            {
-                var userId = userService.GetCurrentUser()?.UserId ??
-                    throw new InvalidOperationException("User is not logged in");
-
-                PostAsync($"Wallet/purchase-points/{userId}", offer).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                throw new ServiceException($"Failed to purchase points: {ex.Message}", ex);
-            }
-        }
-
         public decimal GetBalance()
         {
             try
@@ -95,43 +75,17 @@ namespace BusinessLayer.Services.Proxies
             }
         }
 
-        public void AddPoints(int points)
+        public void CreditPoints(int userId, int numberOfPoints)
         {
             try
             {
-                var userId = userService.GetCurrentUser()?.UserId ??
-                    throw new InvalidOperationException("User is not logged in");
-
-                PostAsync("Wallet/add-points", new { UserId = userId, Points = points })
+                // userId is now passed as a parameter, no need to get it from userService
+                PostAsync($"Wallet/credit-points/{userId}", new { NumberOfPoints = numberOfPoints })
                     .GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
-                throw new ServiceException($"Failed to add points: {ex.Message}", ex);
-            }
-        }
-
-        public bool TryPurchasePoints(PointsOffer pointsOffer)
-        {
-            if (pointsOffer == null)
-            {
-                return false;
-            }
-
-            try
-            {
-                var userId = userService.GetCurrentUser()?.UserId ??
-                    throw new InvalidOperationException("User is not logged in");
-
-                return PostAsync<bool>("Wallet/try-purchase-points", new
-                {
-                    UserId = userId,
-                    OfferId = pointsOffer.OfferId
-                }).GetAwaiter().GetResult();
-            }
-            catch
-            {
-                return false;
+                throw new ServiceException($"Failed to credit points: {ex.Message}", ex);
             }
         }
     }
