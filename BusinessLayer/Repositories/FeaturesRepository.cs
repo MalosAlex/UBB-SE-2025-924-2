@@ -28,7 +28,6 @@ namespace BusinessLayer.Repositories
                     Description = f.Description,
                     Type = f.Type,
                     Source = f.Source,
-                    Equipped = context.FeatureUsers.Any(fu => fu.UserId == userId && fu.FeatureId == f.FeatureId && fu.Equipped)
                 })
                 .ToList();
         }
@@ -44,37 +43,59 @@ namespace BusinessLayer.Repositories
         public List<Feature> GetUserFeatures(int userIdentifier)
         {
             return context.Features
-                .GroupJoin(
-                    context.FeatureUsers.Where(fu => fu.UserId == userIdentifier),
-                    f => f.FeatureId,
-                    fu => fu.FeatureId,
-                    (f, featureUsers) => new { f, featureUsers })
-                .SelectMany(
-                    x => x.featureUsers.DefaultIfEmpty(),
-                    (x, fu) => new Feature
-                    {
-                        FeatureId = x.f.FeatureId,
-                        Name = x.f.Name,
-                        Value = x.f.Value,
-                        Description = x.f.Description,
-                        Type = x.f.Type,
-                        Source = x.f.Source,
-                        Equipped = fu != null && fu.Equipped
-                    })
-                .OrderBy(f => f.Type)
-                .ThenByDescending(f => f.Value)
-                .ToList();
+                    .GroupJoin(
+                        context.FeatureUsers.Where(fu => fu.UserId == userIdentifier),
+                        f => f.FeatureId,
+                        fu => fu.FeatureId,
+                        (f, featureUsers) => new { f, featureUsers })
+                    .SelectMany(
+                        x => x.featureUsers.DefaultIfEmpty(),
+                        (x, fu) => new Feature
+                        {
+                            FeatureId = x.f.FeatureId,
+                            Name = x.f.Name,
+                            Value = x.f.Value,
+                            Description = x.f.Description,
+                            Type = x.f.Type,
+                            Source = x.f.Source,
+                            Equipped = x.f.Equipped
+                        })
+                    .OrderBy(f => f.Type)
+                    .ThenByDescending(f => f.Value)
+                    .ToList();
         }
 
-        public bool EquipFeature(int userIdentifier, int featureIdentifier)
+        public bool EquipFeature(int userId, int featureId)
         {
+            // 1. Check if the feature exists
+            var feature = context.Features.FirstOrDefault(f => f.FeatureId == featureId);
+            if (feature == null)
+            {
+                return false;
+            }
+            var userExists = context.Users.Any(u => u.UserId == userId);
+            if (!userExists)
+            {
+                return false;
+            }
             var featureUser = context.FeatureUsers
-                .FirstOrDefault(fu => fu.UserId == userIdentifier && fu.FeatureId == featureIdentifier);
+                .FirstOrDefault(fu => fu.UserId == userId && fu.FeatureId == featureId);
+
             if (featureUser == null)
             {
-                return false; // Feature not purchased
+                featureUser = new FeatureUser
+                {
+                    UserId = userId,
+                    FeatureId = featureId,
+                    Equipped = true
+                };
+                context.FeatureUsers.Add(featureUser);
             }
-            featureUser.Equipped = true;
+            else
+            {
+                featureUser.Equipped = true;
+            }
+
             context.SaveChanges();
             return true;
         }
@@ -123,6 +144,28 @@ namespace BusinessLayer.Repositories
             });
             context.SaveChanges();
             return true;
+        }
+
+        public List<Feature> GetEquippedFeatures(int userId)
+        {
+            return context.Features
+                .Join(
+                    context.FeatureUsers.Where(fu => fu.UserId == userId && fu.Equipped),
+                    feature => feature.FeatureId,
+                    featureUser => featureUser.FeatureId,
+                    (feature, featureUser) => new Feature
+                    {
+                        FeatureId = feature.FeatureId,
+                        Name = feature.Name,
+                        Value = feature.Value,
+                        Description = feature.Description,
+                        Type = feature.Type,
+                        Source = feature.Source,
+                        Equipped = feature.Equipped
+                    })
+                .OrderBy(f => f.Type)
+                .ThenByDescending(f => f.Value)
+                .ToList();
         }
     }
 }
