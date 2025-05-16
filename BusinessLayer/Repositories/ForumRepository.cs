@@ -154,7 +154,7 @@ namespace BusinessLayer.Repositories
                 else
                 {
                     // switch to dislike
-                    post.Score -= 2 * voteValue; // subtract like and add dislike
+                    post.Score += 2 * voteValue; // subtract like and add dislike
                     context.UserLikedPosts.Remove(liked);
                     context.UserDislikedPosts.Add(new UserDislikedPost { UserId = userId, PostId = postId });
                 }
