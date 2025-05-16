@@ -6,6 +6,7 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Models;
+using SteamProfileWeb.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +81,7 @@ builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
 builder.Services.AddScoped<IFeaturesRepository, FeaturesRepository>();
 builder.Services.AddScoped<IAchievementsRepository, AchievementsRepository>();
+builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<ICollectionsRepository, CollectionsRepository>();
 builder.Services.AddScoped<IFriendshipsRepository, FriendshipsRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
@@ -90,6 +92,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IFeaturesService, FeaturesService>();
 builder.Services.AddScoped<IAchievementsService, AchievementsService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IFriendsService, FriendsService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
@@ -114,6 +117,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSessionRestoration();
 app.UseSession();
 
 app.MapControllerRoute(

@@ -45,32 +45,11 @@ namespace SteamWebApi.Controllers
             return Ok();
         }
 
-        [HttpPost("add-points")]
-        public IActionResult AddPoints([FromBody] AddPointsRequest request)
+        [HttpPost("credit-points/{userId}")]
+        public IActionResult CreditPoints(int userId, [FromBody] CreditPointsRequest request)
         {
-            walletService.AddPoints(request.Points);
+            walletService.CreditPoints(userId, request.NumberOfPoints);
             return Ok();
-        }
-
-        [HttpPost("purchase-points/{userId}")]
-        public IActionResult PurchasePoints(int userId, [FromBody] PointsOffer offer)
-        {
-            walletService.PurchasePoints(offer);
-            return Ok();
-        }
-
-        [HttpPost("try-purchase-points")]
-        public IActionResult TryPurchasePoints([FromBody] TryPurchaseRequest request)
-        {
-            // Find the points offer by ID
-            // For the API, we'd need to get the offer by ID
-            var offer = new PointsOffer(request.Price, request.Points)
-            {
-                OfferId = request.OfferId
-            };
-
-            bool success = walletService.TryPurchasePoints(offer);
-            return Ok(success);
         }
     }
 
@@ -80,18 +59,8 @@ namespace SteamWebApi.Controllers
         public decimal Amount { get; set; }
     }
 
-    public class AddPointsRequest
+    public class CreditPointsRequest
     {
-        public int UserId { get; set; }
-        public int Points { get; set; }
-    }
-
-    public class TryPurchaseRequest
-    {
-        public int UserId { get; set; }
-        public int OfferId { get; set; }
-
-        public int Price { get; set; }
-        public int Points { get; set; }
+        public int NumberOfPoints { get; set; }
     }
 }

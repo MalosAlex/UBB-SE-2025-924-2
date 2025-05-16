@@ -70,7 +70,8 @@ namespace SteamProfileWeb.Controllers
         [HttpPost]
         public IActionResult ToggleFriendship(int userId)
         {
-            var currentUserId = userService.GetCurrentUser().UserId;
+            var currentUserName =  User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUserId = userService.GetUserByUsername(currentUserName)?.UserId ?? 0;
             var isFriend = friendsService.AreUsersFriends(currentUserId, userId);
 
             if (isFriend)

@@ -38,6 +38,7 @@ namespace SteamProfile
                 UsersViewModel = UsersViewModel.Instance;
                 AddGameToCollectionViewModel = new AddGameToCollectionViewModel(CollectionsService, UserService);
                 FriendsViewModel = new FriendsViewModel(FriendsService, UserService);
+                AddFriendsViewModel = new AddFriendsViewModel(FriendsService, UserService);
                 CollectionGamesViewModel = new CollectionGamesViewModel(CollectionsService);
                 CollectionsViewModel = new CollectionsViewModel(CollectionsService, UserService);
             }
@@ -123,6 +124,8 @@ namespace SteamProfile
             Services[typeof(IAchievementsRepository)] = achievementsRepository;
 
             Services[typeof(IForumRepository)] = new ForumRepository(GetService<ApplicationDbContext>());
+
+            Services[typeof(IChatRepository)] = new ChatRepository(GetService<ApplicationDbContext>());
 
             // This is the old repository that is not used anymore (needs to be removed)
             var friendRepository = new FriendRepository(dataContext);
@@ -219,6 +222,7 @@ namespace SteamProfile
             Services[typeof(IForumService)] = ServiceFactory.CreateForumService();
             Services[typeof(IPasswordResetService)] = ServiceFactory.CreatePasswordResetService();
             Services[typeof(IFriendService)] = ServiceFactory.CreateFriendService();
+            Services[typeof(IChatRepository)] = new ChatRepository(GetService<ApplicationDbContext>());
         }
 
         public static T GetService<T>()
@@ -249,6 +253,7 @@ namespace SteamProfile
         public static CollectionsViewModel CollectionsViewModel { get; private set; }
         public static UsersViewModel UsersViewModel { get; private set; }
         public static FriendsViewModel FriendsViewModel { get; private set; }
+        public static AddFriendsViewModel AddFriendsViewModel { get; private set; }
 
         public static User CurrentUser { get; set; } = new User();
 
@@ -258,6 +263,8 @@ namespace SteamProfile
         public static ICollectionsRepository CollectionsRepository { get; private set; }
         public static PasswordResetRepository PasswordResetRepository { get; private set; }
         public static IUsersRepository UserRepository { get; private set; }
+
+        public static IChatRepository ChatRepository { get; private set; }
 
         static App()
         {
@@ -276,7 +283,6 @@ namespace SteamProfile
 
         private static void InitializeLocalServices()
         {
-            var dataLink = DataLink.Instance;
             var navigationService = NavigationService.Instance;
             var achievementsRepository = GetService<IAchievementsRepository>();
 
@@ -285,6 +291,7 @@ namespace SteamProfile
             UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
             PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
             CollectionsRepository = GetService<ICollectionsRepository>();
+            ChatRepository = GetService<IChatRepository>();
 
             // Initialize all services
             SessionService = (SessionService)GetService<ISessionService>();
@@ -311,13 +318,13 @@ namespace SteamProfile
         {
             // For remote services, we're using the service proxies
             // All services are now implemented as proxies
-            var dataLink = DataLink.Instance;
             var navigationService = NavigationService.Instance;
             UserService = GetService<IUserService>();
             UserRepository = GetService<IUsersRepository>();
             UserProfileRepository = (UserProfilesRepository)GetService<IUserProfilesRepository>();
             PasswordResetRepository = (PasswordResetRepository)GetService<IPasswordResetRepository>();
             CollectionsRepository = GetService<ICollectionsRepository>();
+            ChatRepository = GetService<IChatRepository>();
 
             // Some services may need a cast to a specific type
             try
