@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using BusinessLayer.Models;
 
-namespace BusinessLayer.Repositories
+namespace BusinessLayer.Repositories.Interfaces
 {
     public interface IReviewRepository
     {

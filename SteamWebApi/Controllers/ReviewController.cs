@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Models;
 using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SteamWebApi.Controllers
