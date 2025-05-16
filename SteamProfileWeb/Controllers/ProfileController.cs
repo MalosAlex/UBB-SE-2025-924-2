@@ -57,35 +57,10 @@ namespace SteamProfileWeb.Controllers
                 ProfilePhotoPath = userProfile?.ProfilePicture ?? "/images/default-profile.png",
                 Biography = userProfile?.Bio ?? "",
                 FriendCount = friendsService.GetFriendshipCount(userId),
-                GameCollections = collections,
-                IsFriend = false, // Always false for self
-                FriendButtonText = "Add Friend",
-                FriendshipsAchievement = achievementsService.GetAchievementsWithStatusForUser(userId)
-                    .FirstOrDefault(achievement => achievement.Achievement.AchievementType == "Friendships"),
+                GameCollections = collections
             };
 
             return View(vm);
-        }
-
-        [HttpPost]
-        public IActionResult ToggleFriendship(int userId)
-        {
-            var currentUserName =  User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var currentUserId = userService.GetUserByUsername(currentUserName)?.UserId ?? 0;
-            var isFriend = friendsService.AreUsersFriends(currentUserId, userId);
-
-            if (isFriend)
-            {
-                var friendshipId = friendsService.GetFriendshipIdentifier(currentUserId, userId);
-                if (friendshipId.HasValue)
-                    friendsService.RemoveFriend(friendshipId.Value);
-            }
-            else
-            {
-                friendsService.AddFriend(currentUserId, userId);
-            }
-
-            return RedirectToAction("Index", new { userId });
         }
     }
 }
