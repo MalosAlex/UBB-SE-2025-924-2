@@ -4,11 +4,13 @@
     "Projects": [
       {
         "Path": "..\\SteamWebApi\\SteamWebApi.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "https"
       },
       {
         "Path": "..\\SteamProfileWeb\\SteamProfileWeb.csproj",
-        "Action": "Start"
+        "Action": "Start",
+        "DebugTarget": "https"
       }
     ]
   }

@@ -33,13 +33,9 @@ namespace BusinessLayer.DataContext
         public DbSet<Post> NewsPosts { get; set; }
         public DbSet<Comment> NewsComments { get; set; }
         public DbSet<PostRatingType> NewsPostRatingTypes { get; set; }
-
         public DbSet<FriendRequest> FriendRequests { get; set; }
-
         public DbSet<FriendEntity> FriendsTable { get; set; } // Delete this once the relationship functionalities are sorted out
-
         public DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
-
         public DbSet<ForumPost> ForumPosts { get; set; }
         public DbSet<ForumComment> ForumComments { get; set; }
         internal DbSet<UserLikedPost> UserLikedPosts { get; set; }
