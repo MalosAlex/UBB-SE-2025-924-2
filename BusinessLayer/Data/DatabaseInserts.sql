@@ -15,13 +15,13 @@ GO
 ---------------------------------------------------------------------------------------------------
 -- Feature catalog
 ---------------------------------------------------------------------------------------------------
-INSERT INTO Features (name, value, description, type, source) VALUES
-    ('Black Hat',         2000, 'An elegant hat',            'hat',        'Assets/Features/Hats/black-hat.png'),
-    ('Pufu',                10, 'Cute doggo',                'pet',        'Assets/Features/Pets/dog.png'),
-    ('Kitty',                8, 'Cute cat',                  'pet',        'Assets/Features/Pets/cat.png'),
-    ('Frame',                5, 'Violet frame',              'frame',      'Assets/Features/Frames/frame1.png'),
-    ('Love Emoji',           7, 'lalal',                     'emoji',      'Assets/Features/Emojis/love.png'),
-    ('Violet Background',    7, 'Violet Background',         'background', 'Assets/Features/Backgrounds/violet.jpg');
+INSERT INTO Features (name, value, description, type, source,equipped) VALUES
+    ('Black Hat',         2000, 'An elegant hat',            'hat',        'Assets/Features/Hats/black-hat.png',0),
+    ('Pufu',                10, 'Cute doggo',                'pet',        'Assets/Features/Pets/dog.png',0),
+    ('Kitty',                8, 'Cute cat',                  'pet',        'Assets/Features/Pets/cat.png',0),
+    ('Frame',                5, 'Violet frame',              'frame',      'Assets/Features/Frames/frame1.png',0),
+    ('Love Emoji',           7, 'lalal',                     'emoji',      'Assets/Features/Emojis/love.png',0),
+    ('Violet Background',    7, 'Violet Background',         'background', 'Assets/Features/Backgrounds/violet.jpg',0);
 GO
 
 ---------------------------------------------------------------------------------------------------

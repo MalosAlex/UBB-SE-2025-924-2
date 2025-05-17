@@ -185,7 +185,8 @@ CREATE TABLE Features (
                    source LIKE '%.svg' OR
                    source LIKE '%.png' OR
                    source LIKE '%.jpg'
-                 )
+                 ),
+    equipped BIT NOT NULL DEFAULT 0,
 );
 GO
 

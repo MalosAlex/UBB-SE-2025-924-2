@@ -58,7 +58,7 @@ namespace BusinessLayer.Repositories
                             Description = x.f.Description,
                             Type = x.f.Type,
                             Source = x.f.Source,
-                            Equipped = x.f.Equipped
+                            Equipped = fu != null ? fu.Equipped : false
                         })
                     .OrderBy(f => f.Type)
                     .ThenByDescending(f => f.Value)
@@ -161,7 +161,7 @@ namespace BusinessLayer.Repositories
                         Description = feature.Description,
                         Type = feature.Type,
                         Source = feature.Source,
-                        Equipped = feature.Equipped
+                        Equipped = featureUser.Equipped
                     })
                 .OrderBy(f => f.Type)
                 .ThenByDescending(f => f.Value)
