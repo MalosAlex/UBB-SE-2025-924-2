@@ -32,7 +32,9 @@ namespace BusinessLayer.Services
             userService = newUserService;
         }
 
-        public User ActiveUser => userService.GetCurrentUser();
+        // This should get the current user but for now that is not resolved
+        // Please modify this to get the actual user if possible
+        public User ActiveUser => userService.GetUserByIdentifier(1);
 
         /// <summary>
         /// Format given text to valid html to be ready to post
@@ -113,7 +115,7 @@ namespace BusinessLayer.Services
         {
             int rowsAffected = DEFAULT_ROWS_AFFECTED_VALUE;
 
-            rowsAffected += repository.UpdatePostLikeCount(postId);
+            rowsAffected += repository.UpdatePostDislikeCount(postId);
             rowsAffected += repository.AddRatingToPost(postId, ActiveUser.UserId, NEGATIVE_RATING);
 
             if (rowsAffected == SUCCESSFUL_EXECUTIONS)
