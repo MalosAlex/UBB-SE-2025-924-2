@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using BusinessLayer.Models;
 
-namespace BusinessLayer.Services
+namespace BusinessLayer.Services.Interfaces
 {
     public interface IReviewService
     {

@@ -32,7 +32,7 @@ namespace SteamProfile.Views
         {
             if (sender is Button button && button.Tag is int friendId)
             {
-                Frame.Navigate(typeof(ProfilePage), friendId);
+                Frame.Navigate(typeof(FriendProfilePage), friendId);
             }
         }
 

@@ -17,9 +17,7 @@ namespace SteamProfile.Views
         public WalletPage()
         {
             this.InitializeComponent();
-            ViewModel = new WalletViewModel(
-                App.WalletService,
-                new PointsOffersRepository());
+            ViewModel = new WalletViewModel(App.WalletService);
             this.DataContext = ViewModel;
         }
 
@@ -36,10 +34,6 @@ namespace SteamProfile.Views
             Frame.Navigate(typeof(AddMoneyPage), ViewModel);
         }
 
-        private void AddPointsButton_Click(object sender, RoutedEventArgs eventArgs)
-        {
-            Frame.Navigate(typeof(AddPointsPage), ViewModel);
-        }
         private void GoBack(object sender, RoutedEventArgs eventArgs)
         {
             Frame.GoBack();

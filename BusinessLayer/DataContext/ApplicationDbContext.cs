@@ -18,10 +18,11 @@ namespace BusinessLayer.DataContext
 
         // Define DbSets here
         public DbSet<Wallet> Wallets { get; set; }
-        public DbSet<PointsOffer> PointsOffers { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<Achievement> Achievements { get; set; }
+        public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public DbSet<UserAchievement> UserAchievements { get; set; }
         public DbSet<Collection> Collections { get; set; }
@@ -667,29 +668,6 @@ namespace BusinessLayer.DataContext
                     .HasDefaultValue(0m);
             });
 
-            // -- PointsOffer mapping --------------------------------------------------------
-            modelBuilder.Entity<PointsOffer>(entity =>
-            {
-                // Map to table name
-                entity.ToTable("PointsOffers");
-
-                // Set primary key
-                entity.HasKey(po => po.OfferId);
-
-                // Column mappings
-                entity.Property(po => po.OfferId)
-                    .HasColumnName("offer_id")
-                    .ValueGeneratedOnAdd();
-
-                entity.Property(po => po.Points)
-                    .HasColumnName("numberOfPoints")
-                    .IsRequired();
-
-                entity.Property(po => po.Price)
-                    .HasColumnName("value")
-                    .IsRequired();
-            });
-
             // -- Users mapping --------------------------------------------------------------
             modelBuilder.Entity<User>(entity =>
             {
@@ -726,6 +704,45 @@ namespace BusinessLayer.DataContext
 
                 entity.Property(u => u.LastLogin)
                     .HasColumnName("last_login");
+            });
+
+            modelBuilder.Entity<ChatConversation>(entity =>
+            {
+                entity.ToTable("ChatConversations");
+                entity.HasKey(c => c.ConversationId);
+                entity.Property(c => c.ConversationId)
+                    .HasColumnName("conversation_id")
+                    .ValueGeneratedOnAdd();
+                entity.Property(c => c.User1Id)
+                    .HasColumnName("user1_id")
+                    .IsRequired();
+                entity.Property(c => c.User2Id)
+                    .HasColumnName("user2_id")
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable("ChatMessages");
+                entity.HasKey(m => m.MessageId);
+                entity.Property(m => m.MessageId)
+                    .HasColumnName("message_id")
+                    .ValueGeneratedOnAdd();
+                entity.Property(m => m.ConversationId)
+                    .HasColumnName("conversation_id")
+                    .IsRequired();
+                entity.Property(m => m.SenderId)
+                    .HasColumnName("sender_id")
+                    .IsRequired();
+                entity.Property(m => m.MessageContent)
+                    .HasColumnName("message_content")
+                    .IsRequired();
+                entity.Property(m => m.MessageFormat)
+                    .HasColumnName("message_format")
+                    .IsRequired();
+                entity.Property(m => m.Timestamp)
+                    .HasColumnName("timestamp")
+                    .HasDefaultValueSql("GETDATE()");
             });
         }
     }

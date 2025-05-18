@@ -21,8 +21,6 @@ namespace BusinessLayer.Repositories.Interfaces
 
         int GetPointsFromWallet(int walletId);
 
-        void PurchasePoints(PointsOffer offer, int walletId);
-
         void AddNewWallet(int userId);
 
         void RemoveWallet(int userId);

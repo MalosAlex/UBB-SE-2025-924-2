@@ -8,12 +8,18 @@ namespace SteamProfile.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return (value is bool boolValue && boolValue) ? Visibility.Visible : Visibility.Collapsed;
+            return (value is bool boolValue && boolValue)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            return (value is Visibility visibility && visibility == Visibility.Visible);
+            if (value is Visibility visibility)
+            {
+                return visibility == Visibility.Visible;
+            }
+            return false;
         }
     }
 
@@ -21,12 +27,18 @@ namespace SteamProfile.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return (value is bool boolValue && !boolValue) ? Visibility.Visible : Visibility.Collapsed;
+            return (value is bool boolValue && !boolValue)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            return (value is Visibility visibility && visibility == Visibility.Collapsed);
+            if (value is Visibility visibility)
+            {
+                return visibility != Visibility.Visible;
+            }
+            return true;
         }
     }
 }

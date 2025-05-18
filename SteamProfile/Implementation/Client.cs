@@ -10,6 +10,7 @@ namespace SteamProfile.Implementation
 {
     public partial class Client
     {
+        /*
         private IPEndPoint serverEndPoint;
         private Socket clientSocket;
         private DispatcherQueue uiThread;
@@ -193,5 +194,6 @@ namespace SteamProfile.Implementation
             clientSocket.Shutdown(SocketShutdown.Both);
             clientSocket.Close();
         }
+        */
     }
 }

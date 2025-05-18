@@ -86,6 +86,13 @@
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 MinWidth="100"/>
 
+                                        <!-- Chat with friend Button -->
+                                        <Button Content="Chat"
+                                                Click="ChatFriend_Click"
+                                                Tag="{Binding FriendId}"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                MinWidth="100"/>
+
                                         <!-- Remove Button -->
                                         <Button Content="Remove"
                                                 Click="RemoveFriend_Click"
