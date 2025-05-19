@@ -52,7 +52,6 @@ namespace SteamProfile.Views
                 else
                 {
                     // Initialize the ViewModel with the UI thread's dispatcher
-                    var dataLink = DataLink.Instance;
                     Debug.WriteLine("DataLink instance obtained.");
 
                     var friendsService = App.FriendsService;
@@ -111,7 +110,6 @@ namespace SteamProfile.Views
             // Ensure ProfileViewModel is initialized
             if (!ProfileViewModel.IsInitialized)
             {
-                var dataLink = DataLink.Instance;
                 Debug.WriteLine("Initializing ProfileViewModel...");
 
                 var friendsService = App.FriendsService;
