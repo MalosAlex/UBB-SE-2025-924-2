@@ -104,13 +104,51 @@ namespace BusinessLayer.Repositories
             {
                 return false;
             }
-            if (voteTypeAsStringEitherHelpfulOrFunny == "Helpful")
+
+            // Get the current vote count
+            int currentVoteCount = voteTypeAsStringEitherHelpfulOrFunny == "Helpful" ? review.TotalHelpfulVotesReceived : review.TotalFunnyVotesReceived;
+
+            // If shouldIncrementVoteCount is true, we're adding a vote
+            // If false, we're removing a vote
+            if (shouldIncrementVoteCount)
             {
-                review.TotalHelpfulVotesReceived += shouldIncrementVoteCount ? 1 : -1;
+                // Check if the user has already voted
+                if (currentVoteCount > 0)
+                {
+                    // User has already voted, so we'll remove their vote
+                    if (voteTypeAsStringEitherHelpfulOrFunny == "Helpful")
+                    {
+                        review.TotalHelpfulVotesReceived--;
+                    }
+                    else
+                    {
+                        review.TotalFunnyVotesReceived--;
+                    }
+                }
+                else
+                {
+                    // User hasn't voted yet, so we'll add their vote
+                    if (voteTypeAsStringEitherHelpfulOrFunny == "Helpful")
+                    {
+                        review.TotalHelpfulVotesReceived++;
+                    }
+                    else
+                    {
+                        review.TotalFunnyVotesReceived++;
+                    }
+                }
             }
             else
             {
-                review.TotalFunnyVotesReceived += shouldIncrementVoteCount ? 1 : -1;
+                // Removing a vote
+                if (voteTypeAsStringEitherHelpfulOrFunny == "Helpful")
+                {
+                    review.TotalHelpfulVotesReceived = Math.Max(0, review.TotalHelpfulVotesReceived - 1);
+                }
+                else
+                {
+                    review.TotalFunnyVotesReceived = Math.Max(0, review.TotalFunnyVotesReceived - 1);
+                }
             }
 
             context.SaveChanges();

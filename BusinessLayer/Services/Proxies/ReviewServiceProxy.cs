@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BusinessLayer.Models;
 using BusinessLayer.Services;
 using BusinessLayer.Exceptions;
+using BusinessLayer.Services.Interfaces;
 
 namespace BusinessLayer.Services.Proxies
 {
