@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System;
 using System.IO;
 using BusinessLayer.Models;
-using BusinessLayer.Services;
+using BusinessLayer.Services.Interfaces;
 
 namespace SteamProfile.ViewModels
 {
