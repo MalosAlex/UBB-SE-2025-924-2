@@ -35,6 +35,13 @@ namespace SteamProfile.Views
                 Frame.Navigate(typeof(FriendProfilePage), friendId);
             }
         }
+        private void ChatFriend_Click(object sender, RoutedEventArgs eventArgs)
+        {
+            if (sender is Button button && button.Tag is int friendId)
+            {
+                Frame.Navigate(typeof(ChatRoomWindow), friendId);
+            }
+        }
 
         private void BackToProfileButton_Click(object sender, RoutedEventArgs eventArgs)
         {
