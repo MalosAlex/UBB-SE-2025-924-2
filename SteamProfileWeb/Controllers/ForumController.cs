@@ -35,10 +35,19 @@ namespace SteamProfileWeb.Controllers
 
             // Get posts based on sort option
             List<ForumPost> posts;
+            int totalPosts = 0;
+            bool hasNextPage = false;
 
             if (sortOption == "recent")
             {
+                // Get the total count of posts with current filters
+                totalPosts = _forumService.GetPostCount(positiveScoreOnly, null, searchFilter);
+
+                // Get posts for current page
                 posts = _forumService.GetPagedPosts((uint)page, pageSize, positiveScoreOnly, null, searchFilter);
+
+                // Check if there's a next page
+                hasNextPage = (page + 1) * pageSize < totalPosts;
             }
             else
             {
@@ -53,7 +62,12 @@ namespace SteamProfileWeb.Controllers
                     _ => TimeSpanFilter.AllTime
                 };
 
-                posts = _forumService.GetTopPosts(filter);
+                var allPosts = _forumService.GetTopPosts(filter);
+                totalPosts = allPosts.Count;
+
+                // Apply pagination to top posts
+                posts = allPosts.Skip(page * (int)pageSize).Take((int)pageSize).ToList();
+                hasNextPage = (page + 1) * (int)pageSize < totalPosts;
             }
 
             // Create view model
@@ -64,7 +78,10 @@ namespace SteamProfileWeb.Controllers
                 PositiveScoreOnly = positiveScoreOnly,
                 SortOption = sortOption,
                 SearchFilter = searchFilter,
-                CurrentUserId = GetCurrentUserId()
+                CurrentUserId = GetCurrentUserId(),
+                HasNextPage = hasNextPage,
+                HasPreviousPage = page > 0,
+                TotalPosts = totalPosts
             };
 
             return View(viewModel);

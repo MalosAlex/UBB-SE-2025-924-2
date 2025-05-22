@@ -15,6 +15,7 @@ namespace BusinessLayer.Services.Interfaces
         public int GetCurrentUserId();
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public List<ForumPost> GetTopPosts(TimeSpanFilter filter);
+        public int GetPostCount(bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public void VoteOnPost(int postId, int voteValue);
         public void VoteOnComment(int commentId, int voteValue);
         public List<ForumComment> GetComments(int postId);

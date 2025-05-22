@@ -16,6 +16,7 @@ namespace BusinessLayer.Repositories.Interfaces
         public void DeleteComment(int commentId);
         public void VoteOnPost(int postId, int voteValue, int userId);
         public void VoteOnComment(int commentId, int voteValue, int userId);
+        int GetPostCount(bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null);
         public List<ForumComment> GetComments(int postId);
     }

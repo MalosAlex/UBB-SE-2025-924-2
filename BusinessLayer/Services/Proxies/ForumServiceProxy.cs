@@ -59,6 +59,29 @@ namespace BusinessLayer.Services.Proxies
             }
         }
 
+        public int GetPostCount(bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
+        {
+            try
+            {
+                string queryParams = $"?positiveOnly={positiveScoreOnly}";
+
+                if (gameId.HasValue)
+                {
+                    queryParams += $"&gameId={gameId.Value}";
+                }
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    queryParams += $"&filter={Uri.EscapeDataString(filter)}";
+                }
+
+                return GetAsync<int>($"Forum/posts/count{queryParams}").GetAwaiter().GetResult();
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
+
         public void VoteOnPost(int postId, int voteValue)
         {
             try
