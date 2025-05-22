@@ -71,7 +71,17 @@ namespace BusinessLayer.Services
 
         public void CreateWallet(int userIdentifier)
         {
-            walletRepository.AddNewWallet(userIdentifier);
+            try
+            {
+                // Check if a wallet already exists
+                walletRepository.GetWalletIdByUserId(userIdentifier);
+                // If GetWalletIdByUserId does not throw, a wallet exists.
+            }
+            catch (RepositoryException ex) when (ex.Message.Equals($"Wallet for user with ID {userIdentifier} not found.", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("not found"))
+            {
+                // No wallet found, so create one
+                walletRepository.AddNewWallet(userIdentifier);
+            }
         }
 
         public void BuyWithMoney(decimal amount, int userId)
