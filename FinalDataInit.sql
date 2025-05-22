@@ -786,4 +786,6 @@ SET icon_url = 'https://cdn-icons-png.flaticon.com/512/5139/5139999.png'
 WHERE achievement_id > 0;
 GO
 
-
+-- Fix a missing column
+ALTER TABLE Features
+ADD equipped BIT NOT NULL DEFAULT 0;
