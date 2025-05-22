@@ -12,5 +12,10 @@ namespace SteamProfileWeb.ViewModels
         public string SortOption { get; set; }
         public string SearchFilter { get; set; }
         public int CurrentUserId { get; set; }
+
+        // Pagination
+        public bool HasNextPage { get; set; }
+        public bool HasPreviousPage { get; set; }
+        public int TotalPosts { get; set; }
     }
 }

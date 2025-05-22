@@ -237,6 +237,7 @@ namespace BusinessLayer.Repositories
         public List<ForumPost> GetPagedPosts(uint pageNumber, uint pageSize, bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
         {
             var query = context.ForumPosts.AsQueryable();
+
             if (gameId.HasValue)
             {
                 query = query.Where(p => p.GameId == gameId.Value);
@@ -249,22 +250,32 @@ namespace BusinessLayer.Repositories
             {
                 query = query.Where(p => p.Title.Contains(filter) || p.Body.Contains(filter));
             }
-            if (pageNumber > 0)
+
+            return query
+                .OrderByDescending(p => p.TimeStamp)
+                .Skip((int)(pageNumber * pageSize))
+                .Take((int)pageSize)
+                .ToList();
+        }
+
+        public int GetPostCount(bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
+        {
+            var query = context.ForumPosts.AsQueryable();
+
+            if (gameId.HasValue)
             {
-                return query
-                    .OrderByDescending(p => p.TimeStamp)
-                    .Skip((int)((pageNumber - 1) * pageSize))
-                    .Take((int)pageSize)
-                    .ToList();
+                query = query.Where(p => p.GameId == gameId.Value);
             }
-            else
+            if (positiveScoreOnly)
             {
-                return query
-                    .OrderByDescending(p => p.TimeStamp)
-                    .Skip((int)(pageNumber * pageSize))
-                    .Take((int)pageSize)
-                    .ToList();
+                query = query.Where(p => p.Score >= 0);
             }
+            if (!string.IsNullOrEmpty(filter))
+            {
+                query = query.Where(p => p.Title.Contains(filter) || p.Body.Contains(filter));
+            }
+
+            return query.Count();
         }
 
         public List<ForumComment> GetComments(int postId)

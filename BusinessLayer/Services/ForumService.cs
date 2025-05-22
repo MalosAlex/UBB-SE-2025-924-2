@@ -64,6 +64,11 @@ namespace BusinessLayer.Services
             return repository.GetTopPosts(filter);
         }
 
+        public int GetPostCount(bool positiveScoreOnly = false, int? gameId = null, string? filter = null)
+        {
+            return repository.GetPostCount(positiveScoreOnly, gameId, filter);
+        }
+
         public void VoteOnPost(int postId, int voteValue)
         {
             repository.VoteOnPost(postId, voteValue, (int)GetCurrentUserId());
