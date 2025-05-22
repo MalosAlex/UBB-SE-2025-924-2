@@ -178,16 +178,12 @@ namespace BusinessLayer.Repositories
                 return 0;
             }
 
-            // !! If someone has time please make this work !! //
             // Update the comment count of the post
-            /*
-            var post = context.NewsPosts.Find(postId);
-            if (post == null)
+            var post = context.NewsPosts.Find(comment.PostId);
+            if (post != null)
             {
-                return 0;
+                post.NrComments--;
             }
-            post.NrComments--;
-            */
 
             context.NewsComments.Remove(comment);
             return context.SaveChanges();

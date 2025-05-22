@@ -5,6 +5,8 @@ using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BusinessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace SteamWebApi.Controllers
 {
@@ -15,12 +17,14 @@ namespace SteamWebApi.Controllers
         private readonly IUserService userService;
         private readonly IWalletService walletService;
         private readonly IUserProfilesRepository profilesRepo;
+        private readonly ApplicationDbContext dbContext;
 
-        public UserController(IUserService userService, IWalletService walletService, IUserProfilesRepository profilesRepo)
+        public UserController(IUserService userService, IWalletService walletService, IUserProfilesRepository profilesRepo, ApplicationDbContext dbContext)
         {
             this.userService = userService;
             this.walletService = walletService;
             this.profilesRepo = profilesRepo;
+            this.dbContext = dbContext;
         }
 
         [HttpGet]
@@ -71,18 +75,31 @@ namespace SteamWebApi.Controllers
         [HttpPost]
         public IActionResult CreateUser([FromBody] User user)
         {
-            try
-            {
-                var createdUser = userService.CreateUser(user);
-                walletService.CreateWallet(createdUser.UserId);
-                profilesRepo.CreateProfile(user.UserId);
+            var strategy = dbContext.Database.CreateExecutionStrategy();
 
-                return Ok(createdUser);
-            }
-            catch (Exception ex)
+            return strategy.Execute<IActionResult>(() =>
             {
-                return BadRequest(ex.Message);
-            }
+                using var transaction = dbContext.Database.BeginTransaction();
+                try
+                {
+                    var createdUser = userService.CreateUser(user);
+                    if (createdUser == null || createdUser.UserId <= 0)
+                    {
+                        throw new Exception("User creation failed or returned an invalid user.");
+                    }
+
+                    walletService.CreateWallet(createdUser.UserId);
+                    profilesRepo.CreateProfile(createdUser.UserId);
+
+                    transaction.Commit();
+                    return Ok(createdUser);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return BadRequest(ex.Message);
+                }
+            });
         }
 
         [HttpPut("{id}")]
