@@ -24,5 +24,6 @@ namespace BusinessLayer.Repositories.Interfaces
         void AddNewWallet(int userId);
 
         void RemoveWallet(int userId);
+        void BuyWithMoney(decimal amount, int userId);
     }
 }

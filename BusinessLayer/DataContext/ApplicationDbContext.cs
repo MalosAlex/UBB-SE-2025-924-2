@@ -160,7 +160,7 @@ namespace BusinessLayer.DataContext
                 entity.Property(f => f.Source)
                       .HasColumnName("source");
                 entity.Property(f => f.Equipped)
-                      .HasColumnName("equipped");
+                     .HasColumnName("equipped");
             });
 
             // -- FeatureUser mapping ---------------------------------------------------

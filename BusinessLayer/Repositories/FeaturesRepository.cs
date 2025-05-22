@@ -43,26 +43,23 @@ namespace BusinessLayer.Repositories
         public List<Feature> GetUserFeatures(int userIdentifier)
         {
             return context.Features
-                    .GroupJoin(
-                        context.FeatureUsers.Where(fu => fu.UserId == userIdentifier),
-                        f => f.FeatureId,
-                        fu => fu.FeatureId,
-                        (f, featureUsers) => new { f, featureUsers })
-                    .SelectMany(
-                        x => x.featureUsers.DefaultIfEmpty(),
-                        (x, fu) => new Feature
-                        {
-                            FeatureId = x.f.FeatureId,
-                            Name = x.f.Name,
-                            Value = x.f.Value,
-                            Description = x.f.Description,
-                            Type = x.f.Type,
-                            Source = x.f.Source,
-                            Equipped = x.f.Equipped
-                        })
-                    .OrderBy(f => f.Type)
-                    .ThenByDescending(f => f.Value)
-                    .ToList();
+        .Join(
+            context.FeatureUsers.Where(fu => fu.UserId == userIdentifier),
+            f => f.FeatureId,
+            fu => fu.FeatureId,
+            (f, fu) => new Feature
+            {
+                FeatureId = f.FeatureId,
+                Name = f.Name,
+                Value = f.Value,
+                Description = f.Description,
+                Type = f.Type,
+                Source = f.Source,
+                Equipped = fu.Equipped
+            })
+        .OrderBy(f => f.Type)
+        .ThenByDescending(f => f.Value)
+        .ToList();
         }
 
         public bool EquipFeature(int userId, int featureId)
