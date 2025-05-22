@@ -94,6 +94,20 @@ namespace BusinessLayer.Repositories
                 return 0;
             }
 
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
+            {
+                return 0;
+            }
+            if (rating.RatingType == false)
+            {
+                post.NrDislikes--;
+            }
+            else
+            {
+                post.NrLikes--;
+            }
+
             context.NewsPostRatingTypes.Remove(rating);
             return context.SaveChanges();
         }
@@ -118,6 +132,14 @@ namespace BusinessLayer.Repositories
                 NrLikes = 0,
                 NrDislikes = 0
             };
+
+            // Update the comment count of the post
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
+            {
+                return 0;
+            }
+            post.NrComments++;
 
             context.NewsComments.Add(comment);
             return context.SaveChanges();
@@ -155,6 +177,17 @@ namespace BusinessLayer.Repositories
             {
                 return 0;
             }
+
+            // !! If someone has time please make this work !! //
+            // Update the comment count of the post
+            /*
+            var post = context.NewsPosts.Find(postId);
+            if (post == null)
+            {
+                return 0;
+            }
+            post.NrComments--;
+            */
 
             context.NewsComments.Remove(comment);
             return context.SaveChanges();

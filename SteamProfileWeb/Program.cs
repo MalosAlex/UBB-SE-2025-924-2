@@ -76,6 +76,7 @@ builder.Services.AddSession(options =>
 
 // Register Repositories
 builder.Services.AddScoped<IForumRepository, ForumRepository>();
+builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IUserProfilesRepository, UserProfilesRepository>();
@@ -88,6 +89,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 // Register Services - Note the order: SessionService needs to be registered before UserService
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IForumService, ForumService>();
 builder.Services.AddScoped<IFeaturesService, FeaturesService>();

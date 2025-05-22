@@ -32,9 +32,16 @@ namespace SteamProfileWeb.Controllers
             {
                 if (viewModel.AmountToAdd.HasValue)
                 {
-                    _walletService.AddMoney(viewModel.AmountToAdd.Value);
-                    TempData["SuccessMessage"] = $"Successfully added ${viewModel.AmountToAdd:F2} to your wallet using {viewModel.SelectedPaymentMethod}.";
-                    return RedirectToAction(nameof(Index));
+                    try
+                    {
+                        _walletService.AddMoney(viewModel.AmountToAdd.Value);
+                        TempData["SuccessMessage"] = $"Successfully added ${viewModel.AmountToAdd:F2} to your wallet using {viewModel.SelectedPaymentMethod}.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        ModelState.AddModelError(nameof(viewModel.AmountToAdd), "Amount cannot be greater than 500.");
+                    }
                 }
                 else
                 {
@@ -42,7 +49,6 @@ namespace SteamProfileWeb.Controllers
                 }
             }
 
-            TempData["AddFundsError"] = "Please correct the errors below.";
             var freshViewModel = new WalletViewModel(_walletService);
             freshViewModel.RefreshWalletData();
             freshViewModel.AmountToAdd = viewModel.AmountToAdd;

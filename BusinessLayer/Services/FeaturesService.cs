@@ -16,12 +16,14 @@ namespace BusinessLayer.Services
         private readonly IFeaturesRepository featuresRepository;
         private readonly IUserService userService;
         private readonly IUserProfilesRepository userProfilesRepository;
+        private readonly IWalletService walletService;
 
-        public FeaturesService(IFeaturesRepository featuresRepository, IUserService userService, IUserProfilesRepository userProfilesRepository)
+        public FeaturesService(IFeaturesRepository featuresRepository, IUserService userService, IUserProfilesRepository userProfilesRepository, IWalletService walletService)
         {
             this.featuresRepository = featuresRepository;
             this.userService = userService;
             this.userProfilesRepository = userProfilesRepository;
+            this.walletService = walletService;
         }
 
         public IUserService UserService => userService;
@@ -130,6 +132,15 @@ namespace BusinessLayer.Services
                 {
                     return (false, "User not found.");
                 }
+
+                var balance = walletService.GetBalance();
+                if (balance < feature.Value)
+                {
+                    return (false, "Insufficient funds to purchase this feature.");
+                }
+
+                walletService.BuyWithMoney(feature.Value, userId);
+
                 featuresRepository.AddUserFeature(userId, featureId);
                 return (true, $"Successfully purchased {feature.Name} for {feature.Value} points.");
             }

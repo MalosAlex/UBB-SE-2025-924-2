@@ -66,7 +66,7 @@ namespace SteamProfile.Implementation
         public void DisconnectClient()
         {
             // Further call to disconnect the client on window close
-            //this.client?.Disconnect();
+            // this.client?.Disconnect();
         }
 
         public void TryChangeMuteStatus(string targetedUser)
@@ -76,20 +76,20 @@ namespace SteamProfile.Implementation
             // Any user can send a message that is a command, even if they don't have access to
             // but the server will check for user status in the chat (this is where the try comes from)
             // Change means that it can become true or false
-            //string command = "<" + this.userName + ">|" + Server.MUTE_STATUS + "|<" + targetedUser + ">";
+            // string command = "<" + this.userName + ">|" + Server.MUTE_STATUS + "|<" + targetedUser + ">";
            // this.SendMessage(command);
         }
 
         public void TryChangeAdminStatus(string targetedUser)
         {
-            //string command = "<" + this.userName + ">|" + Server.ADMIN_STATUS + "|<" + targetedUser + ">";
-            //this.SendMessage(command);
+            // string command = "<" + this.userName + ">|" + Server.ADMIN_STATUS + "|<" + targetedUser + ">";
+            // this.SendMessage(command);
         }
 
         public void TryKick(string targetedUser)
         {
-            //string command = "<" + this.userName + ">|" + Server.KICK_STATUS + "|<" + targetedUser + ">";
-            //this.SendMessage(command);
+            // string command = "<" + this.userName + ">|" + Server.KICK_STATUS + "|<" + targetedUser + ">";
+            // this.SendMessage(command);
         }
 
         private void InvokeClientStatusChange(object? sender, ClientStatusEventArgs clientStatusEventArgs)

@@ -88,6 +88,20 @@ namespace BusinessLayer.Services.Proxies
                 throw new ServiceException($"Failed to credit points: {ex.Message}", ex);
             }
         }
+
+        public void BuyWithMoney(decimal amount, int userId)
+        {
+            try
+            {
+                // Call the API endpoint to buy with money for the specified user
+                PostAsync("Wallet/buy-with-money", new { UserId = userId, Amount = amount })
+                    .GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Failed to buy with money: {ex.Message}", ex);
+            }
+        }
     }
 
     // Helper class for wallet information

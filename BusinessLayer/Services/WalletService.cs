@@ -23,6 +23,10 @@ namespace BusinessLayer.Services
             {
                 throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be greater than 0.");
             }
+            if (amount > 500)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be greater than 500.");
+            }
             walletRepository.AddMoneyToWallet(amount, userService.GetCurrentUser().UserId);
         }
 
@@ -69,5 +73,14 @@ namespace BusinessLayer.Services
         {
             walletRepository.AddNewWallet(userIdentifier);
         }
-    }
+
+        public void BuyWithMoney(decimal amount, int userId)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be greater than 0.");
+            }
+            walletRepository.BuyWithMoney(amount, userId);
+        }
 }
+        }

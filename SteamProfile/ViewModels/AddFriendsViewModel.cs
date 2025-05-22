@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,7 +10,6 @@ using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Exceptions;
 using SteamProfile.Views;
 using Windows.System;
-using System.Diagnostics;
 
 namespace SteamProfile.ViewModels
 {
