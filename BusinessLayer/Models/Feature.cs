@@ -1,4 +1,6 @@
-﻿namespace BusinessLayer.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BusinessLayer.Models
 {
     public class Feature
     {

@@ -32,5 +32,9 @@ namespace BusinessLayer.Services.Fakes
         public void CreateWallet(int userId)
         {
         }
+
+        public void BuyWithMoney(decimal amount, int userId)
+        {
+        }
     }
 }

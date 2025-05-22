@@ -9,5 +9,6 @@ namespace BusinessLayer.Services.Interfaces
         int GetPoints();
         void AddMoney(decimal amount);
         void CreditPoints(int userId, int numberOfPoints);
+        void BuyWithMoney(decimal amount, int userId);
     }
 }

@@ -133,5 +133,10 @@ namespace BusinessLayer.Repositories.Fakes
                 userWalletMapping.Remove(userId);
             }
         }
+
+        public void BuyWithMoney(decimal amount, int userId)
+        {
+            // Check if the user has a wallet
+        }
     }
 }

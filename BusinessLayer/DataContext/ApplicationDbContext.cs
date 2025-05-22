@@ -159,8 +159,8 @@ namespace BusinessLayer.DataContext
                       .IsRequired();
                 entity.Property(f => f.Source)
                       .HasColumnName("source");
-                entity.Property(f => f.Equipped)
-                      .HasColumnName("equipped");
+                // entity.Property(f => f.Equipped)
+                //      .HasColumnName("equipped");
             });
 
             // -- FeatureUser mapping ---------------------------------------------------
