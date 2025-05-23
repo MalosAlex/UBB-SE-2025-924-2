@@ -164,5 +164,22 @@ namespace BusinessLayer.Repositories
                 .ThenByDescending(f => f.Value)
                 .ToList();
         }
+
+        public Feature GetFeatureById(int featureId)
+        {
+            return context.Features
+                .Where(f => f.FeatureId == featureId)
+                .Select(f => new Feature
+                {
+                    FeatureId = f.FeatureId,
+                    Name = f.Name,
+                    Value = f.Value,
+                    Description = f.Description,
+                    Type = f.Type,
+                    Source = f.Source,
+                    Equipped = f.Equipped
+                })
+                .FirstOrDefault();
+        }
     }
 }

@@ -14,5 +14,6 @@ namespace BusinessLayer.Repositories.Interfaces
         bool UnequipFeaturesByType(int userId, string featureType);
         bool AddUserFeature(int userId, int featureId);
         List<Feature> GetEquippedFeatures(int userId);
+        Feature GetFeatureById(int featureId);
     }
 }

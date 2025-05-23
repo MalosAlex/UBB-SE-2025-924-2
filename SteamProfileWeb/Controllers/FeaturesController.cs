@@ -144,13 +144,15 @@ namespace SteamProfileWeb.Controllers
             {
                 var currentUserId = GetCurrentUserId();
                 var (profilePicturePath, bioText, equippedFeatures) = featuresService.GetFeaturePreviewData(currentUserId, featureId);
+                var previewedFeature = featuresService.GetFeatureById(featureId);
 
                 var viewModel = new FeaturePreviewViewModel
                 {
                     ProfilePicturePath = profilePicturePath,
                     BioText = bioText,
                     EquippedFeatures = equippedFeatures,
-                    FeatureId = featureId
+                    FeatureId = featureId,
+                    PreviewedFeature = previewedFeature
                 };
 
                 return View(viewModel);
