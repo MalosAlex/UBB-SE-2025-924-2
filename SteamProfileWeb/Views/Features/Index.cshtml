@@ -62,7 +62,7 @@
         $(document).ready(function () {
             $('.preview-feature').click(function () {
                 var featureId = $(this).data('feature-id');
-                window.location.href = '@Url.Action("PreviewFeature", "Features")/' + featureId;
+                window.location.href = '@Url.Action("PreviewFeature", "Features")' + '?featureId=' + featureId;
             });
 
             $('.purchase-feature').click(function () {

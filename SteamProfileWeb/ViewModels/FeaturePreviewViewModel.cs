@@ -9,5 +9,6 @@ namespace SteamProfileWeb.ViewModels
         public string BioText { get; set; }
         public List<Feature> EquippedFeatures { get; set; }
         public int FeatureId { get; set; }
+        public Feature PreviewedFeature { get; set; }
     }
 } 

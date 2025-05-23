@@ -1,6 +1,6 @@
 @model SteamProfileWeb.ViewModels.FeaturePreviewViewModel
 @{
-    ViewData["Title"] = "Feature Preview";
+    ViewData["Title"] = Model.PreviewedFeature?.Name ?? "Feature Preview";
 }
 
 <div class="container">
@@ -8,16 +8,16 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h1 class="h3 mb-0">Feature Preview</h1>
+                    <h1 class="h3 mb-0">@(Model.PreviewedFeature?.Name ?? "Feature Preview")</h1>
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <img src="@Model.ProfilePicturePath" alt="Profile Picture" class="img-fluid rounded-circle" style="max-width: 200px;">
+                        <img src="~/@Model.PreviewedFeature.Source" alt="Profile Picture" class="img-fluid rounded-circle" style="max-width: 200px;">
                     </div>
 
                     <div class="mb-4">
                         <h4>Bio</h4>
-                        <p class="lead">@Model.BioText</p>
+                        <p class="lead">@(Model.PreviewedFeature?.Description ?? Model.BioText)</p>
                     </div>
 
                     <div class="mb-4">
