@@ -40,9 +40,9 @@
                         </div>
                     </div>
                     <div class="card-footer d-flex justify-content-between">
-                        <div>
-                            <span class="me-2"><i class="bi bi-hand-thumbs-up"></i> @post.NrLikes</span>
-                            <span><i class="bi bi-hand-thumbs-down"></i> @post.NrDislikes</span>
+                        <div class="news-votes">
+                            <span class="like-indicator me-3">👍 <span class="vote-count">@post.NrLikes</span></span>
+                            <span class="dislike-indicator">👎 <span class="vote-count">@post.NrDislikes</span></span>
                         </div>
                         <a asp-action="Details" asp-route-id="@post.Id" class="btn btn-sm btn-primary">Read More</a>
                     </div>
@@ -89,6 +89,34 @@
         .news-card:hover {
             transform: scale(1.02);
         }
+
+    .news-votes {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 1.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 1.3rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .like-indicator {
+        color: #198754;
+        font-weight: bold;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .dislike-indicator {
+        color: #dc3545;
+        font-weight: bold;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .vote-count {
+        margin-left: 0.3rem;
+        font-size: 1.2rem;
+    }
 </style>
 
 <script>
