@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 
-using BusinessLayer.Interfaces;
+using BusinessLayer.Services.Interfaces;
 using BusinessLayer.Models;
 
 namespace SteamProfile.ViewModels
@@ -13,8 +13,9 @@ namespace SteamProfile.ViewModels
     /// <summary>
     /// View model for the chat room UI, handling the presentation logic.
     /// </summary>
-    public class ChatRoomViewModel : INotifyPropertyChanged
+    public class ChatRoomViewModel
     {
+        /*
         private IChatService chatService;
         private bool isWindowOpen;
         private bool isAdmin;
@@ -264,5 +265,6 @@ namespace SteamProfile.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        */
     }
 }

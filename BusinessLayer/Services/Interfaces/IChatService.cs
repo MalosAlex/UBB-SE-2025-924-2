@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using BusinessLayer.Models;
 
-namespace SteamProfile.Implementation
+namespace BusinessLayer.Services.Interfaces
 {
-    internal interface IChatService
+    public interface IChatService
     {
         public event EventHandler<MessageEventArgs> NewMessageEvent;
         public event EventHandler<ExceptionEventArgs> ExceptionEvent;
