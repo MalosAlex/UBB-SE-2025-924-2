@@ -94,11 +94,7 @@ GO
 CREATE TABLE UserProfiles (
     profile_id       INT IDENTITY(1,1) PRIMARY KEY,
     user_id          INT NOT NULL UNIQUE,
-    profile_picture  NVARCHAR(255) CHECK (
-                       profile_picture LIKE '%.svg' OR
-                       profile_picture LIKE '%.png' OR
-                       profile_picture LIKE '%.jpg'
-                     ),
+    profile_picture  NVARCHAR(255),
     bio              NVARCHAR(1000),
     equipped_frame   NVARCHAR(255),
     equipped_hat     NVARCHAR(255),
@@ -786,4 +782,6 @@ SET icon_url = 'https://cdn-icons-png.flaticon.com/512/5139/5139999.png'
 WHERE achievement_id > 0;
 GO
 
+select * from Users
+select * from UserProfiles
 

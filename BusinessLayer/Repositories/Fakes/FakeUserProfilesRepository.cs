@@ -30,8 +30,9 @@ namespace BusinessLayer.Repositories.Fakes
            // throw an error for testing if needed
         }
 
-        public void UpdateProfilePicture(int user_id, string picture)
+        public Task UpdateProfilePicture(int user_id, string picture)
         {
+            return null;
             // throw an error for testing if needed
         }
     }

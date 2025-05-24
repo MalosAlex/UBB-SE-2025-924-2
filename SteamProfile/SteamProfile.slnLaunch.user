@@ -11,6 +11,10 @@
         "Path": "..\\SteamProfileWeb\\SteamProfileWeb.csproj",
         "Action": "Start",
         "DebugTarget": "https"
+      },
+      {
+        "Path": "SteamProfile.csproj",
+        "Action": "Start"
       }
     ]
   }
