@@ -121,17 +121,23 @@ public class SettingsController : Controller
         return View(model);
     }
 
-
+    [HttpGet]
     public IActionResult ModifyProfile()
     {
         var user = userService.GetCurrentUser();
+        if (user == null)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
         var model = new ModifyProfileViewModel
         {
-            Description = "",
-            ProfilePictureUrl = user?.ProfilePicturePath
+            ProfilePictureUrl = user.ProfilePicturePath
         };
+
         return View(model);
     }
+
 
     [HttpPost]
     public IActionResult ModifyProfile(ModifyProfileViewModel model)
@@ -159,15 +165,7 @@ public class SettingsController : Controller
             user.ProfilePicturePath = $"/uploads/{fileName}";
         }
 
-        // Update description/bio if provided
-        if (!string.IsNullOrWhiteSpace(model.Description))
-        {
-            // If you have a UserProfile entity, update its Description property here
-            // Otherwise, you may need to add a Description property to your User entity
-            // Example: user.Description = model.Description;
-        }
-
-        // Save changes
+        // Save changes (for picture path)
         userService.UpdateUser(user);
 
         model.SuccessMessage = "Profile updated successfully!";
