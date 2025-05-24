@@ -120,6 +120,40 @@
     .spoiler.revealed {
     color: white;
     }
+
+    .news-votes-details {
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 1.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 1.3rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .like-indicator-details {
+    color: #198754;
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    background: none !important;
+    border: none !important;
+    }
+
+    .dislike-indicator-details {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    background: none !important;
+    border: none !important;
+    }
+
+    .vote-count-details {
+    margin-left: 0.3rem;
+    font-size: 1.2rem;
+    }
 </style>
 
 <div class="container mt-4">
@@ -171,19 +205,19 @@
         </div>
         <div class="card-footer">
             <div class="d-flex justify-content-between">
-                <div class="d-flex">
+                <div class="d-flex news-votes-details">
                     <form asp-action="Like" method="post" class="me-2">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@Model.Post.Id" />
-                        <button type="submit" class="btn @(Model.Post.ActiveUserRating == true ? "btn-primary" : "btn-outline-primary")">
-                            <i class="bi bi-hand-thumbs-up"></i> @Model.Post.NrLikes
+                        <button type="submit" class="btn @(Model.Post.ActiveUserRating == true ? "btn-primary" : "btn-outline-primary") like-indicator-details">
+                            👍 <span class="vote-count-details">@Model.Post.NrLikes</span>
                         </button>
                     </form>
                     <form asp-action="Dislike" method="post" class="me-2">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@Model.Post.Id" />
-                        <button type="submit" class="btn @(Model.Post.ActiveUserRating == false ? "btn-danger" : "btn-outline-danger")">
-                            <i class="bi bi-hand-thumbs-down"></i> @Model.Post.NrDislikes
+                        <button type="submit" class="btn @(Model.Post.ActiveUserRating == false ? "btn-danger" : "btn-outline-danger") dislike-indicator-details">
+                            👎 <span class="vote-count-details">@Model.Post.NrDislikes</span>
                         </button>
                     </form>
                     @if (Model.Post.ActiveUserRating.HasValue)

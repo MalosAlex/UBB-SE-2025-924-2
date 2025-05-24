@@ -185,26 +185,47 @@ namespace BusinessLayer.Services
             return (profilePicturePath, bioText, equippedFeatures);
         }
 
-        public List<Feature> GetUserFeatures(int userId)
+        public List<Feature> GetUserFeatures(int userIdentifier)
         {
             try
             {
-                var features = featuresRepository.GetUserFeatures(userId);
+                var features = featuresRepository.GetUserFeatures(userIdentifier);
                 foreach (var feature in features)
                 {
-                    var validation = FeaturesValidator.ValidateFeature(feature);
-                    if (!validation.isValid)
+                    var validationResult = FeaturesValidator.ValidateFeature(feature);
+                    if (!validationResult.isValid)
                     {
-                        throw new ValidationException(validation.errorMessage);
+                        throw new ValidationException(validationResult.errorMessage);
                     }
                 }
-
                 return features;
             }
             catch (DatabaseOperationException exception)
             {
-                throw new DatabaseOperationException($"Failed to retrieve features for user {userId}.", exception);
+                throw new DatabaseOperationException($"Failed to retrieve features for user {userIdentifier}.", exception);
             }
+        }
+
+        public Feature GetFeatureById(int featureId)
+        {
+            if (featureId <= 0)
+            {
+                throw new ArgumentException("Invalid feature ID.", nameof(featureId));
+            }
+
+            var feature = featuresRepository.GetFeatureById(featureId);
+            if (feature == null)
+            {
+                throw new InvalidOperationException($"Feature with ID {featureId} not found.");
+            }
+
+            var (isValid, errorMessage) = FeaturesValidator.ValidateFeature(feature);
+            if (!isValid)
+            {
+                throw new InvalidOperationException(errorMessage);
+            }
+
+            return feature;
         }
 
         public FeaturesRepository GetRepository()

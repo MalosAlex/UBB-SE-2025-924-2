@@ -17,5 +17,7 @@ namespace BusinessLayer.Services.Interfaces
         IUserService UserService { get; }
 
         List<Feature> GetUserFeatures(int userIdentifier);
+
+        Feature GetFeatureById(int featureId);
     }
 }

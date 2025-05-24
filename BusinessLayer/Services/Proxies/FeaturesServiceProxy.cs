@@ -143,6 +143,18 @@ namespace BusinessLayer.Services.Proxies
                 throw new ServiceException("Failed to retrieve user features from server", ex);
             }
         }
+
+        public Feature GetFeatureById(int featureId)
+        {
+            try
+            {
+                return GetAsync<Feature>($"Feature/{featureId}").GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException($"Failed to retrieve feature with ID {featureId} from server", ex);
+            }
+        }
     }
 
     // Helper classes for feature responses

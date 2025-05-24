@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using SteamProfileWeb.ViewModels;
 using System.IO;
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 public class SettingsController : Controller
 {
@@ -50,22 +53,51 @@ public class SettingsController : Controller
         switch (action)
         {
             case "UpdateUsername":
-                if (userService.UpdateUserUsername(model.Username, model.CurrentPassword))
-                    model.SuccessMessage = "Username updated successfully!";
-                else
-                    model.ErrorMessage = "Failed to update username. Check your password.";
+                try
+                {
+                    userService.UpdateUserUsername(user.UserId, model.Username);
+
+                    var refreshedUser = userService.GetCurrentUser();
+                    var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, refreshedUser.Username),
+                };
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    HttpContext.SignInAsync("Identity.Application", principal).Wait();
+
+                    TempData["SuccessMessage"] = "Username updated successfully!";
+                    return RedirectToAction("AccountSettings");
+                }
+                catch (Exception ex)
+                {
+                    model.ErrorMessage = "Failed to update username. " + ex.Message;
+                }
                 break;
             case "UpdateEmail":
-                if (userService.UpdateUserEmail(model.Email, model.CurrentPassword))
-                    model.SuccessMessage = "Email updated successfully!";
-                else
-                    model.ErrorMessage = "Failed to update email. Check your password.";
+                try
+                {
+                    userService.UpdateUserEmail(user.UserId, model.Email);
+                    TempData["SuccessMessage"] = "Email updated successfully!";
+                    return RedirectToAction("AccountSettings");
+                }
+                catch (Exception ex)
+                {
+                    model.ErrorMessage = "Failed to update email. " + ex.Message;
+                }
                 break;
             case "UpdatePassword":
-                if (userService.UpdateUserPassword(model.Password, model.CurrentPassword))
-                    model.SuccessMessage = "Password updated successfully!";
-                else
-                    model.ErrorMessage = "Failed to update password. Check your current password.";
+                try
+                {
+                    userService.UpdateUserPassword(user.UserId, model.Password);
+                    TempData["SuccessMessage"] = "Password updated successfully!";
+                    return RedirectToAction("AccountSettings");
+                }
+                catch (Exception ex)
+                {
+                    model.ErrorMessage = "Failed to update password. " + ex.Message;
+                }
                 break;
             case "DeleteAccount":
                 userService.DeleteUser(user.UserId);
@@ -87,6 +119,7 @@ public class SettingsController : Controller
         model.CurrentPassword = "";
         return View(model);
     }
+
 
     public IActionResult ModifyProfile()
     {
