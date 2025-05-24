@@ -39,7 +39,11 @@ namespace SteamProfile.Views
         {
             if (sender is Button button && button.Tag is int friendId)
             {
-                Frame.Navigate(typeof(ChatRoomWindow), friendId);
+                var myId = usersViewModel.GetCurrentUser().UserId;
+                var chatWindow = new ChatRoomWindow(myId, friendId);
+                chatWindow.Activate();
+
+                // Frame.Navigate(typeof(ChatRoomWindow), friendId);
             }
         }
 

@@ -13,5 +13,18 @@
         "DebugTarget": "https"
       }
     ]
+  },
+  {
+    "Name": "desktop+api",
+    "Projects": [
+      {
+        "Path": "SteamProfile.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\SteamWebApi\\SteamWebApi.csproj",
+        "Action": "Start"
+      }
+    ]
   }
 ]
