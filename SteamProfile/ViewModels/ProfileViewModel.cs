@@ -12,6 +12,7 @@ using BusinessLayer.Models;
 using BusinessLayer.Services;
 using SteamProfile.Views;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media.Imaging;
 using BusinessLayer.Repositories;
 using BusinessLayer.Repositories.Interfaces;
 using BusinessLayer.Services.Interfaces;
@@ -187,6 +188,9 @@ namespace SteamProfile.ViewModels
 
         [ObservableProperty]
         private bool hasEquippedBackground;
+
+        [ObservableProperty]
+        private BitmapImage profilePhoto;
 
         private static CollectionsRepository gameCollectionsRepository;
 
@@ -375,7 +379,7 @@ namespace SteamProfile.ViewModels
                         // Continue with empty features list
                     }
 
-                    await dispatcherQueue.EnqueueAsync(() =>
+                    await dispatcherQueue.EnqueueAsync(async () =>
                     {
                         if (currentUser != null)
                         {
@@ -395,12 +399,33 @@ namespace SteamProfile.ViewModels
                             if (userProfile != null)
                             {
                                 biography = userProfile.Bio ?? string.Empty;
-                                // Add ms-appx:/// prefix if it's not already there
-                                ProfilePicture = userProfile.ProfilePicture != null
-                                    ? (userProfile.ProfilePicture.StartsWith("ms-appx:///")
-                                        ? userProfile.ProfilePicture
-                                        : $"ms-appx:///{userProfile.ProfilePicture}")
-                                    : "ms-appx:///Assets/default-profile.png";
+                                // Set the string property for backward compatibility
+                                // Handle different types of image sources
+                                if (userProfile.ProfilePicture != null)
+                                {
+                                    if (userProfile.ProfilePicture.StartsWith("http://") || userProfile.ProfilePicture.StartsWith("https://"))
+                                    {
+                                        // Web URL - use as-is for BitmapImage
+                                        ProfilePicture = userProfile.ProfilePicture;
+                                    }
+                                    else if (userProfile.ProfilePicture.StartsWith("ms-appx:///"))
+                                    {
+                                        // Already has ms-appx prefix
+                                        ProfilePicture = userProfile.ProfilePicture;
+                                    }
+                                    else
+                                    {
+                                        // Local asset - add ms-appx prefix
+                                        ProfilePicture = $"ms-appx:///{userProfile.ProfilePicture}";
+                                    }
+                                }
+                                else
+                                {
+                                    ProfilePicture = "ms-appx:///Assets/default-profile.png";
+                                }
+
+                                // Load as BitmapImage
+                                await LoadProfilePhotoAsync(ProfilePicture);
                             }
 
                             // Process equipped features
@@ -636,6 +661,27 @@ namespace SteamProfile.ViewModels
             {
                 Debug.WriteLine($"Error toggling friendship: {exception.Message}");
                 ErrorMessage = "Failed to update friendship status. Please try again later.";
+            }
+        }
+
+        private async Task LoadProfilePhotoAsync(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                ProfilePhoto = null;
+                return;
+            }
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.UriSource = new Uri(imageUrl);
+                ProfilePhoto = bitmap;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load profile image: {ex.Message}");
+                ProfilePhoto = null;
             }
         }
 

@@ -24,12 +24,16 @@
             </Grid.ColumnDefinitions>
 
             <!-- Profile Photo -->
-            <Border Grid.Column="0" Width="150" Height="150" CornerRadius="75" 
-                    BorderBrush="{ThemeResource SystemAccentColor}" BorderThickness="3" Margin="0,0,20,0">
-                <Border.Background>
-                    <ImageBrush ImageSource="{x:Bind ProfileViewModel.ProfilePhotoPath, Mode=OneWay}" Stretch="UniformToFill" />
-                </Border.Background>
-            </Border>
+            <Grid Grid.Column="0" Width="150" Height="150" Margin="0,0,20,0">
+                <Ellipse Width="150" Height="150" 
+             Stroke="{ThemeResource SystemAccentColor}" 
+             StrokeThickness="3">
+                    <Ellipse.Fill>
+                        <ImageBrush ImageSource="{x:Bind ProfileViewModel.ProfilePhoto, Mode=OneWay}" 
+                       Stretch="UniformToFill" />
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Grid>
 
             <!-- User Info -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
