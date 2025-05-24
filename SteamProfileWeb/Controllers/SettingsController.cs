@@ -41,7 +41,7 @@ public class SettingsController : Controller
     }
 
     [HttpPost]
-    public IActionResult AccountSettings(AccountSettingsViewModel model, string action)
+    public async Task<IActionResult> AccountSettings(AccountSettingsViewModel model, string action)
     {
         var user = userService.GetCurrentUser();
         if (user == null)
@@ -100,8 +100,9 @@ public class SettingsController : Controller
                 }
                 break;
             case "DeleteAccount":
-                userService.DeleteUser(user.UserId);
+                await HttpContext.SignOutAsync("Identity.Application");
                 userService.Logout();
+                userService.DeleteUser(user.UserId);
                 return RedirectToAction("Index", "Home");
             case "Logout":
                 userService.Logout();

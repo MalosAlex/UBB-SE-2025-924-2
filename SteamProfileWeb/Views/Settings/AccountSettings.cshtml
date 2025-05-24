@@ -30,8 +30,8 @@
         <div class="mb-3">
             <button type="submit" name="action" value="DeleteAccount" class="btn btn-danger w-100">Delete Account</button>
         </div>
-        <div>
-            <button type="submit" name="action" value="Logout" class="btn btn-secondary w-100">Log out</button>
-        </div>
+    </form>
+    <form class="form-inline mt-3 w-100" asp-controller="Auth" asp-action="Logout" asp-route-returnUrl="@Url.Action("Login", "Auth")" method="post" style="max-width: 400px;">
+        <button type="submit" class="btn btn-secondary w-100">Log out</button>
     </form>
 </div>
