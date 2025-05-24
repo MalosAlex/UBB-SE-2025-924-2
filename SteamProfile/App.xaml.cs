@@ -157,9 +157,6 @@ namespace SteamProfile
 
             Services[typeof(ICollectionsService)] = new CollectionsService(collectionsRepository);
 
-            var walletService = new WalletService(walletRepository, userService);
-            Services[typeof(IWalletService)] = walletService;
-
             var featuresService = new FeaturesService(featureRepository, userService, userProfilesRepository, walletService);
             Services[typeof(IFeaturesService)] = featuresService;
 
