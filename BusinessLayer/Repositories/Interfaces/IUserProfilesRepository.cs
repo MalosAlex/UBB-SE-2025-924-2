@@ -8,6 +8,6 @@ namespace BusinessLayer.Repositories.Interfaces
         UserProfile? UpdateProfile(UserProfile profile);
         UserProfile? CreateProfile(int userId);
         void UpdateProfileBio(int user_id, string bio);
-        void UpdateProfilePicture(int user_id, string picture);
+        Task UpdateProfilePicture(int user_id, string picture);
     }
 }

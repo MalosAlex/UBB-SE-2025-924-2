@@ -51,13 +51,43 @@ namespace BusinessLayer.Repositories
             context.SaveChanges();
         }
 
-        public void UpdateProfilePicture(int userId, string picture)
+        public async Task UpdateProfilePicture(int userId, string localImagePath)
         {
+            string imgurClientId = "bbf48913b385d7b";
             var existing = context.UserProfiles.SingleOrDefault(up => up.UserId == userId)
                 ?? throw new RepositoryException($"Profile with user ID {userId} not found.");
-            existing.ProfilePicture = picture;
+
+            string imageUrl = await UploadImageToImgurAsync(localImagePath, imgurClientId);
+
+            existing.ProfilePicture = imageUrl;
             existing.LastModified = DateTime.UtcNow;
             context.SaveChanges();
+        }
+
+        private async Task<string> UploadImageToImgurAsync(string imagePath, string clientId)
+        {
+            using var client = new HttpClient();
+            using var form = new MultipartFormDataContent();
+            using var image = new ByteArrayContent(File.ReadAllBytes(imagePath));
+
+            image.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+            form.Add(image, "image");
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Client-ID", clientId);
+
+            var response = await client.PostAsync("https://api.imgur.com/3/image", form);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new RepositoryException("Imgur upload failed: " + json);
+            }
+
+            var link = System.Text.Json.JsonDocument.Parse(json)
+                        .RootElement.GetProperty("data")
+                        .GetProperty("link").GetString();
+
+            return link ?? throw new RepositoryException("Imgur returned null link.");
         }
     }
 }
