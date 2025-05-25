@@ -4,9 +4,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SteamProfile.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:local1="using:SteamProfile.Converters"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <local1:ImagePathToImageSourceConverter x:Key="ImagePathToImageSourceConverter"/>
+    </Page.Resources>
 
     <Grid Padding="20" HorizontalAlignment="Center">
 
@@ -26,20 +31,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+                                   Stretch="UniformToFill"
+                                   IsHitTestVisible="True"
+                                   Opacity="{Binding Opacity}" />
+
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+                               FontSize="12"
+                               FontStyle="Italic"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -56,21 +75,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -87,21 +119,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -118,21 +163,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -149,21 +207,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -180,21 +251,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -211,21 +295,34 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -242,25 +339,40 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
-                                <Grid>
-                                    <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}" Stretch="UniformToFill" IsHitTestVisible="True" Opacity="{Binding Opacity}"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <Border Width="70" Height="70" CornerRadius="35" Background="LightGray">
+                                    <Grid>
+                                        <Image Source="{Binding Achievement.Icon, Converter={StaticResource ImagePathToImageSourceConverter}}"
+               Stretch="UniformToFill"
+               IsHitTestVisible="True"
+               Opacity="{Binding Opacity}" />
 
-                                    <ToolTipService.ToolTip>
-                                        <ToolTip>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
-                                                <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
-                                                <TextBlock Text="{Binding UnlockedDate}"/>
-                                            </StackPanel>
-                                        </ToolTip>
-                                    </ToolTipService.ToolTip>
-                                </Grid>
-                            </Border>
+                                        <ToolTipService.ToolTip>
+                                            <ToolTip>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Achievement.AchievementName}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Achievement.Description}" TextWrapping="Wrap" MaxWidth="200"/>
+                                                    <TextBlock Text="{Binding UnlockedDate}"/>
+                                                </StackPanel>
+                                            </ToolTip>
+                                        </ToolTipService.ToolTip>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Italic name below the image -->
+                                <TextBlock Text="{Binding Achievement.AchievementName}"
+           FontSize="12"
+           FontStyle="Italic"
+           TextAlignment="Center"
+           TextWrapping="Wrap"
+           Margin="0,6,0,0"/>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+            
+            <!-- Other sections remain unchanged -->
 
         </StackPanel>
 
