@@ -87,7 +87,6 @@ namespace SteamProfile.Implementation
             // Events -> if something happened, alert the listeners, in this case we are the listeners
             //          and we assign functions for each trigger of an event
             this.service.NewMessageEvent += HandleNewMessage;
-            this.service.ClientStatusChangedEvent += HandleUserStatusChange;
             this.service.ExceptionEvent += HandleException;
 
             this.Closed += this.DisconnectService;
