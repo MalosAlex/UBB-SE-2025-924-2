@@ -54,13 +54,54 @@ namespace SteamProfileWeb.Controllers
                 UserIdentifier = user.UserId,
                 Username = user.Username,
                 Email = user.Email,
-                ProfilePhotoPath = userProfile?.ProfilePicture ?? "/images/default-profile.png",
+                ProfilePhotoPath = ConvertToWebPath(userProfile?.ProfilePicture),
                 Biography = userProfile?.Bio ?? "",
                 FriendCount = friendsService.GetFriendshipCount(userId),
                 GameCollections = collections
             };
 
             return View(vm);
+        }
+
+        /// <summary>
+        /// Converts ms-appx:// paths and other formats to web-compatible paths
+        /// </summary>
+        private string ConvertToWebPath(string profilePicturePath)
+        {
+            // If path is null or empty, return default
+            if (string.IsNullOrEmpty(profilePicturePath))
+            {
+                return "/Assets/default_avatar.png";
+            }
+
+            // If it's already a web path (starts with /), return as-is
+            if (profilePicturePath.StartsWith("/"))
+            {
+                return profilePicturePath;
+            }
+
+            // Convert ms-appx:// paths to web paths
+            if (profilePicturePath.StartsWith("ms-appx:///"))
+            {
+                // Remove "ms-appx://" and convert to web path
+                var webPath = profilePicturePath.Replace("ms-appx:///", "/");
+                return webPath;
+            }
+
+            // If it's a relative path, make it absolute
+            if (!profilePicturePath.StartsWith("http") && !profilePicturePath.StartsWith("/"))
+            {
+                return "/" + profilePicturePath;
+            }
+
+            // If it's an HTTP URL, return as-is
+            if (profilePicturePath.StartsWith("http"))
+            {
+                return profilePicturePath;
+            }
+
+            // Fallback to default if we can't parse it
+            return "/Assets/default_avatar.png";
         }
     }
 }
