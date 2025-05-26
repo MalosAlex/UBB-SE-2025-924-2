@@ -13,7 +13,14 @@ namespace SteamProfile.Converters
                 System.Diagnostics.Debug.WriteLine($"Converting path: {path}");
                 try
                 {
-                    // Ensure the path uses the ms-appx URI scheme for local assets
+                    path = path.Replace("\\", "/");
+
+                    // Prepend URI prefix if needed
+                    if (!path.StartsWith("ms-appx:///"))
+                    {
+                        path = "ms-appx:///" + path;
+                    }
+
                     var uri = new Uri(path);
                     return new BitmapImage(uri);
                 }

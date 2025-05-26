@@ -743,45 +743,42 @@ ADD equipped BIT NOT NULL DEFAULT 0;
 
 --ADD ACHIEVEMENTS TO DB
 GO
-INSERT INTO Achievements (achievement_name, description,                achievement_type,               points) VALUES
-    ('FRIENDSHIP1',  'You made a friend, you get a point',             'Friendships',                  1),
-    ('FRIENDSHIP2',  'You made 5 friends, you get 3 points',           'Friendships',                  3),
-    ('FRIENDSHIP3',  'You made 10 friends, you get 5 points',          'Friendships',                  5),
-    ('FRIENDSHIP4',  'You made 50 friends, you get 10 points',         'Friendships',                  10),
-    ('FRIENDSHIP5',  'You made 100 friends, you get 15 points',        'Friendships',                  15),
-    ('OWNEDGAMES1',  'You own 1 game, you get 1 point',                'Owned Games',                  1),
-    ('OWNEDGAMES2',  'You own 5 games, you get 3 points',              'Owned Games',                  3),
-    ('OWNEDGAMES3',  'You own 10 games, you get 5 points',             'Owned Games',                  5),
-    ('OWNEDGAMES4',  'You own 50 games, you get 10 points',            'Owned Games',                  10),
-    ('SOLDGAMES1',   'You sold 1 game, you get 1 point',               'Sold Games',                   1),
-    ('SOLDGAMES2',   'You sold 5 games, you get 3 points',             'Sold Games',                   3),
-    ('SOLDGAMES3',   'You sold 10 games, you get 5 points',            'Sold Games',                   5),
-    ('SOLDGAMES4',   'You sold 50 games, you get 10 points',           'Sold Games',                   10),
-    ('REVIEW1',      'You gave 1 review, you get 1 point',            'Number of Reviews Given',      1),
-    ('REVIEW2',      'You gave 5 reviews, you get 3 points',          'Number of Reviews Given',      3),
-    ('REVIEW3',      'You gave 10 reviews, you get 5 points',         'Number of Reviews Given',      5),
-    ('REVIEW4',      'You gave 50 reviews, you get 10 points',        'Number of Reviews Given',      10),
-    ('REVIEWR1',     'You got 1 review, you get 1 point',             'Number of Reviews Received',   1),
-    ('REVIEWR2',     'You got 5 reviews, you get 3 points',           'Number of Reviews Received',   3),
-    ('REVIEWR3',     'You got 10 reviews, you get 5 points',          'Number of Reviews Received',   5),
-    ('REVIEWR4',     'You got 50 reviews, you get 10 points',         'Number of Reviews Received',   10),
-    ('DEVELOPER',    'You are a developer, you get 10 points',        'Developer',                    10),
-    ('ACTIVITY1',    'You have been active for 1 year, you get 1 point','Years of Activity',            1),
-    ('ACTIVITY2',    'You have been active for 2 years, you get 3 points','Years of Activity',            3),
-    ('ACTIVITY3',    'You have been active for 3 years, you get 5 points','Years of Activity',            5),
-    ('ACTIVITY4',    'You have been active for 4 years, you get 10 points','Years of Activity',            10),
-    ('POSTS1',       'You have made 1 post, you get 1 point',          'Number of Posts',              1),
-    ('POSTS2',       'You have made 5 posts, you get 3 points',        'Number of Posts',              3),
-    ('POSTS3',       'You have made 10 posts, you get 5 points',       'Number of Posts',              5),
-    ('POSTS4',       'You have made 50 posts, you get 10 points',      'Number of Posts',              10);
+INSERT INTO Achievements (achievement_name, description,                achievement_type,               points , icon_url) VALUES
+    ('FRIENDSHIP1',  'You made a friend, you get a point',             'Friendships',                  1 , 'Assets\Achievements\1_point.png'),
+    ('FRIENDSHIP2',  'You made 5 friends, you get 3 points',           'Friendships',                  3 , 'Assets\Achievements\3_points.png'),
+    ('FRIENDSHIP3',  'You made 10 friends, you get 5 points',          'Friendships',                  5 , 'Assets\Achievements\5_points.png'),
+    ('FRIENDSHIP4',  'You made 50 friends, you get 10 points',         'Friendships',                  10 , 'Assets\Achievements\10_points.png'),
+    ('FRIENDSHIP5',  'You made 100 friends, you get 15 points',        'Friendships',                  15 , 'Assets\Achievements\15_points.png'),
+    ('OWNEDGAMES1',  'You own 1 game, you get 1 point',                'Owned Games',                  1 , 'Assets\Achievements\1_point.png'),
+    ('OWNEDGAMES2',  'You own 5 games, you get 3 points',              'Owned Games',                  3 , 'Assets\Achievements\3_points.png'),
+    ('OWNEDGAMES3',  'You own 10 games, you get 5 points',             'Owned Games',                  5 , 'Assets\Achievements\5_points.png'),
+    ('OWNEDGAMES4',  'You own 50 games, you get 10 points',            'Owned Games',                  10 , 'Assets\Achievements\10_points.png'),
+    ('SOLDGAMES1',   'You sold 1 game, you get 1 point',               'Sold Games',                   1 , 'Assets\Achievements\1_point.png'),
+    ('SOLDGAMES2',   'You sold 5 games, you get 3 points',             'Sold Games',                   3 , 'Assets\Achievements\3_points.png'),
+    ('SOLDGAMES3',   'You sold 10 games, you get 5 points',            'Sold Games',                   5 , 'Assets\Achievements\5_points.png'),
+    ('SOLDGAMES4',   'You sold 50 games, you get 10 points',           'Sold Games',                   10 , 'Assets\Achievements\10_points.png'),
+    ('REVIEW1',      'You gave 1 review, you get 1 point',            'Number of Reviews Given',      1 , 'Assets\Achievements\1_point.png'),
+    ('REVIEW2',      'You gave 5 reviews, you get 3 points',          'Number of Reviews Given',      3 , 'Assets\Achievements\3_points.png'),
+    ('REVIEW3',      'You gave 10 reviews, you get 5 points',         'Number of Reviews Given',      5 , 'Assets\Achievements\5_points.png'),
+    ('REVIEW4',      'You gave 50 reviews, you get 10 points',        'Number of Reviews Given',      10 , 'Assets\Achievements\10_points.png'),
+    ('REVIEWR1',     'You got 1 review, you get 1 point',             'Number of Reviews Received',   1 , 'Assets\Achievements\1_point.png'),
+    ('REVIEWR2',     'You got 5 reviews, you get 3 points',           'Number of Reviews Received',   3 , 'Assets\Achievements\3_points.png'),
+    ('REVIEWR3',     'You got 10 reviews, you get 5 points',          'Number of Reviews Received',   5 , 'Assets\Achievements\5_points.png'),
+    ('REVIEWR4',     'You got 50 reviews, you get 10 points',         'Number of Reviews Received',   10 , 'Assets\Achievements\10_points.png'),
+    ('DEVELOPER',    'You are a developer, you get 10 points',        'Developer',                    10 , 'Assets\Achievements\10_points.png'),
+    ('ACTIVITY1',    'You have been active for 1 year, you get 1 point','Years of Activity',            1 , 'Assets\Achievements\1_point.png'),
+    ('ACTIVITY2',    'You have been active for 2 years, you get 3 points','Years of Activity',            3 , 'Assets\Achievements\3_points.png'),
+    ('ACTIVITY3',    'You have been active for 3 years, you get 5 points','Years of Activity',            5 , 'Assets\Achievements\5_points.png'),
+    ('ACTIVITY4',    'You have been active for 4 years, you get 10 points','Years of Activity',            10 , 'Assets\Achievements\10_points.png'),
+    ('POSTS1',       'You have made 1 post, you get 1 point',          'Number of Posts',              1 , 'Assets\Achievements\1_point.png'),
+    ('POSTS2',       'You have made 5 posts, you get 3 points',        'Number of Posts',              3 , 'Assets\Achievements\3_points.png'),
+    ('POSTS3',       'You have made 10 posts, you get 5 points',       'Number of Posts',              5 , 'Assets\Achievements\5_points.png'),
+    ('POSTS4',       'You have made 50 posts, you get 10 points',      'Number of Posts',              10 , 'Assets\Achievements\10_points.png');
 GO
 
--- Add a generic icon URL to all achievements
-UPDATE Achievements
-SET icon_url = 'https://cdn-icons-png.flaticon.com/512/5139/5139999.png'
-WHERE achievement_id > 0;
-GO
 
 select * from Users
 select * from UserProfiles
+select * from Achievements
+
 
